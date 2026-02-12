@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
 const PUBLISH_STEPS = [
   {
@@ -46,81 +46,84 @@ mcpx publish --public
   },
 ];
 
+const TERMINAL_DOTS = [
+  { color: "#FF5F57", label: "close" },
+  { color: "#FEBD2E", label: "minimize" },
+  { color: "#27C93F", label: "maximize" },
+];
+
 export default function PublishSection() {
   const [step, setStep] = useState(0);
 
+  const handleCopy = useCallback(() => {
+    navigator.clipboard?.writeText(PUBLISH_STEPS[step].code);
+  }, [step]);
+
   return (
     <section
-      style={{ padding: "60px 32px", maxWidth: "900px", margin: "0 auto" }}
+      aria-label="How to publish"
+      style={{
+        padding: "60px var(--section-px)",
+        maxWidth: "900px",
+        margin: "0 auto",
+      }}
     >
       {/* Header */}
-      <div style={{ textAlign: "center", marginBottom: "48px" }}>
+      <div style={{ textAlign: "center", marginBottom: "var(--space-2xl)" }}>
         <h2
           style={{
-            fontFamily: "'Syne', sans-serif",
-            fontSize: "36px",
+            fontFamily: "var(--font-heading)",
+            fontSize: "var(--font-4xl)",
             fontWeight: 800,
             letterSpacing: "-1px",
-            marginBottom: "12px",
+            marginBottom: "var(--space-sm)",
           }}
         >
           Publish in{" "}
           <span style={{ color: "var(--accent-electric)" }}>3 Commands</span>
         </h2>
-        <p style={{ color: "var(--text-secondary)", fontSize: "16px" }}>
+        <p style={{ color: "var(--text-secondary)", fontSize: "var(--font-lg)" }}>
           From GitHub repo to monetized MCP server in under 5 minutes.
         </p>
       </div>
 
       {/* Step navigation */}
       <div
+        className="step-nav"
+        role="tablist"
+        aria-label="Publishing steps"
         style={{
           display: "flex",
-          gap: "4px",
-          marginBottom: "24px",
+          gap: "var(--space-xs)",
+          marginBottom: "var(--space-lg)",
           background: "var(--bg-secondary)",
-          borderRadius: "12px",
-          padding: "4px",
+          borderRadius: "var(--radius-lg)",
+          padding: "var(--space-xs)",
         }}
       >
         {PUBLISH_STEPS.map((s, i) => (
           <button
             key={i}
+            role="tab"
+            className="step-btn"
             onClick={() => setStep(i)}
-            style={{
-              flex: 1,
-              padding: "12px",
-              borderRadius: "10px",
-              border: "none",
-              cursor: "pointer",
-              background: step === i ? "var(--bg-card)" : "transparent",
-              color:
-                step === i ? "var(--accent-electric)" : "var(--text-muted)",
-              fontFamily: "'Space Mono', monospace",
-              fontSize: "12px",
-              fontWeight: 700,
-              transition: "all 0.2s ease",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              justifyContent: "center",
-            }}
+            aria-selected={step === i}
+            aria-controls={`step-panel-${i}`}
           >
             <span
+              aria-hidden="true"
               style={{
                 width: 20,
                 height: 20,
                 borderRadius: "50%",
                 background:
-                  step === i
-                    ? "var(--accent-electric)"
-                    : "var(--border-accent)",
+                  step === i ? "var(--accent-electric)" : "var(--border-accent)",
                 color:
                   step === i ? "var(--bg-primary)" : "var(--text-muted)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: "11px",
+                fontSize: "var(--font-xs)",
                 fontWeight: 700,
               }}
             >
@@ -133,72 +136,53 @@ export default function PublishSection() {
 
       {/* Code block */}
       <div
-        style={{
-          background: "var(--bg-card)",
-          border: "1px solid var(--border-subtle)",
-          borderRadius: "16px",
-          overflow: "hidden",
-        }}
+        id={`step-panel-${step}`}
+        role="tabpanel"
+        className="terminal"
+        aria-label={`Step ${step + 1}: ${PUBLISH_STEPS[step].title}`}
       >
         {/* Terminal header */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            padding: "12px 16px",
-            borderBottom: "1px solid var(--border-subtle)",
-          }}
-        >
-          <div
-            style={{
-              width: 10,
-              height: 10,
-              borderRadius: "50%",
-              background: "#FF5F57",
-            }}
-          />
-          <div
-            style={{
-              width: 10,
-              height: 10,
-              borderRadius: "50%",
-              background: "#FEBD2E",
-            }}
-          />
-          <div
-            style={{
-              width: 10,
-              height: 10,
-              borderRadius: "50%",
-              background: "#27C93F",
-            }}
-          />
+        <div className="terminal-header">
+          {TERMINAL_DOTS.map((dot) => (
+            <div
+              key={dot.label}
+              className="terminal-dot"
+              aria-hidden="true"
+              style={{ background: dot.color }}
+            />
+          ))}
           <span
             style={{
               marginLeft: "auto",
-              fontFamily: "'Space Mono', monospace",
-              fontSize: "11px",
+              fontFamily: "var(--font-mono)",
+              fontSize: "var(--font-xs)",
               color: "var(--text-muted)",
             }}
           >
             terminal
           </span>
+          <button
+            onClick={handleCopy}
+            aria-label="Copy code to clipboard"
+            style={{
+              background: "transparent",
+              border: "1px solid var(--border-subtle)",
+              color: "var(--text-muted)",
+              padding: "2px 8px",
+              borderRadius: "var(--radius-sm)",
+              cursor: "pointer",
+              fontFamily: "var(--font-mono)",
+              fontSize: "var(--font-xs)",
+              transition: "color var(--transition-fast)",
+            }}
+          >
+            Copy
+          </button>
         </div>
 
         {/* Code content */}
-        <pre
-          style={{
-            padding: "24px",
-            fontFamily: "'Space Mono', monospace",
-            fontSize: "13px",
-            lineHeight: 1.7,
-            color: "var(--accent-electric)",
-            overflowX: "auto",
-            margin: 0,
-          }}
-        >
-          {PUBLISH_STEPS[step].code}
+        <pre className="terminal-code">
+          <code>{PUBLISH_STEPS[step].code}</code>
         </pre>
       </div>
     </section>

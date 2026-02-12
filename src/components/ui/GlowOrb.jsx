@@ -1,6 +1,10 @@
-export default function GlowOrb({ color, size, top, left, delay = 0 }) {
+import { memo } from "react";
+
+const GlowOrb = memo(function GlowOrb({ color, size, top, left, delay = 0 }) {
   return (
     <div
+      aria-hidden="true"
+      className="will-transform"
       style={{
         position: "absolute",
         top,
@@ -16,4 +20,6 @@ export default function GlowOrb({ color, size, top, left, delay = 0 }) {
       }}
     />
   );
-}
+});
+
+export default GlowOrb;

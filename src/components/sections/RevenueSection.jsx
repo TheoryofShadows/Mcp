@@ -3,17 +3,22 @@ import { REVENUE_PROJECTIONS, PRICING_TIERS } from "../../data";
 export default function RevenueSection() {
   return (
     <section
-      style={{ padding: "60px 32px", maxWidth: "1100px", margin: "0 auto" }}
+      aria-label="Revenue model"
+      style={{
+        padding: "60px var(--section-px)",
+        maxWidth: "1100px",
+        margin: "0 auto",
+      }}
     >
       {/* Header */}
-      <div style={{ textAlign: "center", marginBottom: "48px" }}>
+      <div style={{ textAlign: "center", marginBottom: "var(--space-2xl)" }}>
         <h2
           style={{
-            fontFamily: "'Syne', sans-serif",
-            fontSize: "36px",
+            fontFamily: "var(--font-heading)",
+            fontSize: "var(--font-4xl)",
             fontWeight: 800,
             letterSpacing: "-1px",
-            marginBottom: "12px",
+            marginBottom: "var(--space-sm)",
           }}
         >
           Revenue{" "}
@@ -22,7 +27,7 @@ export default function RevenueSection() {
         <p
           style={{
             color: "var(--text-secondary)",
-            fontSize: "16px",
+            fontSize: "var(--font-lg)",
             maxWidth: "500px",
             margin: "0 auto",
           }}
@@ -37,15 +42,15 @@ export default function RevenueSection() {
         style={{
           background: "var(--bg-card)",
           border: "1px solid var(--border-subtle)",
-          borderRadius: "16px",
+          borderRadius: "var(--radius-xl)",
           padding: "28px",
           marginBottom: "40px",
         }}
       >
         <div
           style={{
-            fontFamily: "'Space Mono', monospace",
-            fontSize: "12px",
+            fontFamily: "var(--font-mono)",
+            fontSize: "var(--font-sm)",
             color: "var(--text-muted)",
             letterSpacing: "1px",
             textTransform: "uppercase",
@@ -55,6 +60,7 @@ export default function RevenueSection() {
           {"\u25C8"} Revenue Projection
         </div>
         <div
+          className="projection-grid"
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
@@ -67,46 +73,47 @@ export default function RevenueSection() {
               style={{
                 padding: "20px",
                 background: "var(--bg-secondary)",
-                borderRadius: "12px",
+                borderRadius: "var(--radius-lg)",
                 border: item.highlight
                   ? "1px solid rgba(77, 255, 180, 0.3)"
                   : "1px solid var(--border-subtle)",
               }}
             >
-              <div
+              <dt
                 style={{
-                  fontFamily: "'Space Mono', monospace",
-                  fontSize: "11px",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "var(--font-xs)",
                   color: "var(--text-muted)",
                   letterSpacing: "0.5px",
-                  marginBottom: "8px",
+                  marginBottom: "var(--space-sm)",
                 }}
               >
                 {item.label}
-              </div>
-              <div
+              </dt>
+              <dd
                 style={{
-                  fontFamily: "'Syne', sans-serif",
-                  fontSize: "24px",
+                  fontFamily: "var(--font-heading)",
+                  fontSize: "var(--font-2xl)",
                   fontWeight: 800,
                   color: item.highlight
                     ? "var(--accent-electric)"
                     : "var(--text-primary)",
                   letterSpacing: "-0.5px",
+                  margin: 0,
                 }}
               >
                 {item.value}
-              </div>
-              <div
+              </dd>
+              <dd
                 style={{
-                  fontFamily: "'DM Sans', sans-serif",
-                  fontSize: "12px",
+                  fontFamily: "var(--font-body)",
+                  fontSize: "var(--font-sm)",
                   color: "var(--text-muted)",
-                  marginTop: "4px",
+                  marginTop: "var(--space-xs)",
                 }}
               >
                 {item.note}
-              </div>
+              </dd>
             </div>
           ))}
         </div>
@@ -114,10 +121,11 @@ export default function RevenueSection() {
 
       {/* Pricing tiers */}
       <div
+        className="pricing-grid"
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-          gap: "16px",
+          gap: "var(--space-md)",
         }}
       >
         {PRICING_TIERS.map((tier, i) => (
@@ -128,7 +136,7 @@ export default function RevenueSection() {
               border: tier.popular
                 ? `1px solid ${tier.accent}`
                 : "1px solid var(--border-subtle)",
-              borderRadius: "16px",
+              borderRadius: "var(--radius-xl)",
               padding: "28px",
               position: "relative",
             }}
@@ -141,11 +149,11 @@ export default function RevenueSection() {
                   right: "20px",
                   background: tier.accent,
                   color: "var(--bg-primary)",
-                  fontFamily: "'Space Mono', monospace",
+                  fontFamily: "var(--font-mono)",
                   fontSize: "10px",
                   fontWeight: 700,
                   padding: "4px 12px",
-                  borderRadius: "20px",
+                  borderRadius: "var(--radius-pill)",
                   letterSpacing: "0.5px",
                 }}
               >
@@ -154,79 +162,71 @@ export default function RevenueSection() {
             )}
             <div
               style={{
-                fontFamily: "'Space Mono', monospace",
-                fontSize: "11px",
+                fontFamily: "var(--font-mono)",
+                fontSize: "var(--font-xs)",
                 color: tier.accent,
                 letterSpacing: "1px",
                 textTransform: "uppercase",
-                marginBottom: "8px",
+                marginBottom: "var(--space-sm)",
               }}
             >
               {tier.name}
             </div>
             <div
               style={{
-                fontFamily: "'Syne', sans-serif",
-                fontSize: "32px",
+                fontFamily: "var(--font-heading)",
+                fontSize: "var(--font-3xl)",
                 fontWeight: 800,
                 color: "var(--text-primary)",
                 letterSpacing: "-1px",
-                marginBottom: "4px",
+                marginBottom: "var(--space-xs)",
               }}
             >
               {tier.price}
             </div>
             <p
               style={{
-                fontSize: "13px",
+                fontSize: "var(--font-base)",
                 color: "var(--text-secondary)",
                 marginBottom: "20px",
               }}
             >
               {tier.desc}
             </p>
-            <div
+            <ul
               style={{
                 display: "flex",
                 flexDirection: "column",
                 gap: "10px",
+                listStyle: "none",
+                padding: 0,
               }}
             >
               {tier.features.map((f, j) => (
-                <div
+                <li
                   key={j}
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: "8px",
-                    fontSize: "13px",
+                    gap: "var(--space-sm)",
+                    fontSize: "var(--font-base)",
                     color: "var(--text-secondary)",
                   }}
                 >
-                  <span style={{ color: tier.accent, fontSize: "10px" }}>
+                  <span aria-hidden="true" style={{ color: tier.accent, fontSize: "10px" }}>
                     {"\u2713"}
                   </span>
                   {f}
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
             <button
+              className="tier-btn"
+              aria-label={`${tier.price === "Free" ? "Get started with" : "Subscribe to"} ${tier.name} plan`}
               style={{
-                marginTop: "24px",
-                width: "100%",
-                padding: "12px",
-                borderRadius: "10px",
-                border: tier.popular
-                  ? "none"
-                  : `1px solid ${tier.accent}`,
+                border: tier.popular ? "none" : `1px solid ${tier.accent}`,
                 background: tier.popular ? tier.accent : "transparent",
-                color: tier.popular
-                  ? "var(--bg-primary)"
-                  : tier.accent,
-                cursor: "pointer",
-                fontFamily: "'Syne', sans-serif",
-                fontSize: "14px",
-                fontWeight: 700,
+                color: tier.popular ? "var(--bg-primary)" : tier.accent,
               }}
             >
               {tier.price === "Free" ? "Get Started" : "Subscribe"}

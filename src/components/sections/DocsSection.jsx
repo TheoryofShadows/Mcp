@@ -3,17 +3,22 @@ import { TECH_STACK } from "../../data";
 export default function DocsSection() {
   return (
     <section
-      style={{ padding: "60px 32px", maxWidth: "900px", margin: "0 auto" }}
+      aria-label="Tech stack documentation"
+      style={{
+        padding: "60px var(--section-px)",
+        maxWidth: "900px",
+        margin: "0 auto",
+      }}
     >
       {/* Header */}
-      <div style={{ textAlign: "center", marginBottom: "48px" }}>
+      <div style={{ textAlign: "center", marginBottom: "var(--space-2xl)" }}>
         <h2
           style={{
-            fontFamily: "'Syne', sans-serif",
-            fontSize: "36px",
+            fontFamily: "var(--font-heading)",
+            fontSize: "var(--font-4xl)",
             fontWeight: 800,
             letterSpacing: "-1px",
-            marginBottom: "12px",
+            marginBottom: "var(--space-sm)",
           }}
         >
           Build the{" "}
@@ -22,7 +27,7 @@ export default function DocsSection() {
         <p
           style={{
             color: "var(--text-secondary)",
-            fontSize: "16px",
+            fontSize: "var(--font-lg)",
             maxWidth: "500px",
             margin: "0 auto",
           }}
@@ -33,24 +38,20 @@ export default function DocsSection() {
       </div>
 
       {/* Tech stack list */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+      <div
+        role="list"
+        aria-label="Technology stack"
+        style={{ display: "flex", flexDirection: "column", gap: "var(--space-sm)" }}
+      >
         {TECH_STACK.map((item, i) => (
           <div
             key={i}
-            className="animate-in"
-            style={{
-              animationDelay: `${i * 0.06}s`,
-              display: "flex",
-              alignItems: "center",
-              gap: "20px",
-              padding: "20px 24px",
-              background: "var(--bg-card)",
-              border: "1px solid var(--border-subtle)",
-              borderRadius: "14px",
-              transition: "all 0.2s ease",
-            }}
+            role="listitem"
+            className="stack-item animate-in"
+            style={{ animationDelay: `${i * 0.06}s` }}
           >
             <div
+              aria-hidden="true"
               style={{
                 width: 44,
                 height: 44,
@@ -71,35 +72,24 @@ export default function DocsSection() {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "8px",
-                  marginBottom: "4px",
+                  gap: "var(--space-sm)",
+                  marginBottom: "var(--space-xs)",
                 }}
               >
                 <span
                   style={{
-                    fontFamily: "'Syne', sans-serif",
+                    fontFamily: "var(--font-heading)",
                     fontWeight: 700,
                     fontSize: "15px",
                   }}
                 >
                   {item.title}
                 </span>
-                <span
-                  style={{
-                    fontFamily: "'Space Mono', monospace",
-                    fontSize: "11px",
-                    color: "var(--text-muted)",
-                    background: "var(--bg-secondary)",
-                    padding: "2px 8px",
-                    borderRadius: "4px",
-                  }}
-                >
-                  {item.tech}
-                </span>
+                <span className="tag">{item.tech}</span>
               </div>
               <p
                 style={{
-                  fontSize: "13px",
+                  fontSize: "var(--font-base)",
                   color: "var(--text-secondary)",
                   lineHeight: 1.5,
                 }}
@@ -108,9 +98,10 @@ export default function DocsSection() {
               </p>
             </div>
             <div
+              className="stack-item-cost"
               style={{
-                fontFamily: "'Space Mono', monospace",
-                fontSize: "13px",
+                fontFamily: "var(--font-mono)",
+                fontSize: "var(--font-base)",
                 fontWeight: 700,
                 color: "var(--accent-electric)",
                 whiteSpace: "nowrap",
@@ -124,9 +115,10 @@ export default function DocsSection() {
 
       {/* Total cost callout */}
       <div
+        role="status"
         style={{
-          marginTop: "32px",
-          padding: "24px",
+          marginTop: "var(--space-xl)",
+          padding: "var(--space-lg)",
           background: "rgba(77, 255, 180, 0.04)",
           border: "1px solid rgba(77, 255, 180, 0.15)",
           borderRadius: "14px",
@@ -135,8 +127,8 @@ export default function DocsSection() {
       >
         <p
           style={{
-            fontFamily: "'Syne', sans-serif",
-            fontSize: "18px",
+            fontFamily: "var(--font-heading)",
+            fontSize: "var(--font-xl)",
             fontWeight: 700,
             color: "var(--accent-electric)",
             marginBottom: "6px",
@@ -144,7 +136,7 @@ export default function DocsSection() {
         >
           Total startup cost: $0
         </p>
-        <p style={{ fontSize: "13px", color: "var(--text-secondary)" }}>
+        <p style={{ fontSize: "var(--font-base)", color: "var(--text-secondary)" }}>
           Scale to thousands of users before spending a single dollar. Only pay
           when you&#39;re making money.
         </p>

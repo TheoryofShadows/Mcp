@@ -1,44 +1,23 @@
-import { useState } from "react";
+import { memo } from "react";
 import { Badge } from "../ui";
 
-export default function ServerCard({ server, index }) {
-  const [hovered, setHovered] = useState(false);
-
+const ServerCard = memo(function ServerCard({ server, index }) {
   return (
-    <div
-      className="animate-in"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        animationDelay: `${index * 0.08}s`,
-        background: hovered ? "var(--bg-card-hover)" : "var(--bg-card)",
-        border: `1px solid ${hovered ? "var(--border-accent)" : "var(--border-subtle)"}`,
-        borderRadius: "16px",
-        padding: "24px",
-        cursor: "pointer",
-        transition: "all 0.3s ease",
-        transform: hovered ? "translateY(-3px)" : "translateY(0)",
-        boxShadow: hovered ? "0 12px 40px rgba(0,0,0,0.3)" : "none",
-        position: "relative",
-        overflow: "hidden",
-      }}
+    <article
+      className="card animate-in"
+      tabIndex={0}
+      style={{ animationDelay: `${index * 0.08}s`, cursor: "pointer" }}
+      aria-label={`${server.name} by ${server.author}${server.verified ? ", verified" : ""}`}
     >
       {/* Gradient accent line */}
       <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: "2px",
-          background: server.gradient,
-          opacity: hovered ? 1 : 0.4,
-          transition: "opacity 0.3s ease",
-        }}
+        className="card-accent-line"
+        style={{ background: server.gradient }}
       />
 
       {/* Header */}
       <div
+        className="card-header"
         style={{
           display: "flex",
           justifyContent: "space-between",
@@ -46,8 +25,9 @@ export default function ServerCard({ server, index }) {
           marginBottom: "14px",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)" }}>
           <div
+            aria-hidden="true"
             style={{
               width: 42,
               height: 42,
@@ -59,7 +39,7 @@ export default function ServerCard({ server, index }) {
               fontSize: "18px",
               fontWeight: 700,
               color: "var(--bg-primary)",
-              fontFamily: "'Space Mono', monospace",
+              fontFamily: "var(--font-mono)",
             }}
           >
             {server.name.charAt(0)}
@@ -68,7 +48,7 @@ export default function ServerCard({ server, index }) {
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
               <span
                 style={{
-                  fontFamily: "'Syne', sans-serif",
+                  fontFamily: "var(--font-heading)",
                   fontWeight: 700,
                   fontSize: "15px",
                 }}
@@ -77,7 +57,9 @@ export default function ServerCard({ server, index }) {
               </span>
               {server.verified && (
                 <span
-                  style={{ fontSize: "12px", color: "var(--accent-electric)" }}
+                  role="img"
+                  aria-label="Verified"
+                  style={{ fontSize: "var(--font-sm)", color: "var(--accent-electric)" }}
                 >
                   {"\u2713"}
                 </span>
@@ -85,8 +67,8 @@ export default function ServerCard({ server, index }) {
             </div>
             <span
               style={{
-                fontFamily: "'Space Mono', monospace",
-                fontSize: "11px",
+                fontFamily: "var(--font-mono)",
+                fontSize: "var(--font-xs)",
                 color: "var(--text-muted)",
               }}
             >
@@ -94,8 +76,8 @@ export default function ServerCard({ server, index }) {
             </span>
           </div>
         </div>
-        <div style={{ display: "flex", gap: "6px" }}>
-          {server.trending && <Badge variant="trending">{"🔥"} Trending</Badge>}
+        <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
+          {server.trending && <Badge variant="trending">Trending</Badge>}
           <Badge variant={server.price === "free" ? "free" : "paid"}>
             {server.price === "free" ? "Free" : server.price}
           </Badge>
@@ -105,10 +87,10 @@ export default function ServerCard({ server, index }) {
       {/* Description */}
       <p
         style={{
-          fontSize: "13px",
+          fontSize: "var(--font-base)",
           color: "var(--text-secondary)",
           lineHeight: 1.6,
-          marginBottom: "16px",
+          marginBottom: "var(--space-md)",
           minHeight: "42px",
         }}
       >
@@ -117,82 +99,93 @@ export default function ServerCard({ server, index }) {
 
       {/* Tags */}
       <div
+        role="list"
+        aria-label="Tags"
         style={{
           display: "flex",
           gap: "6px",
-          marginBottom: "16px",
+          marginBottom: "var(--space-md)",
           flexWrap: "wrap",
         }}
       >
         {server.tags.map((tag) => (
-          <span
-            key={tag}
-            style={{
-              padding: "2px 8px",
-              borderRadius: "4px",
-              background: "var(--bg-secondary)",
-              fontSize: "11px",
-              fontFamily: "'Space Mono', monospace",
-              color: "var(--text-muted)",
-            }}
-          >
+          <span key={tag} role="listitem" className="tag">
             #{tag}
           </span>
         ))}
       </div>
 
       {/* Footer stats */}
-      <div
+      <dl
         style={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           paddingTop: "14px",
           borderTop: "1px solid var(--border-subtle)",
+          margin: 0,
         }}
       >
-        <div style={{ display: "flex", gap: "16px" }}>
-          <span
-            style={{
-              fontFamily: "'Space Mono', monospace",
-              fontSize: "11px",
-              color: "var(--text-muted)",
-            }}
-          >
-            {"\u2193"} {(server.installs / 1000).toFixed(1)}K
-          </span>
-          <span
-            style={{
-              fontFamily: "'Space Mono', monospace",
-              fontSize: "11px",
-              color: "var(--text-muted)",
-            }}
-          >
-            {"\u2605"} {server.rating}
-          </span>
-          <span
-            style={{
-              fontFamily: "'Space Mono', monospace",
-              fontSize: "11px",
-              color: "var(--accent-electric)",
-            }}
-          >
-            {server.weeklyGrowth}
-          </span>
+        <div style={{ display: "flex", gap: "var(--space-md)" }}>
+          <div>
+            <dt className="sr-only">Downloads</dt>
+            <dd
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "var(--font-xs)",
+                color: "var(--text-muted)",
+                margin: 0,
+              }}
+            >
+              {"\u2193"} {(server.installs / 1000).toFixed(1)}K
+            </dd>
+          </div>
+          <div>
+            <dt className="sr-only">Rating</dt>
+            <dd
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "var(--font-xs)",
+                color: "var(--text-muted)",
+                margin: 0,
+              }}
+            >
+              {"\u2605"} {server.rating}
+            </dd>
+          </div>
+          <div>
+            <dt className="sr-only">Weekly growth</dt>
+            <dd
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "var(--font-xs)",
+                color: "var(--accent-electric)",
+                margin: 0,
+              }}
+            >
+              {server.weeklyGrowth}
+            </dd>
+          </div>
         </div>
         {server.revenue && (
-          <span
-            style={{
-              fontFamily: "'Space Mono', monospace",
-              fontSize: "11px",
-              color: "var(--accent-purple)",
-              fontWeight: 700,
-            }}
-          >
-            {server.revenue}
-          </span>
+          <div>
+            <dt className="sr-only">Monthly revenue</dt>
+            <dd
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "var(--font-xs)",
+                color: "var(--accent-purple)",
+                fontWeight: 700,
+                margin: 0,
+              }}
+            >
+              {server.revenue}
+            </dd>
+          </div>
         )}
-      </div>
-    </div>
+      </dl>
+    </article>
   );
-}
+});
+
+export default ServerCard;

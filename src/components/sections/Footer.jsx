@@ -1,30 +1,32 @@
 export default function Footer() {
   return (
     <footer
+      role="contentinfo"
       style={{
-        padding: "40px 32px",
+        padding: "40px var(--section-px)",
         borderTop: "1px solid var(--border-subtle)",
         textAlign: "center",
       }}
     >
       <div
+        aria-hidden="true"
         style={{
-          fontFamily: "'Syne', sans-serif",
+          fontFamily: "var(--font-heading)",
           fontWeight: 800,
-          fontSize: "16px",
+          fontSize: "var(--font-lg)",
           background:
             "linear-gradient(135deg, var(--accent-electric), var(--accent-blue))",
           WebkitBackgroundClip: "text",
           WebkitTextFillColor: "transparent",
-          marginBottom: "12px",
+          marginBottom: "var(--space-sm)",
         }}
       >
         MCPX
       </div>
       <p
         style={{
-          fontFamily: "'Space Mono', monospace",
-          fontSize: "11px",
+          fontFamily: "var(--font-mono)",
+          fontSize: "var(--font-xs)",
           color: "var(--text-muted)",
           letterSpacing: "0.5px",
         }}

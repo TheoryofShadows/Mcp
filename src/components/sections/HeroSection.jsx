@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { GlowOrb } from "../ui";
 
 const HERO_STATS = [
@@ -8,12 +8,15 @@ const HERO_STATS = [
 ];
 
 const PUBLISH_COUNT_TARGET = 2847;
+const ANIMATION_FRAMES = 60;
+const COUNTER_INTERVAL_MS = 25;
+const ORBIT_COUNT = 5;
 
 export default function HeroSection() {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
-    const step = Math.ceil(PUBLISH_COUNT_TARGET / 60);
+    const step = Math.ceil(PUBLISH_COUNT_TARGET / ANIMATION_FRAMES);
     const timer = setInterval(() => {
       setCount((c) => {
         if (c + step >= PUBLISH_COUNT_TARGET) {
@@ -22,26 +25,54 @@ export default function HeroSection() {
         }
         return c + step;
       });
-    }, 25);
+    }, COUNTER_INTERVAL_MS);
     return () => clearInterval(timer);
   }, []);
 
+  const orbitDots = useMemo(
+    () =>
+      Array.from({ length: ORBIT_COUNT }, (_, i) => (
+        <div
+          key={i}
+          aria-hidden="true"
+          className="will-transform"
+          style={{
+            position: "absolute",
+            width: 6,
+            height: 6,
+            borderRadius: "50%",
+            background:
+              i % 2 === 0 ? "var(--accent-electric)" : "var(--accent-purple)",
+            animation: `orbit ${12 + i * 3}s linear infinite`,
+            animationDelay: `${i * 2.4}s`,
+            opacity: 0.4,
+          }}
+        />
+      )),
+    []
+  );
+
   return (
     <section
+      className="hero-section"
       style={{
         position: "relative",
-        padding: "100px 32px 80px",
+        padding: "100px var(--section-px) 80px",
         textAlign: "center",
         overflow: "hidden",
       }}
     >
       {/* Background glow orbs */}
-      <GlowOrb color="var(--accent-electric)" size="400px" top="-100px" left="10%" delay={0} />
-      <GlowOrb color="var(--accent-purple)" size="350px" top="50px" left="70%" delay={1.5} />
-      <GlowOrb color="var(--accent-blue)" size="300px" top="200px" left="40%" delay={3} />
+      <div className="hero-orbs" aria-hidden="true">
+        <GlowOrb color="var(--accent-electric)" size="400px" top="-100px" left="10%" delay={0} />
+        <GlowOrb color="var(--accent-purple)" size="350px" top="50px" left="70%" delay={1.5} />
+        <GlowOrb color="var(--accent-blue)" size="300px" top="200px" left="40%" delay={3} />
+      </div>
 
       {/* Orbiting elements */}
       <div
+        className="hero-orbits will-transform"
+        aria-hidden="true"
         style={{
           position: "absolute",
           top: "50%",
@@ -52,34 +83,18 @@ export default function HeroSection() {
           pointerEvents: "none",
         }}
       >
-        {[0, 1, 2, 3, 4].map((i) => (
-          <div
-            key={i}
-            style={{
-              position: "absolute",
-              width: 6,
-              height: 6,
-              borderRadius: "50%",
-              background:
-                i % 2 === 0
-                  ? "var(--accent-electric)"
-                  : "var(--accent-purple)",
-              animation: `orbit ${12 + i * 3}s linear infinite`,
-              animationDelay: `${i * 2.4}s`,
-              opacity: 0.4,
-            }}
-          />
-        ))}
+        {orbitDots}
       </div>
 
       {/* Content */}
-      <div className="animate-in" style={{ position: "relative", zIndex: 2 }}>
+      <div className="animate-in" style={{ position: "relative", zIndex: "var(--z-card)" }}>
         {/* Server count badge */}
         <div
+          aria-live="polite"
           style={{
             display: "inline-flex",
             alignItems: "center",
-            gap: "8px",
+            gap: "var(--space-sm)",
             padding: "6px 16px",
             background: "rgba(77, 255, 180, 0.06)",
             border: "1px solid rgba(77, 255, 180, 0.15)",
@@ -88,6 +103,7 @@ export default function HeroSection() {
           }}
         >
           <span
+            aria-hidden="true"
             style={{
               width: 6,
               height: 6,
@@ -98,8 +114,8 @@ export default function HeroSection() {
           />
           <span
             style={{
-              fontFamily: "'Space Mono', monospace",
-              fontSize: "12px",
+              fontFamily: "var(--font-mono)",
+              fontSize: "var(--font-sm)",
               color: "var(--accent-electric)",
               letterSpacing: "1px",
             }}
@@ -110,8 +126,9 @@ export default function HeroSection() {
 
         {/* Heading */}
         <h1
+          className="hero-heading"
           style={{
-            fontFamily: "'Syne', sans-serif",
+            fontFamily: "var(--font-heading)",
             fontSize: "clamp(40px, 6vw, 76px)",
             fontWeight: 800,
             lineHeight: 1.05,
@@ -120,7 +137,7 @@ export default function HeroSection() {
             margin: "0 auto 20px",
           }}
         >
-          <span style={{ color: "var(--text-primary)" }}>The App Store for</span>
+          <span>The App Store for</span>
           <br />
           <span
             style={{
@@ -139,7 +156,7 @@ export default function HeroSection() {
         {/* Subheading */}
         <p
           style={{
-            fontSize: "18px",
+            fontSize: "var(--font-xl)",
             color: "var(--text-secondary)",
             maxWidth: "560px",
             margin: "0 auto 36px",
@@ -152,52 +169,18 @@ export default function HeroSection() {
         </p>
 
         {/* CTA buttons */}
-        <div
-          style={{
-            display: "flex",
-            gap: "14px",
-            justifyContent: "center",
-            flexWrap: "wrap",
-          }}
-        >
-          <button
-            style={{
-              padding: "14px 32px",
-              borderRadius: "12px",
-              border: "none",
-              background:
-                "linear-gradient(135deg, var(--accent-electric), var(--accent-blue))",
-              color: "var(--bg-primary)",
-              cursor: "pointer",
-              fontFamily: "'Syne', sans-serif",
-              fontSize: "16px",
-              fontWeight: 700,
-              letterSpacing: "-0.3px",
-              boxShadow: "0 0 30px rgba(77, 255, 180, 0.2)",
-              transition: "all 0.3s ease",
-            }}
-          >
+        <div className="hero-cta" style={{ display: "flex", gap: "14px", justifyContent: "center", flexWrap: "wrap" }}>
+          <button className="btn btn-primary">
             Start Publishing — Free
           </button>
-          <button
-            style={{
-              padding: "14px 32px",
-              borderRadius: "12px",
-              border: "1px solid var(--border-accent)",
-              background: "var(--bg-card)",
-              color: "var(--text-primary)",
-              cursor: "pointer",
-              fontFamily: "'Syne', sans-serif",
-              fontSize: "16px",
-              fontWeight: 600,
-            }}
-          >
-            Browse Marketplace →
+          <button className="btn btn-secondary">
+            Browse Marketplace {"\u2192"}
           </button>
         </div>
 
         {/* Stats */}
-        <div
+        <dl
+          className="hero-stats"
           style={{
             display: "flex",
             gap: "40px",
@@ -209,32 +192,33 @@ export default function HeroSection() {
         >
           {HERO_STATS.map((s, i) => (
             <div key={i} style={{ textAlign: "center" }}>
-              <div
+              <dt
                 style={{
-                  fontFamily: "'Syne', sans-serif",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "var(--font-xs)",
+                  color: "var(--text-muted)",
+                  letterSpacing: "1px",
+                  textTransform: "uppercase",
+                  order: 2,
+                }}
+              >
+                {s.label}
+              </dt>
+              <dd
+                style={{
+                  fontFamily: "var(--font-heading)",
                   fontSize: "28px",
                   fontWeight: 800,
                   color: s.color,
                   letterSpacing: "-1px",
+                  marginLeft: 0,
                 }}
               >
                 {s.value}
-              </div>
-              <div
-                style={{
-                  fontFamily: "'Space Mono', monospace",
-                  fontSize: "11px",
-                  color: "var(--text-muted)",
-                  letterSpacing: "1px",
-                  marginTop: "4px",
-                  textTransform: "uppercase",
-                }}
-              >
-                {s.label}
-              </div>
+              </dd>
             </div>
           ))}
-        </div>
+        </dl>
       </div>
     </section>
   );

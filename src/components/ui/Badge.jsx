@@ -1,3 +1,5 @@
+import { memo } from "react";
+
 const BADGE_STYLES = {
   default: {
     background: "rgba(77, 255, 180, 0.1)",
@@ -26,24 +28,27 @@ const BADGE_STYLES = {
   },
 };
 
-export default function Badge({ children, variant = "default" }) {
+const BASE_STYLE = {
+  padding: "3px 10px",
+  borderRadius: "20px",
+  fontSize: "var(--font-xs)",
+  fontFamily: "var(--font-mono)",
+  fontWeight: 700,
+  letterSpacing: "0.5px",
+  textTransform: "uppercase",
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "4px",
+};
+
+const Badge = memo(function Badge({ children, variant = "default" }) {
+  const variantStyle = BADGE_STYLES[variant] || BADGE_STYLES.default;
+
   return (
-    <span
-      style={{
-        ...BADGE_STYLES[variant],
-        padding: "3px 10px",
-        borderRadius: "20px",
-        fontSize: "11px",
-        fontFamily: "'Space Mono', monospace",
-        fontWeight: 700,
-        letterSpacing: "0.5px",
-        textTransform: "uppercase",
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "4px",
-      }}
-    >
+    <span style={{ ...BASE_STYLE, ...variantStyle }}>
       {children}
     </span>
   );
-}
+});
+
+export default Badge;
