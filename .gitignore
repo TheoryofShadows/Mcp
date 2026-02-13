@@ -12,6 +12,8 @@ dist
 dist-ssr
 *.local
 server/mcpx.db
+server/mcpx.db-shm
+server/mcpx.db-wal
 
 # Editor directories and files
 .vscode/*
