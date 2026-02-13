@@ -1,6 +1,16 @@
-import { TECH_STACK } from "../../data";
+import { useTiers } from "../../hooks/useTiers";
 
 export default function DocsSection() {
+  const { tech_stack, loading } = useTiers();
+
+  if (loading) {
+    return (
+      <div style={{ padding: "80px var(--section-px)", textAlign: "center", color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: "var(--font-sm)" }}>
+        Loading...
+      </div>
+    );
+  }
+
   return (
     <section
       aria-label="Tech stack documentation"
@@ -38,80 +48,82 @@ export default function DocsSection() {
       </div>
 
       {/* Tech stack list */}
-      <div
-        role="list"
-        aria-label="Technology stack"
-        style={{ display: "flex", flexDirection: "column", gap: "var(--space-sm)" }}
-      >
-        {TECH_STACK.map((item, i) => (
-          <div
-            key={i}
-            role="listitem"
-            className="stack-item animate-in"
-            style={{ animationDelay: `${i * 0.06}s` }}
-          >
+      {tech_stack.length > 0 && (
+        <div
+          role="list"
+          aria-label="Technology stack"
+          style={{ display: "flex", flexDirection: "column", gap: "var(--space-sm)" }}
+        >
+          {tech_stack.map((item, i) => (
             <div
-              aria-hidden="true"
-              style={{
-                width: 44,
-                height: 44,
-                minWidth: 44,
-                borderRadius: "10px",
-                background: `linear-gradient(135deg, ${item.color}20, ${item.color}08)`,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "18px",
-                color: item.color,
-              }}
+              key={i}
+              role="listitem"
+              className="stack-item animate-in"
+              style={{ animationDelay: `${i * 0.06}s` }}
             >
-              {item.icon}
-            </div>
-            <div style={{ flex: 1 }}>
               <div
+                aria-hidden="true"
                 style={{
+                  width: 44,
+                  height: 44,
+                  minWidth: 44,
+                  borderRadius: "10px",
+                  background: `linear-gradient(135deg, ${item.color}20, ${item.color}08)`,
                   display: "flex",
                   alignItems: "center",
-                  gap: "var(--space-sm)",
-                  marginBottom: "var(--space-xs)",
+                  justifyContent: "center",
+                  fontSize: "18px",
+                  color: item.color,
                 }}
               >
-                <span
+                {item.icon}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div
                   style={{
-                    fontFamily: "var(--font-heading)",
-                    fontWeight: 700,
-                    fontSize: "15px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "var(--space-sm)",
+                    marginBottom: "var(--space-xs)",
                   }}
                 >
-                  {item.title}
-                </span>
-                <span className="tag">{item.tech}</span>
+                  <span
+                    style={{
+                      fontFamily: "var(--font-heading)",
+                      fontWeight: 700,
+                      fontSize: "15px",
+                    }}
+                  >
+                    {item.title}
+                  </span>
+                  <span className="tag">{item.tech}</span>
+                </div>
+                <p
+                  style={{
+                    fontSize: "var(--font-base)",
+                    color: "var(--text-secondary)",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {item.desc}
+                </p>
               </div>
-              <p
+              <div
+                className="stack-item-cost"
                 style={{
+                  fontFamily: "var(--font-mono)",
                   fontSize: "var(--font-base)",
-                  color: "var(--text-secondary)",
-                  lineHeight: 1.5,
+                  fontWeight: 700,
+                  color: "var(--accent-electric)",
+                  whiteSpace: "nowrap",
                 }}
               >
-                {item.desc}
-              </p>
+                {item.cost}
+              </div>
             </div>
-            <div
-              className="stack-item-cost"
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "var(--font-base)",
-                fontWeight: 700,
-                color: "var(--accent-electric)",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {item.cost}
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Total cost callout */}
       <div

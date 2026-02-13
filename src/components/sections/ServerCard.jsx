@@ -1,77 +1,41 @@
 import { memo } from "react";
+import { Link } from "react-router-dom";
 import { Badge } from "../ui";
 
 const ServerCard = memo(function ServerCard({ server, index }) {
   return (
-    <article
+    <Link
+      to={`/servers/${server.slug}`}
       className="card animate-in"
-      tabIndex={0}
-      style={{ animationDelay: `${index * 0.08}s`, cursor: "pointer" }}
+      style={{ animationDelay: `${index * 0.08}s`, cursor: "pointer", textDecoration: "none", color: "inherit", display: "block" }}
       aria-label={`${server.name} by ${server.author}${server.verified ? ", verified" : ""}`}
     >
-      {/* Gradient accent line */}
-      <div
-        className="card-accent-line"
-        style={{ background: server.gradient }}
-      />
+      <div className="card-accent-line" style={{ background: server.gradient }} />
 
-      {/* Header */}
-      <div
-        className="card-header"
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          marginBottom: "14px",
-        }}
-      >
+      <div className="card-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "14px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)" }}>
           <div
             aria-hidden="true"
             style={{
-              width: 42,
-              height: 42,
-              borderRadius: "10px",
-              background: server.gradient,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "18px",
-              fontWeight: 700,
-              color: "var(--bg-primary)",
-              fontFamily: "var(--font-mono)",
+              width: 42, height: 42, borderRadius: "10px", background: server.gradient,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: "18px", fontWeight: 700, color: "var(--bg-primary)", fontFamily: "var(--font-mono)",
             }}
           >
             {server.name.charAt(0)}
           </div>
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <span
-                style={{
-                  fontFamily: "var(--font-heading)",
-                  fontWeight: 700,
-                  fontSize: "15px",
-                }}
-              >
+              <span style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "15px" }}>
                 {server.name}
               </span>
               {server.verified && (
-                <span
-                  role="img"
-                  aria-label="Verified"
-                  style={{ fontSize: "var(--font-sm)", color: "var(--accent-electric)" }}
-                >
+                <span role="img" aria-label="Verified" style={{ fontSize: "var(--font-sm)", color: "var(--accent-electric)" }}>
                   {"\u2713"}
                 </span>
               )}
             </div>
-            <span
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "var(--font-xs)",
-                color: "var(--text-muted)",
-              }}
-            >
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: "var(--font-xs)", color: "var(--text-muted)" }}>
               by @{server.author}
             </span>
           </div>
@@ -84,85 +48,33 @@ const ServerCard = memo(function ServerCard({ server, index }) {
         </div>
       </div>
 
-      {/* Description */}
-      <p
-        style={{
-          fontSize: "var(--font-base)",
-          color: "var(--text-secondary)",
-          lineHeight: 1.6,
-          marginBottom: "var(--space-md)",
-          minHeight: "42px",
-        }}
-      >
+      <p style={{ fontSize: "var(--font-base)", color: "var(--text-secondary)", lineHeight: 1.6, marginBottom: "var(--space-md)", minHeight: "42px" }}>
         {server.description}
       </p>
 
-      {/* Tags */}
-      <div
-        role="list"
-        aria-label="Tags"
-        style={{
-          display: "flex",
-          gap: "6px",
-          marginBottom: "var(--space-md)",
-          flexWrap: "wrap",
-        }}
-      >
+      <div role="list" aria-label="Tags" style={{ display: "flex", gap: "6px", marginBottom: "var(--space-md)", flexWrap: "wrap" }}>
         {server.tags.map((tag) => (
-          <span key={tag} role="listitem" className="tag">
-            #{tag}
-          </span>
+          <span key={tag} role="listitem" className="tag">#{tag}</span>
         ))}
       </div>
 
-      {/* Footer stats */}
-      <dl
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          paddingTop: "14px",
-          borderTop: "1px solid var(--border-subtle)",
-          margin: 0,
-        }}
-      >
+      <dl style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "14px", borderTop: "1px solid var(--border-subtle)", margin: 0 }}>
         <div style={{ display: "flex", gap: "var(--space-md)" }}>
           <div>
             <dt className="sr-only">Downloads</dt>
-            <dd
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "var(--font-xs)",
-                color: "var(--text-muted)",
-                margin: 0,
-              }}
-            >
+            <dd style={{ fontFamily: "var(--font-mono)", fontSize: "var(--font-xs)", color: "var(--text-muted)", margin: 0 }}>
               {"\u2193"} {(server.installs / 1000).toFixed(1)}K
             </dd>
           </div>
           <div>
             <dt className="sr-only">Rating</dt>
-            <dd
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "var(--font-xs)",
-                color: "var(--text-muted)",
-                margin: 0,
-              }}
-            >
+            <dd style={{ fontFamily: "var(--font-mono)", fontSize: "var(--font-xs)", color: "var(--text-muted)", margin: 0 }}>
               {"\u2605"} {server.rating}
             </dd>
           </div>
           <div>
             <dt className="sr-only">Weekly growth</dt>
-            <dd
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "var(--font-xs)",
-                color: "var(--accent-electric)",
-                margin: 0,
-              }}
-            >
+            <dd style={{ fontFamily: "var(--font-mono)", fontSize: "var(--font-xs)", color: "var(--accent-electric)", margin: 0 }}>
               {server.weeklyGrowth}
             </dd>
           </div>
@@ -170,21 +82,13 @@ const ServerCard = memo(function ServerCard({ server, index }) {
         {server.revenue && (
           <div>
             <dt className="sr-only">Monthly revenue</dt>
-            <dd
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "var(--font-xs)",
-                color: "var(--accent-purple)",
-                fontWeight: 700,
-                margin: 0,
-              }}
-            >
+            <dd style={{ fontFamily: "var(--font-mono)", fontSize: "var(--font-xs)", color: "var(--accent-purple)", fontWeight: 700, margin: 0 }}>
               {server.revenue}
             </dd>
           </div>
         )}
       </dl>
-    </article>
+    </Link>
   );
 });
 

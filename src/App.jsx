@@ -1,11 +1,14 @@
 import { useState, lazy, Suspense } from "react";
+import { Routes, Route } from "react-router-dom";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { Navbar, HeroSection, Footer } from "./components/sections";
+import AuthModal from "./components/AuthModal";
 
 const Marketplace = lazy(() => import("./components/sections/Marketplace"));
 const PublishSection = lazy(() => import("./components/sections/PublishSection"));
 const RevenueSection = lazy(() => import("./components/sections/RevenueSection"));
 const DocsSection = lazy(() => import("./components/sections/DocsSection"));
+const ServerDetail = lazy(() => import("./pages/ServerDetail"));
 
 function SectionFallback() {
   return (
@@ -23,16 +26,8 @@ function SectionFallback() {
   );
 }
 
-const VIEW_COMPONENTS = {
-  marketplace: Marketplace,
-  publish: PublishSection,
-  revenue: RevenueSection,
-  docs: DocsSection,
-};
-
 export default function App() {
-  const [activeView, setActiveView] = useState("marketplace");
-  const ActiveSection = VIEW_COMPONENTS[activeView];
+  const [showAuth, setShowAuth] = useState(false);
 
   return (
     <div
@@ -45,14 +40,28 @@ export default function App() {
       <a href="#main-content" className="skip-to-content">
         Skip to content
       </a>
-      <Navbar activeView={activeView} setActiveView={setActiveView} />
-      <HeroSection />
+      <Navbar onAuthClick={() => setShowAuth(true)} />
       <ErrorBoundary>
         <Suspense fallback={<SectionFallback />}>
-          {ActiveSection && <ActiveSection />}
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <>
+                  <HeroSection />
+                  <Marketplace />
+                </>
+              }
+            />
+            <Route path="/publish" element={<PublishSection onAuthClick={() => setShowAuth(true)} />} />
+            <Route path="/revenue" element={<RevenueSection onAuthClick={() => setShowAuth(true)} />} />
+            <Route path="/docs" element={<DocsSection />} />
+            <Route path="/servers/:slug" element={<ServerDetail />} />
+          </Routes>
         </Suspense>
       </ErrorBoundary>
       <Footer />
+      {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
     </div>
   );
 }
