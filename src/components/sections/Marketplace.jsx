@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useServers } from "../../hooks/useServers";
 import { useCategories } from "../../hooks/useCategories";
 import ServerCard from "./ServerCard";
@@ -7,20 +7,37 @@ export default function Marketplace() {
   const [activeCategory, setActiveCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [debounceTimer, setDebounceTimer] = useState(null);
+  const [page, setPage] = useState(1);
+  const debounceRef = useRef(null);
 
   const { categories } = useCategories();
   const { servers, pagination, loading, error } = useServers({
     category: activeCategory,
     search: debouncedSearch,
+    page,
   });
+
+  // Clean up debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
 
   const handleSearch = useCallback((e) => {
     const val = e.target.value;
     setSearchQuery(val);
-    if (debounceTimer) clearTimeout(debounceTimer);
-    setDebounceTimer(setTimeout(() => setDebouncedSearch(val), 300));
-  }, [debounceTimer]);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setDebouncedSearch(val);
+      setPage(1);
+    }, 300);
+  }, []);
+
+  function handleCategoryChange(catId) {
+    setActiveCategory(catId);
+    setPage(1);
+  }
 
   return (
     <section
@@ -63,7 +80,7 @@ export default function Marketplace() {
             <button
               key={cat.id}
               className="category-btn"
-              onClick={() => setActiveCategory(cat.id)}
+              onClick={() => handleCategoryChange(cat.id)}
               aria-selected={activeCategory === cat.id}
               aria-label={`Filter by ${cat.label} (${cat.count})`}
             >
@@ -119,9 +136,52 @@ export default function Marketplace() {
         </div>
       )}
 
+      {/* Pagination */}
+      {pagination && pagination.pages > 1 && (
+        <nav
+          aria-label="Pagination"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "var(--space-sm)",
+            marginTop: "var(--space-xl)",
+          }}
+        >
+          <button
+            className="btn btn-outline-green"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page <= 1}
+            aria-label="Previous page"
+            style={{ opacity: page <= 1 ? 0.4 : 1 }}
+          >
+            {"\u2190"} Prev
+          </button>
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "var(--font-sm)",
+              color: "var(--text-muted)",
+              padding: "0 var(--space-sm)",
+            }}
+          >
+            Page {pagination.page} of {pagination.pages}
+          </span>
+          <button
+            className="btn btn-outline-green"
+            onClick={() => setPage((p) => Math.min(pagination.pages, p + 1))}
+            disabled={page >= pagination.pages}
+            aria-label="Next page"
+            style={{ opacity: page >= pagination.pages ? 0.4 : 1 }}
+          >
+            Next {"\u2192"}
+          </button>
+        </nav>
+      )}
+
       {/* Pagination info */}
       {pagination && pagination.total > 0 && (
-        <div style={{ textAlign: "center", marginTop: "var(--space-xl)", fontFamily: "var(--font-mono)", fontSize: "var(--font-sm)", color: "var(--text-muted)" }}>
+        <div style={{ textAlign: "center", marginTop: "var(--space-md)", fontFamily: "var(--font-mono)", fontSize: "var(--font-sm)", color: "var(--text-muted)" }}>
           Showing {servers.length} of {pagination.total} servers
         </div>
       )}
