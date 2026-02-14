@@ -7,19 +7,31 @@ import { signToken, requireAuth } from "../middleware/auth.js";
 const router = Router();
 
 // POST /api/auth/register
-router.post("/register", (req, res) => {
+router.post("/register", async (req, res) => {
   const { email, username, password, display_name } = req.body;
 
   if (!email || !username || !password) {
     return res.status(400).json({ error: "Email, username, and password are required" });
   }
 
+  if (typeof email !== "string" || typeof username !== "string" || typeof password !== "string") {
+    return res.status(400).json({ error: "Invalid input types" });
+  }
+
   if (password.length < 6) {
     return res.status(400).json({ error: "Password must be at least 6 characters" });
   }
 
+  if (username.length < 2 || username.length > 30) {
+    return res.status(400).json({ error: "Username must be between 2 and 30 characters" });
+  }
+
   if (!/^[a-zA-Z0-9_]+$/.test(username)) {
     return res.status(400).json({ error: "Username may only contain letters, numbers, and underscores" });
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: "Invalid email format" });
   }
 
   const existing = db.prepare("SELECT id FROM users WHERE email = ? OR username = ?").get(email, username);
@@ -28,11 +40,11 @@ router.post("/register", (req, res) => {
   }
 
   const id = uuid();
-  const password_hash = bcrypt.hashSync(password, 10);
+  const password_hash = await bcrypt.hash(password, 10);
 
   db.prepare(
     `INSERT INTO users (id, email, username, display_name, password_hash) VALUES (?, ?, ?, ?, ?)`
-  ).run(id, email, username, display_name || username, password_hash);
+  ).run(id, email, username, String(display_name || username).slice(0, 50), password_hash);
 
   const token = signToken({ id, email, username });
   const user = db.prepare("SELECT id, email, username, display_name, tier, created_at FROM users WHERE id = ?").get(id);
@@ -41,7 +53,7 @@ router.post("/register", (req, res) => {
 });
 
 // POST /api/auth/login
-router.post("/login", (req, res) => {
+router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -53,7 +65,8 @@ router.post("/login", (req, res) => {
     return res.status(401).json({ error: "Invalid credentials" });
   }
 
-  if (!bcrypt.compareSync(password, user.password_hash)) {
+  const valid = await bcrypt.compare(password, user.password_hash);
+  if (!valid) {
     return res.status(401).json({ error: "Invalid credentials" });
   }
 

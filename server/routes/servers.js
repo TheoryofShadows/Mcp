@@ -129,8 +129,24 @@ router.post("/", requireAuth, (req, res) => {
     return res.status(400).json({ error: "Name, category, and description are required" });
   }
 
+  if (typeof name !== "string" || typeof description !== "string") {
+    return res.status(400).json({ error: "Invalid input types" });
+  }
+
   if (name.length < 2 || name.length > 60) {
     return res.status(400).json({ error: "Name must be between 2 and 60 characters" });
+  }
+
+  if (description.length < 10 || description.length > 500) {
+    return res.status(400).json({ error: "Description must be between 10 and 500 characters" });
+  }
+
+  if (long_description && String(long_description).length > 5000) {
+    return res.status(400).json({ error: "Long description must be under 5000 characters" });
+  }
+
+  if (tags && (!Array.isArray(tags) || tags.length > 10)) {
+    return res.status(400).json({ error: "Tags must be an array of up to 10 items" });
   }
 
   const slug = name
@@ -187,8 +203,12 @@ router.post("/", requireAuth, (req, res) => {
 router.post("/:slug/reviews", requireAuth, (req, res) => {
   const { rating, comment } = req.body;
 
-  if (!rating || rating < 1 || rating > 5) {
-    return res.status(400).json({ error: "Rating must be between 1 and 5" });
+  if (!rating || typeof rating !== "number" || rating < 1 || rating > 5 || !Number.isInteger(rating)) {
+    return res.status(400).json({ error: "Rating must be an integer between 1 and 5" });
+  }
+
+  if (comment && String(comment).length > 2000) {
+    return res.status(400).json({ error: "Comment must be under 2000 characters" });
   }
 
   const server = db.prepare("SELECT id, author_id FROM servers WHERE slug = ?").get(req.params.slug);
@@ -223,12 +243,33 @@ router.post("/:slug/reviews", requireAuth, (req, res) => {
   res.status(201).json(review);
 });
 
+// Simple in-memory rate limit for install endpoint (IP + slug, 1 per minute)
+const installRateLimit = new Map();
+const INSTALL_RATE_LIMIT_MS = 60_000;
+
+// Clean up old entries every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, ts] of installRateLimit) {
+    if (now - ts > INSTALL_RATE_LIMIT_MS) installRateLimit.delete(key);
+  }
+}, 300_000);
+
 // POST /api/servers/:slug/install — record an install
 router.post("/:slug/install", (req, res) => {
   const server = db.prepare("SELECT id FROM servers WHERE slug = ?").get(req.params.slug);
   if (!server) {
     return res.status(404).json({ error: "Server not found" });
   }
+
+  // Rate limit: one install per IP per server per minute
+  const ip = req.ip || req.socket?.remoteAddress || "unknown";
+  const key = `${ip}:${server.id}`;
+  const lastInstall = installRateLimit.get(key);
+  if (lastInstall && Date.now() - lastInstall < INSTALL_RATE_LIMIT_MS) {
+    return res.status(429).json({ error: "Install already recorded. Try again later." });
+  }
+  installRateLimit.set(key, Date.now());
 
   const id = uuid();
   const userId = req.user?.id || null;

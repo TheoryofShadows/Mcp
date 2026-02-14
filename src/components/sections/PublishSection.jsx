@@ -55,7 +55,7 @@ const TERMINAL_DOTS = [
   { color: "#27C93F", label: "maximize" },
 ];
 
-const INITIAL_FORM = { name: "", description: "", category_id: "ai-models", price_type: "free", price_amount: 0, tags: "", repo_url: "" };
+const INITIAL_FORM = { name: "", description: "", category_id: "ai", price_type: "free", price_amount: 0, tags: "", repo_url: "" };
 
 export default function PublishSection({ onAuthClick }) {
   const { user } = useAuth();
@@ -265,13 +265,12 @@ export default function PublishSection({ onAuthClick }) {
               <label style={{ display: "flex", flexDirection: "column", gap: "var(--space-xs)" }}>
                 <span style={{ fontFamily: "var(--font-mono)", fontSize: "var(--font-xs)", color: "var(--text-muted)", textTransform: "uppercase" }}>Category</span>
                 <select name="category_id" value={form.category_id} onChange={handleChange} style={inputStyle}>
-                  <option value="ai-models">AI Models</option>
-                  <option value="dev-tools">Dev Tools</option>
-                  <option value="data-access">Data Access</option>
-                  <option value="cloud-infra">Cloud & Infra</option>
-                  <option value="communication">Communication</option>
-                  <option value="productivity">Productivity</option>
-                  <option value="security">Security</option>
+                  <option value="ai">AI & ML</option>
+                  <option value="dev">Developer</option>
+                  <option value="data">Data & APIs</option>
+                  <option value="infra">Infrastructure</option>
+                  <option value="business">Business</option>
+                  <option value="creative">Creative</option>
                 </select>
               </label>
             </div>

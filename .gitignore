@@ -11,6 +11,7 @@ node_modules
 dist
 dist-ssr
 *.local
+.env
 server/mcpx.db
 server/mcpx.db-shm
 server/mcpx.db-wal
