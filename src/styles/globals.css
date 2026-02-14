@@ -594,7 +594,8 @@ input:focus-visible {
   }
 
   .nav-auth {
-    display: none;
+    order: 2;
+    margin-left: auto;
   }
 
   .hero-heading {

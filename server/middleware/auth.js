@@ -2,6 +2,10 @@ import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "mcpx-dev-secret-change-in-production";
 
+if (!process.env.JWT_SECRET) {
+  console.warn("WARNING: JWT_SECRET not set — using insecure default. Set JWT_SECRET env var for production.");
+}
+
 export function authenticateToken(req, res, next) {
   const header = req.headers.authorization;
   const token = header && header.startsWith("Bearer ") ? header.slice(7) : null;

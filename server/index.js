@@ -34,7 +34,7 @@ app.use(cors({
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(null, true); // In development, allow all; tighten in production
+      callback(new Error(`Origin ${origin} not allowed by CORS`));
     }
   },
   credentials: true,
@@ -61,6 +61,25 @@ app.get("/{*splat}", (_req, res) => {
   res.sendFile(join(distPath, "index.html"));
 });
 
-app.listen(PORT, () => {
-  console.log(`MCPX API server running on http://localhost:${PORT}`);
+// Global error handler — catch JSON parse errors, unexpected failures
+// eslint-disable-next-line no-unused-vars -- Express requires 4 params for error middleware
+app.use((err, _req, res, _next) => {
+  if (err.type === "entity.parse.failed") {
+    return res.status(400).json({ error: "Invalid JSON in request body" });
+  }
+  if (err.message && err.message.includes("not allowed by CORS")) {
+    return res.status(403).json({ error: "Origin not allowed" });
+  }
+  console.error("Unhandled error:", err.message);
+  res.status(500).json({ error: "Internal server error" });
 });
+
+// Export app for testing; only listen when run directly
+export { app };
+
+const isDirectRun = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
+if (isDirectRun) {
+  app.listen(PORT, () => {
+    console.log(`MCPX API server running on http://localhost:${PORT}`);
+  });
+}

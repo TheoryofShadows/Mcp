@@ -174,7 +174,8 @@ router.post("/", requireAuth, (req, res) => {
 
   const id = uuid();
   const gradient = GRADIENTS[Math.floor(Math.random() * GRADIENTS.length)];
-  const priceLabel = price_type === "paid" && price_amount ? `$${(price_amount / 100).toFixed(0)}/mo` : "free";
+  const parsedPrice = parseInt(price_amount, 10) || 0;
+  const priceLabel = price_type === "paid" && parsedPrice ? `$${(parsedPrice / 100).toFixed(0)}/mo` : "free";
 
   db.prepare(`
     INSERT INTO servers (id, name, slug, author_id, category_id, description, long_description,
@@ -183,7 +184,7 @@ router.post("/", requireAuth, (req, res) => {
   `).run(
     id, name, slug, req.user.id, category_id,
     description, long_description || "",
-    price_type || "free", price_amount || 0, priceLabel,
+    price_type || "free", parsedPrice, priceLabel,
     gradient, repo_url || "", JSON.stringify(tags || [])
   );
 
