@@ -1,3 +1,21 @@
+# Dependencies
+node_modules
+
+# Build output
+dist
+dist-ssr
+
+# Environment
+.env
+.env.local
+.env.production
+*.local
+
+# Database
+server/mcpx.db
+server/mcpx.db-shm
+server/mcpx.db-wal
+
 # Logs
 logs
 *.log
@@ -7,22 +25,19 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-.env
-server/mcpx.db
-server/mcpx.db-shm
-server/mcpx.db-wal
-
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
 .idea
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage
