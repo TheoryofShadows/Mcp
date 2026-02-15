@@ -1,0 +1,10 @@
+node_modules
+dist
+server/mcpx.db
+server/mcpx.db-shm
+server/mcpx.db-wal
+.git
+.github
+*.md
+.env
+.env.local

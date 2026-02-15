@@ -1,14 +1,72 @@
 const BASE = "/api";
 
+const TOKEN_KEY = "mcpx_token";
+const REFRESH_KEY = "mcpx_refresh_token";
+
 function getToken() {
   try {
-    return localStorage.getItem("mcpx_token");
+    return localStorage.getItem(TOKEN_KEY);
   } catch {
     return null;
   }
 }
 
-async function request(path, options = {}) {
+function getRefreshToken() {
+  try {
+    return localStorage.getItem(REFRESH_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function storeTokens(token, refreshToken) {
+  try {
+    localStorage.setItem(TOKEN_KEY, token);
+    if (refreshToken) localStorage.setItem(REFRESH_KEY, refreshToken);
+  } catch { /* storage unavailable */ }
+}
+
+export function clearTokens() {
+  try {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(REFRESH_KEY);
+  } catch { /* storage unavailable */ }
+}
+
+let refreshPromise = null;
+
+async function refreshAccessToken() {
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) return false;
+
+  // Deduplicate concurrent refresh calls
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = (async () => {
+    try {
+      const res = await fetch(`${BASE}/auth/refresh`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh_token: refreshToken }),
+      });
+      if (!res.ok) {
+        clearTokens();
+        return false;
+      }
+      const data = await res.json();
+      storeTokens(data.token, data.refresh_token);
+      return true;
+    } catch {
+      return false;
+    } finally {
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
+}
+
+async function request(path, options = {}, retried = false) {
   const token = getToken();
   const headers = { "Content-Type": "application/json", ...options.headers };
   if (token) {
@@ -16,6 +74,15 @@ async function request(path, options = {}) {
   }
 
   const res = await fetch(`${BASE}${path}`, { ...options, headers });
+
+  // If 401 and we have a refresh token, try to refresh and retry once
+  if (res.status === 401 && !retried && getRefreshToken()) {
+    const refreshed = await refreshAccessToken();
+    if (refreshed) {
+      return request(path, options, true);
+    }
+  }
+
   const data = await res.json();
 
   if (!res.ok) {

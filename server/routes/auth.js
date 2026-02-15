@@ -1,13 +1,24 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
 import { v4 as uuid } from "uuid";
+import rateLimit from "express-rate-limit";
 import db from "../db.js";
-import { signToken, requireAuth } from "../middleware/auth.js";
+import { signToken, signRefreshToken, verifyRefreshToken, requireAuth } from "../middleware/auth.js";
 
 const router = Router();
 
+// Strict rate limit on auth endpoints: 10 attempts per 15 minutes per IP
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many attempts. Please try again in 15 minutes." },
+  skip: () => !!(process.env.NODE_ENV === "test" || process.env.VITEST),
+});
+
 // POST /api/auth/register
-router.post("/register", async (req, res) => {
+router.post("/register", authLimiter, async (req, res) => {
   const { email, username, password, display_name } = req.body;
 
   if (!email || !username || !password) {
@@ -46,14 +57,16 @@ router.post("/register", async (req, res) => {
     `INSERT INTO users (id, email, username, display_name, password_hash) VALUES (?, ?, ?, ?, ?)`
   ).run(id, email, username, String(display_name || username).slice(0, 50), password_hash);
 
-  const token = signToken({ id, email, username });
+  const tokenPayload = { id, email, username };
+  const token = signToken(tokenPayload);
+  const refreshToken = signRefreshToken(tokenPayload);
   const user = db.prepare("SELECT id, email, username, display_name, tier, created_at FROM users WHERE id = ?").get(id);
 
-  res.status(201).json({ token, user });
+  res.status(201).json({ token, refresh_token: refreshToken, user });
 });
 
 // POST /api/auth/login
-router.post("/login", async (req, res) => {
+router.post("/login", authLimiter, async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -70,10 +83,13 @@ router.post("/login", async (req, res) => {
     return res.status(401).json({ error: "Invalid credentials" });
   }
 
-  const token = signToken({ id: user.id, email: user.email, username: user.username });
+  const tokenPayload = { id: user.id, email: user.email, username: user.username };
+  const token = signToken(tokenPayload);
+  const refreshToken = signRefreshToken(tokenPayload);
 
   res.json({
     token,
+    refresh_token: refreshToken,
     user: {
       id: user.id,
       email: user.email,
@@ -101,6 +117,35 @@ router.get("/me", requireAuth, (req, res) => {
   ).get(user.id).c;
 
   res.json({ ...user, server_count: serverCount, total_installs: totalInstalls });
+});
+
+// POST /api/auth/refresh — exchange a refresh token for a new access token
+router.post("/refresh", (req, res) => {
+  const { refresh_token } = req.body;
+
+  if (!refresh_token) {
+    return res.status(400).json({ error: "Refresh token is required" });
+  }
+
+  const payload = verifyRefreshToken(refresh_token);
+  if (!payload) {
+    return res.status(401).json({ error: "Invalid or expired refresh token" });
+  }
+
+  // Verify user still exists
+  const user = db.prepare(
+    "SELECT id, email, username, display_name, tier, created_at FROM users WHERE id = ?"
+  ).get(payload.id);
+
+  if (!user) {
+    return res.status(401).json({ error: "User no longer exists" });
+  }
+
+  const tokenPayload = { id: user.id, email: user.email, username: user.username };
+  const token = signToken(tokenPayload);
+  const newRefreshToken = signRefreshToken(tokenPayload);
+
+  res.json({ token, refresh_token: newRefreshToken });
 });
 
 export default router;

@@ -1,5 +1,8 @@
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
+import morgan from "morgan";
+import rateLimit from "express-rate-limit";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import { authenticateToken } from "./middleware/auth.js";
@@ -15,6 +18,7 @@ const __dirname = dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const isTest = process.env.NODE_ENV === "test" || process.env.VITEST;
 
 // Auto-seed: if the database has no users, run the seed script
 const userCount = db.prepare("SELECT COUNT(*) as c FROM users").get().c;
@@ -23,14 +27,33 @@ if (userCount === 0) {
   await import("./seed.js");
 }
 
-// Middleware
+// ─── Security headers ───
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+}));
+
+// ─── Request logging ───
+if (!isTest) {
+  app.use(morgan("short"));
+}
+
+// ─── CORS ───
 const allowedOrigins = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(",")
   : ["http://localhost:5173", "http://localhost:3001"];
 
 app.use(cors({
   origin(origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl, or same-origin)
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -39,6 +62,18 @@ app.use(cors({
   },
   credentials: true,
 }));
+
+// ─── Global rate limit: 100 requests per minute per IP ───
+if (!isTest) {
+  app.use(rateLimit({
+    windowMs: 60_000,
+    max: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Too many requests. Please try again later." },
+  }));
+}
+
 app.use(express.json({ limit: "1mb" }));
 app.use(authenticateToken);
 

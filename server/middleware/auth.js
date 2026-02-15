@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "mcpx-dev-secret-change-in-production";
+const REFRESH_SECRET = process.env.REFRESH_SECRET || JWT_SECRET + "-refresh";
 
 if (!process.env.JWT_SECRET) {
   console.warn("WARNING: JWT_SECRET not set — using insecure default. Set JWT_SECRET env var for production.");
@@ -32,5 +33,17 @@ export function requireAuth(req, res, next) {
 }
 
 export function signToken(payload) {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: "15m" });
+}
+
+export function signRefreshToken(payload) {
+  return jwt.sign(payload, REFRESH_SECRET, { expiresIn: "30d" });
+}
+
+export function verifyRefreshToken(token) {
+  try {
+    return jwt.verify(token, REFRESH_SECRET);
+  } catch {
+    return null;
+  }
 }

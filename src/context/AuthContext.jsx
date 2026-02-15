@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { login as apiLogin, register as apiRegister, getMe } from "../api/client";
+import { login as apiLogin, register as apiRegister, getMe, storeTokens, clearTokens } from "../api/client";
 import { AuthContext } from "./authContextValue";
 
 export { AuthContext };
@@ -25,27 +25,27 @@ export default function AuthProvider({ children }) {
     let cancelled = false;
     getMe()
       .then((u) => { if (!cancelled) setUser(u); })
-      .catch(() => { localStorage.removeItem(TOKEN_KEY); })
+      .catch(() => { clearTokens(); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, []);
 
   const login = useCallback(async (email, password) => {
-    const { token, user: u } = await apiLogin(email, password);
-    localStorage.setItem(TOKEN_KEY, token);
+    const { token, refresh_token, user: u } = await apiLogin(email, password);
+    storeTokens(token, refresh_token);
     setUser(u);
     return u;
   }, []);
 
   const register = useCallback(async (email, username, password) => {
-    const { token, user: u } = await apiRegister(email, username, password);
-    localStorage.setItem(TOKEN_KEY, token);
+    const { token, refresh_token, user: u } = await apiRegister(email, username, password);
+    storeTokens(token, refresh_token);
     setUser(u);
     return u;
   }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem(TOKEN_KEY);
+    clearTokens();
     setUser(null);
   }, []);
 

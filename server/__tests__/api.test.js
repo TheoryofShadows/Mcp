@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import request from "supertest";
 import { app } from "../index.js";
 import db from "../db.js";
-import { signToken } from "../middleware/auth.js";
+import { signToken, signRefreshToken } from "../middleware/auth.js";
 
 // Helper: get a token for a seeded user
 function tokenFor(username) {
@@ -489,6 +489,98 @@ describe("Tiers endpoints", () => {
         .send({ tier: "pro" });
       expect(res.status).toBe(401);
     });
+  });
+});
+
+// ─── Refresh tokens ───
+
+describe("Refresh token flow", () => {
+  describe("POST /api/auth/refresh", () => {
+    it("returns new access + refresh tokens from a valid refresh token", async () => {
+      const user = db.prepare("SELECT id, email, username FROM users WHERE username = ?").get("demo");
+      const refreshToken = signRefreshToken({ id: user.id, email: user.email, username: user.username });
+      const res = await request(app)
+        .post("/api/auth/refresh")
+        .send({ refresh_token: refreshToken });
+      expect(res.status).toBe(200);
+      expect(res.body.token).toBeDefined();
+      expect(res.body.refresh_token).toBeDefined();
+      // New access token should work
+      const meRes = await request(app)
+        .get("/api/auth/me")
+        .set("Authorization", `Bearer ${res.body.token}`);
+      expect(meRes.status).toBe(200);
+      expect(meRes.body.username).toBe("demo");
+    });
+
+    it("rejects missing refresh token", async () => {
+      const res = await request(app)
+        .post("/api/auth/refresh")
+        .send({});
+      expect(res.status).toBe(400);
+      expect(res.body.error).toMatch(/Refresh token is required/);
+    });
+
+    it("rejects invalid refresh token", async () => {
+      const res = await request(app)
+        .post("/api/auth/refresh")
+        .send({ refresh_token: "garbage-token-value" });
+      expect(res.status).toBe(401);
+      expect(res.body.error).toMatch(/Invalid or expired/);
+    });
+
+    it("rejects an access token used as a refresh token", async () => {
+      const accessToken = tokenFor("demo");
+      const res = await request(app)
+        .post("/api/auth/refresh")
+        .send({ refresh_token: accessToken });
+      expect(res.status).toBe(401);
+    });
+  });
+
+  describe("Login/register return refresh tokens", () => {
+    it("login returns both access and refresh tokens", async () => {
+      const res = await request(app)
+        .post("/api/auth/login")
+        .send({ email: "dev@mcpx.dev", password: "demo1234" });
+      expect(res.status).toBe(200);
+      expect(res.body.token).toBeDefined();
+      expect(res.body.refresh_token).toBeDefined();
+    });
+
+    it("register returns both access and refresh tokens", async () => {
+      const unique = `refresh_${Date.now()}`;
+      const res = await request(app)
+        .post("/api/auth/register")
+        .send({ email: `${unique}@test.com`, username: unique, password: "secret123" });
+      expect(res.status).toBe(201);
+      expect(res.body.token).toBeDefined();
+      expect(res.body.refresh_token).toBeDefined();
+    });
+  });
+});
+
+// ─── Security headers ───
+
+describe("Security headers (helmet)", () => {
+  it("sets X-Content-Type-Options", async () => {
+    const res = await request(app).get("/api/health");
+    expect(res.headers["x-content-type-options"]).toBe("nosniff");
+  });
+
+  it("sets X-Frame-Options", async () => {
+    const res = await request(app).get("/api/health");
+    expect(res.headers["x-frame-options"]).toBe("SAMEORIGIN");
+  });
+
+  it("removes X-Powered-By", async () => {
+    const res = await request(app).get("/api/health");
+    expect(res.headers["x-powered-by"]).toBeUndefined();
+  });
+
+  it("sets Content-Security-Policy", async () => {
+    const res = await request(app).get("/api/health");
+    expect(res.headers["content-security-policy"]).toBeDefined();
   });
 });
 
