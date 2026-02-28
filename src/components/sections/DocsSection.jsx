@@ -1,12 +1,20 @@
 import { useTiers } from "../../hooks/useTiers";
 
 export default function DocsSection() {
-  const { tech_stack, loading } = useTiers();
+  const { tech_stack, loading, error } = useTiers();
 
   if (loading) {
     return (
       <div style={{ padding: "80px var(--section-px)", textAlign: "center", color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: "var(--font-sm)" }}>
         Loading...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ padding: "80px var(--section-px)", textAlign: "center", color: "var(--accent-pink)", fontFamily: "var(--font-mono)", fontSize: "var(--font-sm)" }}>
+        {error}
       </div>
     );
   }

@@ -19,6 +19,11 @@ const Navbar = memo(function Navbar({ onAuthClick }) {
     setMobileOpen(false);
   }, []);
 
+  const handleAuthClick = useCallback(() => {
+    setMobileOpen(false);
+    onAuthClick?.();
+  }, [onAuthClick]);
+
   return (
     <nav className="navbar" aria-label="Main navigation">
       {/* Logo */}
@@ -58,7 +63,7 @@ const Navbar = memo(function Navbar({ onAuthClick }) {
         {mobileOpen ? "\u2715" : "\u2630"}
       </button>
 
-      {/* Navigation tabs */}
+      {/* Navigation tabs (desktop) + full menu (mobile when open) */}
       <div
         id="nav-tabs"
         className={`nav-tabs${mobileOpen ? " open" : ""}`}
@@ -81,13 +86,29 @@ const Navbar = memo(function Navbar({ onAuthClick }) {
             {link.label}
           </Link>
         ))}
+
+        {/* Auth buttons — shown inside hamburger menu on mobile */}
+        <div className="nav-mobile-auth">
+          {user ? (
+            <>
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: "var(--font-sm)", color: "var(--text-secondary)", padding: "0 var(--space-sm)" }}>
+                @{user.username}
+              </span>
+              <button className="btn btn-outline-green" onClick={() => { handleNavClick(); logout(); }}>
+                Log Out
+              </button>
+            </>
+          ) : (
+            <>
+              <button className="btn btn-outline-green" onClick={handleAuthClick}>Sign In</button>
+              <button className="btn btn-gradient" onClick={handleAuthClick}>Get Started</button>
+            </>
+          )}
+        </div>
       </div>
 
-      {/* Auth buttons */}
-      <div
-        className="nav-auth"
-        style={{ display: "flex", gap: "10px", alignItems: "center" }}
-      >
+      {/* Auth buttons — shown in header on desktop */}
+      <div className="nav-auth">
         {user ? (
           <>
             <span style={{ fontFamily: "var(--font-mono)", fontSize: "var(--font-sm)", color: "var(--text-secondary)" }}>

@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
+import { existsSync } from "fs";
 import { authenticateToken } from "./middleware/auth.js";
 import authRoutes from "./routes/auth.js";
 import serverRoutes from "./routes/servers.js";
@@ -56,10 +57,17 @@ app.get("/api/health", (_req, res) => {
 
 // Serve static files in production
 const distPath = join(__dirname, "..", "dist");
-app.use(express.static(distPath));
-app.get("/{*splat}", (_req, res) => {
-  res.sendFile(join(distPath, "index.html"));
-});
+if (existsSync(distPath)) {
+  app.use(express.static(distPath));
+  app.get("/{*splat}", (_req, res) => {
+    res.sendFile(join(distPath, "index.html"));
+  });
+} else {
+  console.warn("⚠  dist/ not found — run `npm run build` before `npm start` to serve the frontend.");
+  app.get("/{*splat}", (_req, res) => {
+    res.status(503).send("Frontend not built. Run `npm run build` first.");
+  });
+}
 
 app.listen(PORT, () => {
   console.log(`MCPX API server running on http://localhost:${PORT}`);

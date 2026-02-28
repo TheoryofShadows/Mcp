@@ -16,6 +16,7 @@ export default function ServerDetail() {
   const [reviewError, setReviewError] = useState("");
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [installed, setInstalled] = useState(false);
+  const [installMsg, setInstallMsg] = useState("");
 
   useEffect(() => {
     setLoading(true);
@@ -29,8 +30,13 @@ export default function ServerDetail() {
     try {
       await recordInstall(slug);
       setInstalled(true);
+      setInstallMsg("");
       setServer((s) => s && { ...s, installs: s.installs + 1 });
-    } catch { /* install is best-effort */ }
+    } catch (err) {
+      if (err.status === 429) {
+        setInstallMsg("Already recorded — try again in a minute.");
+      }
+    }
   }
 
   async function handleReview(e) {
@@ -161,7 +167,8 @@ export default function ServerDetail() {
       </div>
 
       {/* Install button */}
-      <div style={{ display: "flex", gap: "var(--space-sm)", marginBottom: "var(--space-xl)", flexWrap: "wrap" }}>
+      <div style={{ marginBottom: "var(--space-xl)" }}>
+        <div style={{ display: "flex", gap: "var(--space-sm)", flexWrap: "wrap" }}>
         <button className="btn btn-primary" onClick={handleInstall} disabled={installed}>
           {installed ? "Installed \u2713" : "Install Server"}
         </button>
@@ -175,6 +182,12 @@ export default function ServerDetail() {
           >
             View Source {"\u2192"}
           </a>
+        )}
+        </div>
+        {installMsg && (
+          <p style={{ marginTop: "var(--space-sm)", fontFamily: "var(--font-mono)", fontSize: "var(--font-sm)", color: "var(--text-muted)" }}>
+            {installMsg}
+          </p>
         )}
       </div>
 

@@ -5,7 +5,7 @@ import { useAuth } from "../../hooks/useAuth";
 
 export default function RevenueSection({ onAuthClick }) {
   const { user } = useAuth();
-  const { tiers, revenue_projections, loading } = useTiers();
+  const { tiers, revenue_projections, loading, error } = useTiers();
   const [subscribing, setSubscribing] = useState(null);
   const [subscribeMsg, setSubscribeMsg] = useState("");
 
@@ -30,6 +30,14 @@ export default function RevenueSection({ onAuthClick }) {
     return (
       <div style={{ padding: "80px var(--section-px)", textAlign: "center", color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: "var(--font-sm)" }}>
         Loading...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ padding: "80px var(--section-px)", textAlign: "center", color: "var(--accent-pink)", fontFamily: "var(--font-mono)", fontSize: "var(--font-sm)" }}>
+        {error}
       </div>
     );
   }

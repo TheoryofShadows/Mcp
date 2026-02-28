@@ -304,6 +304,17 @@ input:focus-visible {
 
 /* ─── Navbar ─── */
 
+.nav-auth {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Hidden in hamburger on desktop; visible in header */
+.nav-mobile-auth {
+  display: none;
+}
+
 .navbar {
   position: sticky;
   top: 0;
@@ -595,6 +606,22 @@ input:focus-visible {
 
   .nav-auth {
     display: none;
+  }
+
+  /* Auth section inside the hamburger menu */
+  .nav-mobile-auth {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-xs);
+    border-top: 1px solid var(--border-subtle);
+    margin-top: var(--space-xs);
+    width: 100%;
+  }
+
+  .nav-mobile-auth .btn {
+    width: 100%;
+    justify-content: center;
   }
 
   .hero-heading {
