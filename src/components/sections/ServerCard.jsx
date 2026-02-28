@@ -42,8 +42,8 @@ const ServerCard = memo(function ServerCard({ server, index }) {
         </div>
         <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
           {server.trending && <Badge variant="trending">Trending</Badge>}
-          <Badge variant={server.price === "free" ? "free" : "paid"}>
-            {server.price === "free" ? "Free" : server.price}
+          <Badge variant={server.price_type === "free" ? "free" : "paid"}>
+            {server.price_type === "free" ? "Free" : server.price}
           </Badge>
         </div>
       </div>

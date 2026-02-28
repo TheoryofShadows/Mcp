@@ -39,10 +39,16 @@ export default function ServerDetail() {
     setReviewSubmitting(true);
     try {
       const review = await postReview(slug, reviewRating, reviewComment);
-      setServer((s) => s && {
-        ...s,
-        reviews: [review, ...(s.reviews || [])],
-        rating_count: s.rating_count + 1,
+      setServer((s) => {
+        if (!s) return s;
+        const newCount = s.rating_count + 1;
+        const newRating = Math.round(((s.rating * s.rating_count) + reviewRating) / newCount * 10) / 10;
+        return {
+          ...s,
+          reviews: [review, ...(s.reviews || [])],
+          rating_count: newCount,
+          rating: newRating,
+        };
       });
       setReviewComment("");
       setReviewRating(5);

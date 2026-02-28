@@ -93,6 +93,13 @@ router.post("/subscribe", requireAuth, (req, res) => {
     return res.status(400).json({ error: "Invalid tier" });
   }
 
+  // Paid tiers require a payment token (Stripe integration not yet implemented)
+  if (valid.price_amount > 0) {
+    return res.status(402).json({
+      error: "Payment required. Paid tier subscriptions are not yet available.",
+    });
+  }
+
   // Cancel any existing active subscription
   db.prepare("UPDATE subscriptions SET status = 'cancelled' WHERE user_id = ? AND status = 'active'").run(req.user.id);
 
