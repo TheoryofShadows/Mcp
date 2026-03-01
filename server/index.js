@@ -9,6 +9,9 @@ import serverRoutes from "./routes/servers.js";
 import categoryRoutes from "./routes/categories.js";
 import statsRoutes from "./routes/stats.js";
 import tierRoutes from "./routes/tiers.js";
+import billingRoutes, { webhookHandler } from "./routes/billing.js";
+import keyRoutes from "./routes/keys.js";
+import collectionRoutes from "./routes/collections.js";
 import db from "./db.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -16,6 +19,9 @@ const __dirname = dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Stripe webhook MUST use raw body — mount BEFORE express.json()
+app.post("/api/billing/webhook", express.raw({ type: "application/json" }), webhookHandler);
 
 // Auto-seed: if the database has no users, run the seed script
 const userCount = db.prepare("SELECT COUNT(*) as c FROM users").get().c;
@@ -49,6 +55,9 @@ app.use("/api/servers", serverRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/stats", statsRoutes);
 app.use("/api/tiers", tierRoutes);
+app.use("/api/billing", billingRoutes);
+app.use("/api/keys", keyRoutes);
+app.use("/api/collections", collectionRoutes);
 
 // Health check
 app.get("/api/health", (_req, res) => {

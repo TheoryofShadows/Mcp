@@ -91,9 +91,18 @@ const Navbar = memo(function Navbar({ onAuthClick }) {
         <div className="nav-mobile-auth">
           {user ? (
             <>
-              <span style={{ fontFamily: "var(--font-mono)", fontSize: "var(--font-sm)", color: "var(--text-secondary)", padding: "0 var(--space-sm)" }}>
+              <Link
+                to="/dashboard"
+                onClick={handleNavClick}
+                style={{ fontFamily: "var(--font-mono)", fontSize: "var(--font-sm)", color: "var(--text-secondary)", padding: "0 var(--space-sm)", textDecoration: "none" }}
+              >
                 @{user.username}
-              </span>
+                {user.tier && user.tier !== "starter" && (
+                  <span style={{ marginLeft: "6px", color: "var(--accent-electric)", fontSize: "10px", textTransform: "uppercase" }}>
+                    {user.tier}
+                  </span>
+                )}
+              </Link>
               <button className="btn btn-outline-green" onClick={() => { handleNavClick(); logout(); }}>
                 Log Out
               </button>
@@ -111,9 +120,17 @@ const Navbar = memo(function Navbar({ onAuthClick }) {
       <div className="nav-auth">
         {user ? (
           <>
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: "var(--font-sm)", color: "var(--text-secondary)" }}>
+            <Link
+              to="/dashboard"
+              style={{ fontFamily: "var(--font-mono)", fontSize: "var(--font-sm)", color: "var(--text-secondary)", textDecoration: "none" }}
+            >
               @{user.username}
-            </span>
+              {user.tier && user.tier !== "starter" && (
+                <span style={{ marginLeft: "6px", color: "var(--accent-electric)", fontSize: "10px", textTransform: "uppercase" }}>
+                  {user.tier}
+                </span>
+              )}
+            </Link>
             <button className="btn btn-outline-green" onClick={logout}>Log Out</button>
           </>
         ) : (

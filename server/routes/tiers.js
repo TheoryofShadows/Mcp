@@ -93,10 +93,11 @@ router.post("/subscribe", requireAuth, (req, res) => {
     return res.status(400).json({ error: "Invalid tier" });
   }
 
-  // Paid tiers require a payment token (Stripe integration not yet implemented)
+  // Paid tiers go through Stripe Checkout — the frontend calls /api/billing/checkout
   if (valid.price_amount > 0) {
     return res.status(402).json({
-      error: "Payment required. Paid tier subscriptions are not yet available.",
+      error: "Use the billing checkout endpoint to subscribe to paid tiers.",
+      redirect: "/api/billing/checkout",
     });
   }
 

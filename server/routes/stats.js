@@ -1,5 +1,6 @@
 import { Router } from "express";
 import db from "../db.js";
+import { requireAuth } from "../middleware/auth.js";
 
 const router = Router();
 
@@ -29,6 +30,24 @@ router.get("/", (_req, res) => {
       { label: "Revenue Shared", value: "$" + formatCurrency(totalRevenue), color: "var(--accent-purple)" },
     ],
   });
+});
+
+// GET /api/stats/publisher — per-server stats for the authenticated publisher
+router.get("/publisher", requireAuth, (req, res) => {
+  const servers = db.prepare(`
+    SELECT
+      s.id, s.name, s.slug, s.description, s.installs as installs_total,
+      s.rating, s.rating_count, s.price_type, s.price_label, s.monthly_revenue,
+      (SELECT COUNT(*) FROM installs i
+       WHERE i.server_id = s.id AND i.installed_at >= datetime('now', '-7 days')) as installs_7d,
+      (SELECT COUNT(*) FROM installs i
+       WHERE i.server_id = s.id AND i.installed_at >= datetime('now', '-30 days')) as installs_30d
+    FROM servers s
+    WHERE s.author_id = ? AND s.status = 'active'
+    ORDER BY s.installs DESC
+  `).all(req.user.id);
+
+  res.json({ servers });
 });
 
 function formatNumber(n) {

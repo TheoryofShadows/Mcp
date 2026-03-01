@@ -87,12 +87,57 @@ db.exec(`
     expires_at TEXT
   );
 
+  CREATE TABLE IF NOT EXISTS api_keys (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    key_hash TEXT NOT NULL UNIQUE,
+    key_prefix TEXT NOT NULL,
+    name TEXT NOT NULL,
+    is_active INTEGER DEFAULT 1,
+    last_used_at TEXT,
+    call_count INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS webhook_events (
+    id TEXT PRIMARY KEY,
+    type TEXT NOT NULL,
+    processed_at TEXT DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS collections (
+    id TEXT PRIMARY KEY,
+    slug TEXT UNIQUE NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT,
+    sort_order INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS collection_servers (
+    collection_id TEXT REFERENCES collections(id) ON DELETE CASCADE,
+    server_id TEXT REFERENCES servers(id) ON DELETE CASCADE,
+    position INTEGER DEFAULT 0,
+    PRIMARY KEY (collection_id, server_id)
+  );
+
   CREATE INDEX IF NOT EXISTS idx_servers_category ON servers(category_id);
   CREATE INDEX IF NOT EXISTS idx_servers_author ON servers(author_id);
   CREATE INDEX IF NOT EXISTS idx_servers_status ON servers(status);
   CREATE INDEX IF NOT EXISTS idx_servers_trending ON servers(trending);
   CREATE INDEX IF NOT EXISTS idx_reviews_server ON reviews(server_id);
   CREATE INDEX IF NOT EXISTS idx_installs_server ON installs(server_id);
+  CREATE INDEX IF NOT EXISTS idx_api_keys_user ON api_keys(user_id);
+  CREATE INDEX IF NOT EXISTS idx_collection_servers ON collection_servers(collection_id);
 `);
+
+// Additive column migrations (safe to re-run)
+const addColumn = (sql) => { try { db.exec(sql); } catch (_) { /* already exists */ } };
+addColumn("ALTER TABLE users ADD COLUMN stripe_customer_id TEXT");
+addColumn("ALTER TABLE subscriptions ADD COLUMN stripe_subscription_id TEXT");
+addColumn("ALTER TABLE subscriptions ADD COLUMN stripe_price_id TEXT");
+addColumn("ALTER TABLE subscriptions ADD COLUMN current_period_end TEXT");
+addColumn("ALTER TABLE subscriptions ADD COLUMN cancel_at_period_end INTEGER DEFAULT 0");
+addColumn("ALTER TABLE servers ADD COLUMN trending_score INTEGER DEFAULT 0");
 
 export default db;

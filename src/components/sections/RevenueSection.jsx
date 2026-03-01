@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTiers } from "../../hooks/useTiers";
-import { subscribeTier } from "../../api/client";
+import { subscribeTier, createCheckoutSession } from "../../api/client";
 import { useAuth } from "../../hooks/useAuth";
 
 export default function RevenueSection({ onAuthClick }) {
@@ -16,12 +16,27 @@ export default function RevenueSection({ onAuthClick }) {
     }
     setSubscribing(tierId);
     setSubscribeMsg("");
+
+    // Free tier — use existing subscribe endpoint
+    const tier = tiers.find((t) => t.id === tierId);
+    if (!tier || tier.price_amount === 0) {
+      try {
+        const res = await subscribeTier(tierId);
+        setSubscribeMsg(res.message || "You are now on the Starter plan.");
+      } catch (err) {
+        setSubscribeMsg(err.message);
+      } finally {
+        setSubscribing(null);
+      }
+      return;
+    }
+
+    // Paid tiers — redirect to Stripe Checkout
     try {
-      const res = await subscribeTier(tierId);
-      setSubscribeMsg(res.message);
+      const { url } = await createCheckoutSession(tierId);
+      window.location.href = url;
     } catch (err) {
       setSubscribeMsg(err.message);
-    } finally {
       setSubscribing(null);
     }
   }

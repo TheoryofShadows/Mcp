@@ -9,6 +9,7 @@ const PublishSection = lazy(() => import("./components/sections/PublishSection")
 const RevenueSection = lazy(() => import("./components/sections/RevenueSection"));
 const DocsSection = lazy(() => import("./components/sections/DocsSection"));
 const ServerDetail = lazy(() => import("./pages/ServerDetail"));
+const DashboardPage = lazy(() => import("./pages/DashboardPage"));
 
 function SectionFallback() {
   return (
@@ -57,6 +58,7 @@ export default function App() {
             <Route path="/revenue" element={<RevenueSection onAuthClick={() => setShowAuth(true)} />} />
             <Route path="/docs" element={<DocsSection />} />
             <Route path="/servers/:slug" element={<ServerDetail />} />
+            <Route path="/dashboard" element={<DashboardPage onAuthClick={() => setShowAuth(true)} />} />
           </Routes>
         </Suspense>
       </ErrorBoundary>

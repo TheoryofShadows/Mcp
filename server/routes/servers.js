@@ -56,6 +56,7 @@ router.get("/", (req, res) => {
     newest: "s.created_at DESC",
     name: "s.name ASC",
     revenue: "s.monthly_revenue DESC",
+    trending: "s.trending_score DESC, s.installs DESC",
   };
   const orderBy = SORT_MAP[sort] || SORT_MAP.installs;
 
@@ -277,6 +278,23 @@ router.post("/:slug/install", (req, res) => {
   db.prepare("UPDATE servers SET installs = installs + 1 WHERE id = ?").run(server.id);
 
   res.json({ success: true });
+});
+
+// GET /api/servers/featured — curated sets for discovery
+router.get("/featured", (req, res) => {
+  const baseQuery = `
+    SELECT s.*, u.username as author_username, u.display_name as author_display_name, c.label as category_label
+    FROM servers s
+    JOIN users u ON s.author_id = u.id
+    JOIN categories c ON s.category_id = c.id
+    WHERE s.status = 'active'
+  `;
+
+  const trending = db.prepare(`${baseQuery} AND s.trending = 1 ORDER BY s.trending_score DESC, s.installs DESC LIMIT 6`).all().map(formatServer);
+  const newest = db.prepare(`${baseQuery} AND s.created_at >= datetime('now', '-30 days') ORDER BY s.created_at DESC LIMIT 6`).all().map(formatServer);
+  const topRated = db.prepare(`${baseQuery} AND s.rating_count >= 3 ORDER BY s.rating DESC, s.rating_count DESC LIMIT 6`).all().map(formatServer);
+
+  res.json({ trending, newest, top_rated: topRated });
 });
 
 function formatServer(row) {

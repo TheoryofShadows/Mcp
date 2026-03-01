@@ -107,3 +107,53 @@ export async function subscribeTier(tier) {
     body: JSON.stringify({ tier }),
   });
 }
+
+// ─── Billing ───
+
+export async function createCheckoutSession(tier) {
+  return request("/billing/checkout", {
+    method: "POST",
+    body: JSON.stringify({ tier }),
+  });
+}
+
+export async function createPortalSession() {
+  return request("/billing/portal", { method: "POST" });
+}
+
+export async function getBillingStatus() {
+  return request("/billing/status");
+}
+
+// ─── API Keys ───
+
+export async function fetchApiKeys() {
+  return request("/keys");
+}
+
+export async function createApiKey(name) {
+  return request("/keys", {
+    method: "POST",
+    body: JSON.stringify({ name }),
+  });
+}
+
+export async function revokeApiKey(id) {
+  return request(`/keys/${encodeURIComponent(id)}`, { method: "DELETE" });
+}
+
+// ─── Publisher Stats ───
+
+export async function fetchPublisherStats() {
+  return request("/stats/publisher");
+}
+
+// ─── Collections ───
+
+export async function fetchCollections() {
+  return request("/collections");
+}
+
+export async function fetchFeatured() {
+  return request("/servers/featured");
+}

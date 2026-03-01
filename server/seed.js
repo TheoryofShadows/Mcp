@@ -6,9 +6,13 @@ console.log("Seeding database...");
 
 // ─── Clear existing data ───
 db.exec(`
+  DELETE FROM collection_servers;
+  DELETE FROM collections;
   DELETE FROM installs;
   DELETE FROM reviews;
   DELETE FROM subscriptions;
+  DELETE FROM api_keys;
+  DELETE FROM webhook_events;
   DELETE FROM servers;
   DELETE FROM categories;
   DELETE FROM users;
@@ -277,12 +281,53 @@ for (const r of sampleReviews) {
   }
 }
 
+// ─── Collections ───
+
+const insertCollection = db.prepare(
+  `INSERT INTO collections (id, slug, title, description, sort_order) VALUES (?, ?, ?, ?, ?)`
+);
+const insertCollectionServer = db.prepare(
+  `INSERT INTO collection_servers (collection_id, server_id, position) VALUES (?, ?, ?)`
+);
+
+const collectionsData = [
+  {
+    id: uuid(), slug: "getting-started", title: "Getting Started", sort_order: 0,
+    description: "Essential free tools to start building with MCP today.",
+    servers: ["postgres-mcp", "github-actions-plus", "vercel-deploy", "cloudflare-workers"],
+  },
+  {
+    id: uuid(), slug: "ai-powertools", title: "AI Power Tools", sort_order: 1,
+    description: "Supercharge your AI agents with cutting-edge ML integrations.",
+    servers: ["hugging-face-hub", "gpt-toolkit", "aws-commander"],
+  },
+  {
+    id: uuid(), slug: "dev-productivity", title: "Dev Productivity", sort_order: 2,
+    description: "Ship faster with tools that automate your development workflow.",
+    servers: ["github-actions-plus", "vercel-deploy", "postgres-mcp", "redis-cache-pro"],
+  },
+  {
+    id: uuid(), slug: "business-suite", title: "Business Suite", sort_order: 3,
+    description: "Run your business on autopilot — payments, docs, and more.",
+    servers: ["stripe-agent", "notion-sync", "datadog-monitor"],
+  },
+];
+
+for (const col of collectionsData) {
+  insertCollection.run(col.id, col.slug, col.title, col.description, col.sort_order);
+  col.servers.forEach((slug, i) => {
+    const serverId = serverSlugs[slug];
+    if (serverId) insertCollectionServer.run(col.id, serverId, i);
+  });
+}
+
 // ─── Verify counts ───
 
 const userCount = db.prepare("SELECT COUNT(*) as c FROM users").get().c;
 const catCount = db.prepare("SELECT COUNT(*) as c FROM categories").get().c;
 const serverCount = db.prepare("SELECT COUNT(*) as c FROM servers").get().c;
 const reviewCount = db.prepare("SELECT COUNT(*) as c FROM reviews").get().c;
+const collectionCount = db.prepare("SELECT COUNT(*) as c FROM collections").get().c;
 
-console.log(`Seeded: ${userCount} users, ${catCount} categories, ${serverCount} servers, ${reviewCount} reviews`);
+console.log(`Seeded: ${userCount} users, ${catCount} categories, ${serverCount} servers, ${reviewCount} reviews, ${collectionCount} collections`);
 console.log("Done.");
