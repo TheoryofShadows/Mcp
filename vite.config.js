@@ -12,4 +12,10 @@ export default defineConfig({
       },
     },
   },
+  test: {
+    environment: 'node',
+    include: ['tests/**/*.test.js'],
+    pool: 'forks',
+    isolate: true,
+  },
 })
