@@ -1,5 +1,3 @@
-import express from "express";
-import cors from "cors";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import { existsSync } from "fs";
@@ -12,12 +10,12 @@ import tierRoutes from "./routes/tiers.js";
 import billingRoutes, { webhookHandler } from "./routes/billing.js";
 import keyRoutes from "./routes/keys.js";
 import collectionRoutes from "./routes/collections.js";
+import { createApp } from "./app.js";
 import db from "./db.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Stripe webhook MUST use raw body — mount BEFORE express.json()

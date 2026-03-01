@@ -1,0 +1,204 @@
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import request from "supertest";
+import { cleanup } from "./setup.js";
+import { createApp } from "../server/app.js";
+
+const app = createApp();
+
+let token;
+let slug;
+
+beforeAll(async () => {
+  const reg = await request(app).post("/api/auth/register").send({
+    email: "servertest@example.com",
+    username: "servertest",
+    password: "testpassword",
+  });
+  token = reg.body.token;
+});
+
+afterAll(cleanup);
+
+describe("GET /api/servers", () => {
+  it("returns a list of servers", async () => {
+    const res = await request(app).get("/api/servers");
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty("servers");
+    expect(res.body).toHaveProperty("pagination");
+    expect(Array.isArray(res.body.servers)).toBe(true);
+  });
+
+  it("respects search query parameter", async () => {
+    const res = await request(app).get("/api/servers?search=nonexistent12345xyz");
+    expect(res.status).toBe(200);
+    expect(res.body.servers).toHaveLength(0);
+  });
+
+  it("respects pagination parameters", async () => {
+    const res = await request(app).get("/api/servers?page=1&limit=5");
+    expect(res.status).toBe(200);
+    expect(res.body.pagination.limit).toBe(5);
+  });
+
+  it("caps limit at 100", async () => {
+    const res = await request(app).get("/api/servers?limit=9999");
+    expect(res.status).toBe(200);
+    expect(res.body.pagination.limit).toBe(100);
+  });
+});
+
+describe("POST /api/servers", () => {
+  it("creates a server when authenticated", async () => {
+    const res = await request(app)
+      .post("/api/servers")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        name: "My Test Server",
+        category_id: "dev-tools",
+        description: "A server for testing purposes",
+        price_type: "free",
+      });
+    expect(res.status).toBe(201);
+    expect(res.body.name).toBe("My Test Server");
+    expect(res.body.slug).toBe("my-test-server");
+    slug = res.body.slug;
+  });
+
+  it("returns 401 without auth", async () => {
+    const res = await request(app).post("/api/servers").send({
+      name: "Unauthorized Server",
+      category_id: "dev-tools",
+      description: "Should not be created",
+    });
+    expect(res.status).toBe(401);
+  });
+
+  it("rejects missing required fields", async () => {
+    const res = await request(app)
+      .post("/api/servers")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ name: "No Desc" });
+    expect(res.status).toBe(400);
+  });
+
+  it("rejects short description", async () => {
+    const res = await request(app)
+      .post("/api/servers")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ name: "Valid Name", category_id: "dev-tools", description: "Short" });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/description/i);
+  });
+
+  it("rejects invalid category", async () => {
+    const res = await request(app)
+      .post("/api/servers")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        name: "Bad Category Server",
+        category_id: "nonexistent-cat",
+        description: "This has a bad category id for testing",
+      });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/category/i);
+  });
+
+  it("rejects duplicate server name", async () => {
+    const res = await request(app)
+      .post("/api/servers")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        name: "My Test Server",
+        category_id: "dev-tools",
+        description: "Duplicate name should be rejected",
+      });
+    expect(res.status).toBe(409);
+  });
+});
+
+describe("GET /api/servers/:slug", () => {
+  it("returns server detail by slug", async () => {
+    const res = await request(app).get(`/api/servers/${slug}`);
+    expect(res.status).toBe(200);
+    expect(res.body.slug).toBe(slug);
+    expect(res.body).toHaveProperty("reviews");
+    expect(Array.isArray(res.body.reviews)).toBe(true);
+  });
+
+  it("returns 404 for unknown slug", async () => {
+    const res = await request(app).get("/api/servers/does-not-exist-abc123");
+    expect(res.status).toBe(404);
+  });
+});
+
+describe("POST /api/servers/:slug/reviews", () => {
+  let reviewerToken;
+
+  beforeAll(async () => {
+    const reg = await request(app).post("/api/auth/register").send({
+      email: "reviewer@example.com",
+      username: "reviewer",
+      password: "reviewerpass",
+    });
+    reviewerToken = reg.body.token;
+  });
+
+  it("allows authenticated user to review a server they don't own", async () => {
+    const res = await request(app)
+      .post(`/api/servers/${slug}/reviews`)
+      .set("Authorization", `Bearer ${reviewerToken}`)
+      .send({ rating: 4, comment: "Great server for testing!" });
+    expect(res.status).toBe(201);
+    expect(res.body.rating).toBe(4);
+  });
+
+  it("rejects duplicate review from same user", async () => {
+    const res = await request(app)
+      .post(`/api/servers/${slug}/reviews`)
+      .set("Authorization", `Bearer ${reviewerToken}`)
+      .send({ rating: 5, comment: "Second review attempt" });
+    expect(res.status).toBe(409);
+  });
+
+  it("rejects author reviewing own server", async () => {
+    const res = await request(app)
+      .post(`/api/servers/${slug}/reviews`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ rating: 5, comment: "Self review" });
+    expect(res.status).toBe(400);
+  });
+
+  it("rejects invalid rating", async () => {
+    const res = await request(app)
+      .post(`/api/servers/${slug}/reviews`)
+      .set("Authorization", `Bearer ${reviewerToken}`)
+      .send({ rating: 6 });
+    expect(res.status).toBe(400);
+  });
+
+  it("rejects unauthenticated review", async () => {
+    const res = await request(app)
+      .post(`/api/servers/${slug}/reviews`)
+      .send({ rating: 3, comment: "No auth" });
+    expect(res.status).toBe(401);
+  });
+});
+
+describe("POST /api/servers/:slug/install", () => {
+  it("records an install", async () => {
+    const res = await request(app).post(`/api/servers/${slug}/install`);
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+  });
+
+  it("rate-limits repeated installs from the same IP", async () => {
+    // First install already done above, second should be rate-limited
+    const res = await request(app).post(`/api/servers/${slug}/install`);
+    expect(res.status).toBe(429);
+  });
+
+  it("returns 404 for unknown slug", async () => {
+    const res = await request(app).post("/api/servers/does-not-exist/install");
+    expect(res.status).toBe(404);
+  });
+});

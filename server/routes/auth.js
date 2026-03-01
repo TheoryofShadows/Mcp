@@ -6,8 +6,40 @@ import { signToken, requireAuth } from "../middleware/auth.js";
 
 const router = Router();
 
+// Simple in-memory rate limiter for auth endpoints
+// key: IP address, value: { count, resetAt }
+const authRateLimit = new Map();
+const AUTH_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+const AUTH_MAX_ATTEMPTS = 20; // per window (generous for devs, stops bots)
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of authRateLimit) {
+    if (now > entry.resetAt) authRateLimit.delete(key);
+  }
+}, 5 * 60 * 1000);
+
+function checkAuthRateLimit(req, res) {
+  const ip = req.ip || req.socket?.remoteAddress || "unknown";
+  const now = Date.now();
+  let entry = authRateLimit.get(ip);
+  if (!entry || now > entry.resetAt) {
+    entry = { count: 0, resetAt: now + AUTH_WINDOW_MS };
+    authRateLimit.set(ip, entry);
+  }
+  entry.count++;
+  if (entry.count > AUTH_MAX_ATTEMPTS) {
+    const retryAfter = Math.ceil((entry.resetAt - now) / 1000);
+    res.set("Retry-After", String(retryAfter));
+    res.status(429).json({ error: "Too many attempts. Try again later." });
+    return false;
+  }
+  return true;
+}
+
 // POST /api/auth/register
 router.post("/register", async (req, res) => {
+  if (!checkAuthRateLimit(req, res)) return;
   const { email, username, password, display_name } = req.body;
 
   if (!email || !username || !password) {
@@ -54,6 +86,7 @@ router.post("/register", async (req, res) => {
 
 // POST /api/auth/login
 router.post("/login", async (req, res) => {
+  if (!checkAuthRateLimit(req, res)) return;
   const { email, password } = req.body;
 
   if (!email || !password) {
