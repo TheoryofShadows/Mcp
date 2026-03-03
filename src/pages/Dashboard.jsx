@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   BarChart3, Package, DollarSign, Users, TrendingUp,
   Download, Star, CreditCard, ExternalLink, Plus, AlertCircle
@@ -76,7 +76,6 @@ function StatCard({ icon: Icon, label, value, sub, color = "#6366f1" }) {
 
 export default function Dashboard() {
   const { user, loading: authLoading } = useAuth();
-  const navigate = useNavigate();
   const [tools, setTools] = useState([]);
   const [stats, setStats] = useState(MOCK_STATS);
   const [loading, setLoading] = useState(true);

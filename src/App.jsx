@@ -76,7 +76,7 @@ export default function App() {
             gap: "12px",
           }}
         >
-          <span>© 2025 MCPX · The App Store for AI Agents · 15% platform fee</span>
+          <span>© 2026 MCPX · The App Store for AI Agents · 15% platform fee</span>
           <div style={{ display: "flex", gap: "20px" }}>
             {[
               { label: "Marketplace", href: "/marketplace" },

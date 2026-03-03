@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { Search, X } from "lucide-react";
 import ToolCard from "../components/ToolCard";
 import CategoryCard from "../components/CategoryCard";
 import { SEED_TOOLS, SEED_CATEGORIES } from "../data/seed";
@@ -66,7 +66,6 @@ export default function MarketplacePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [tools, setTools] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showFilters, setShowFilters] = useState(false);
 
   const initQ    = searchParams.get("q") || "";
   const initCat  = searchParams.get("category") || "all";
