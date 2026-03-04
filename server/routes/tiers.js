@@ -84,7 +84,7 @@ router.get("/", (_req, res) => {
   });
 });
 
-// POST /api/tiers/subscribe — subscribe to a tier (auth required)
+// POST /api/tiers/subscribe — placeholder until Stripe integration
 router.post("/subscribe", requireAuth, (req, res) => {
   const { tier } = req.body;
 
@@ -93,22 +93,24 @@ router.post("/subscribe", requireAuth, (req, res) => {
     return res.status(400).json({ error: "Invalid tier" });
   }
 
-  // Cancel any existing active subscription
-  db.prepare("UPDATE subscriptions SET status = 'cancelled' WHERE user_id = ? AND status = 'active'").run(req.user.id);
+  // Free tier — allow directly
+  if (valid.price_amount === 0) {
+    db.prepare("UPDATE subscriptions SET status = 'cancelled' WHERE user_id = ? AND status = 'active'").run(req.user.id);
+    const id = uuid();
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+    db.prepare(
+      "INSERT INTO subscriptions (id, user_id, tier, status, expires_at) VALUES (?, ?, ?, 'active', ?)"
+    ).run(id, req.user.id, tier, expiresAt);
+    db.prepare("UPDATE users SET tier = ?, updated_at = datetime('now') WHERE id = ?").run(tier, req.user.id);
+    return res.status(201).json({
+      subscription: { id, tier, status: "active", expires_at: expiresAt },
+      message: `Subscribed to ${valid.name} plan`,
+    });
+  }
 
-  const id = uuid();
-  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-
-  db.prepare(
-    "INSERT INTO subscriptions (id, user_id, tier, status, expires_at) VALUES (?, ?, ?, 'active', ?)"
-  ).run(id, req.user.id, tier, expiresAt);
-
-  // Update user's tier
-  db.prepare("UPDATE users SET tier = ?, updated_at = datetime('now') WHERE id = ?").run(tier, req.user.id);
-
-  res.status(201).json({
-    subscription: { id, tier, status: "active", expires_at: expiresAt },
-    message: `Subscribed to ${valid.name} plan`,
+  // Paid tiers — payment integration pending
+  res.status(501).json({
+    error: "Payment integration pending. Stripe Connect will be available soon.",
   });
 });
 

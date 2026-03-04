@@ -15,33 +15,16 @@ router.get("/", (_req, res) => {
   const reviewCount = db.prepare("SELECT COUNT(*) as c FROM reviews").get().c;
 
   res.json({
-    server_count: serverCount,
+    total_tools: serverCount,
     total_installs: totalInstalls,
-    publisher_count: publisherCount,
-    total_monthly_revenue: totalRevenue,
+    total_developers: publisherCount,
+    total_revenue: totalRevenue,
     verified_count: verifiedCount,
     trending_count: trendingCount,
     avg_rating: avgRating || 0,
     review_count: reviewCount,
-    hero_stats: [
-      { label: "Monthly Installs", value: formatNumber(totalInstalls) + "+", color: "var(--accent-electric)" },
-      { label: "Active Publishers", value: formatNumber(publisherCount) + "+", color: "var(--accent-blue)" },
-      { label: "Revenue Shared", value: "$" + formatCurrency(totalRevenue), color: "var(--accent-purple)" },
-    ],
   });
 });
 
-function formatNumber(n) {
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
-  if (n >= 1_000) return (n / 1_000).toFixed(1) + "K";
-  return n.toString();
-}
-
-function formatCurrency(cents) {
-  const dollars = cents / 100;
-  if (dollars >= 1_000_000) return (dollars / 1_000_000).toFixed(1) + "M";
-  if (dollars >= 1_000) return (dollars / 1_000).toFixed(0) + "K";
-  return dollars.toFixed(0);
-}
 
 export default router;

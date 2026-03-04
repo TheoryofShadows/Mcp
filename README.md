@@ -1,12 +1,25 @@
-# MCPX - The Marketplace for AI Agent Tools
+# MCPX — The App Store for AI Agents
 
-A full-stack marketplace for discovering, publishing, and monetizing MCP (Model Context Protocol) servers.
+A marketplace for discovering, installing, and monetizing MCP (Model Context Protocol) tools. Built with React + Vite frontend and Express + SQLite backend.
 
-## Tech Stack
+## Architecture
 
-- **Frontend:** React 19, React Router, Vite
-- **Backend:** Express 5, SQLite (better-sqlite3), JWT auth
-- **Design:** Custom CSS design system with dark theme
+```
+├── src/                  # React frontend (Vite)
+│   ├── pages/            # Home, Marketplace, ToolDetail, Dashboard, Submit, Login
+│   ├── components/       # ToolCard, CategoryCard, Navbar, PriceTag, etc.
+│   ├── api/client.js     # API client — all frontend↔backend communication
+│   ├── context/          # Auth context (JWT-based)
+│   └── data/seed.js      # Static seed data (fallback when API unavailable)
+├── server/               # Express API
+│   ├── app.js            # Express app setup (CORS, helmet, routes)
+│   ├── db.js             # SQLite database (better-sqlite3)
+│   ├── seed.js           # Database seeder
+│   ├── routes/           # API routes: servers, categories, stats, tiers, auth
+│   └── middleware/        # JWT auth middleware
+├── tests/                # Vitest API tests
+└── dist/                 # Production build output
+```
 
 ## Quick Start
 
@@ -14,71 +27,73 @@ A full-stack marketplace for discovering, publishing, and monetizing MCP (Model 
 # Install dependencies
 npm install
 
+# Copy environment config
+cp .env.example .env
+# Edit .env — set a real JWT_SECRET
+
+# Seed the database
+npm run seed
+
 # Start development (frontend + backend)
 npm run dev
 ```
 
-The app auto-seeds the database on first run. Visit `http://localhost:5173` to use the app.
+Frontend: http://localhost:5173
+API: http://localhost:3001/api
 
-**Demo account:** `dev@mcpx.dev` / `demo1234`
+## Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `JWT_SECRET` | Yes | Secret for signing JWT tokens. Generate with: `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"` |
+| `PORT` | No | API server port (default: 3001) |
+| `CORS_ORIGINS` | No | Comma-separated allowed origins (default: localhost) |
+| `DB_PATH` | No | SQLite database file path (default: mcpx.db) |
 
 ## Scripts
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start frontend (Vite) + backend (Express) concurrently |
+| `npm run dev` | Start frontend + backend concurrently |
 | `npm run dev:client` | Start Vite dev server only |
 | `npm run dev:server` | Start Express API only |
 | `npm run build` | Build frontend for production |
-| `npm start` | Start production server (serves built frontend) |
-| `npm run seed` | Reset and re-seed the database |
-| `npm run lint` | Run ESLint |
-
-## Environment Variables
-
-Copy `.env.example` to `.env` and configure:
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `PORT` | `3001` | API server port |
-| `JWT_SECRET` | dev fallback | Secret for signing JWT tokens. **Set in production.** |
-| `CORS_ORIGINS` | `localhost` | Comma-separated allowed origins |
+| `npm start` | Start production server |
+| `npm test` | Run test suite |
+| `npm run lint` | Lint with ESLint |
+| `npm run seed` | Seed the database |
 
 ## API Endpoints
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `POST` | `/api/auth/register` | No | Create account |
-| `POST` | `/api/auth/login` | No | Sign in |
-| `GET` | `/api/auth/me` | Yes | Get current user |
-| `GET` | `/api/servers` | No | List servers (search, filter, paginate) |
-| `POST` | `/api/servers` | Yes | Publish a new server |
-| `GET` | `/api/servers/:slug` | No | Server detail + reviews |
-| `POST` | `/api/servers/:slug/reviews` | Yes | Submit a review |
-| `POST` | `/api/servers/:slug/install` | No | Record an install |
-| `GET` | `/api/categories` | No | List categories |
-| `GET` | `/api/stats` | No | Platform statistics |
-| `GET` | `/api/tiers` | No | Subscription tiers |
-| `POST` | `/api/tiers/subscribe` | Yes | Subscribe to a tier |
-| `GET` | `/api/health` | No | Health check |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/servers` | List tools (search, filter, sort, paginate) |
+| GET | `/api/servers/:slug` | Tool detail + reviews |
+| POST | `/api/servers` | Create tool (auth required) |
+| POST | `/api/servers/:slug/reviews` | Add review (auth required) |
+| POST | `/api/servers/:slug/install` | Record install |
+| GET | `/api/categories` | List categories with counts |
+| GET | `/api/stats` | Platform statistics |
+| GET | `/api/tiers` | Pricing tiers |
+| POST | `/api/tiers/subscribe` | Subscribe to tier (auth required) |
+| POST | `/api/auth/register` | Register account |
+| POST | `/api/auth/login` | Login |
+| GET | `/api/auth/me` | Current user (auth required) |
+| GET | `/api/health` | Health check |
 
-## Project Structure
+## Docker
 
+```bash
+docker compose up -d
 ```
-├── src/                    # React frontend
-│   ├── api/client.js       # API client
-│   ├── components/         # UI components
-│   ├── context/            # Auth context
-│   ├── hooks/              # Custom hooks
-│   ├── pages/              # Route pages
-│   └── styles/globals.css  # Design tokens
-├── server/                 # Express backend
-│   ├── index.js            # App entry point
-│   ├── db.js               # SQLite schema
-│   ├── seed.js             # Database seeder
-│   ├── middleware/auth.js   # JWT middleware
-│   └── routes/             # API route handlers
-├── index.html              # HTML entry
-├── vite.config.js          # Vite config
-└── package.json
+
+## Testing
+
+```bash
+npm test           # Run once
+npm run test:watch # Watch mode
 ```
+
+## License
+
+MIT

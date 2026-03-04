@@ -8,27 +8,24 @@ import VerifiedBadge from "../components/VerifiedBadge";
 import PriceTag from "../components/PriceTag";
 import InstallCommand from "../components/InstallCommand";
 import { SEED_TOOLS, SEED_REVIEWS } from "../data/seed";
-import { supabase } from "../lib/supabase";
+import { fetchServer, recordInstall } from "../api/client";
 
 async function loadTool(slug) {
-  if (!supabase) {
+  try {
+    const data = await fetchServer(slug);
+    // Map API review shape to frontend shape
+    const reviews = (data.reviews || []).map((r) => ({
+      id: r.id,
+      rating: r.rating,
+      body: r.comment,
+      created_at: r.created_at,
+      user: { username: r.username || r.display_name || "anonymous" },
+    }));
+    return { tool: data, reviews };
+  } catch {
     const tool = SEED_TOOLS.find((t) => t.slug === slug) || null;
     const reviews = tool ? SEED_REVIEWS.filter((r) => r.tool_id === tool.id) : [];
     return { tool, reviews };
-  }
-  try {
-    const [{ data: tool }, { data: reviews }] = await Promise.all([
-      supabase.from("tools").select("*").eq("slug", slug).single(),
-      supabase.from("reviews").select("*, user:users(username, avatar_url)").eq("tool_id", slug).order("created_at", { ascending: false }),
-    ]);
-    if (!tool) {
-      const fallback = SEED_TOOLS.find((t) => t.slug === slug) || null;
-      return { tool: fallback, reviews: SEED_REVIEWS.filter((r) => r.tool_id === fallback?.id) };
-    }
-    return { tool, reviews: reviews || [] };
-  } catch {
-    const tool = SEED_TOOLS.find((t) => t.slug === slug) || null;
-    return { tool, reviews: SEED_REVIEWS.filter((r) => r.tool_id === tool?.id) };
   }
 }
 
@@ -511,8 +508,12 @@ export default function ToolDetail() {
                 transition: "all 0.15s",
               }}
               onClick={() => {
-                // TODO: Stripe checkout for paid tools
-                alert("Install by copying the command in the Install tab.");
+                if (tool.price_type === "free") {
+                  recordInstall(tool.slug).catch(() => {});
+                  setActiveTab("Install");
+                } else {
+                  alert("Paid tool subscriptions coming soon via Stripe.");
+                }
               }}
               onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 0 28px rgba(99,102,241,0.4)")}
               onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "0 0 20px rgba(99,102,241,0.25)")}

@@ -7,10 +7,10 @@ import {
 import { useAuth } from "../hooks/useAuth";
 import PriceTag from "../components/PriceTag";
 import { SEED_TOOLS } from "../data/seed";
-import { supabase } from "../lib/supabase";
+import { fetchServers } from "../api/client";
 
 // Mock dashboard data for demo / no-auth mode
-const MOCK_TOOLS = SEED_TOOLS.filter((t) => ["github-mcp", "filesystem-mcp", "postgres-mcp"].includes(t.slug));
+const MOCK_TOOLS = SEED_TOOLS.slice(0, 3);
 const MOCK_STATS = {
   total_revenue: 4820,
   monthly_revenue: 580,
@@ -20,15 +20,12 @@ const MOCK_STATS = {
 };
 
 async function loadDashboard(userId) {
-  if (!supabase || !userId) return { tools: MOCK_TOOLS, stats: MOCK_STATS };
+  if (!userId) return { tools: MOCK_TOOLS, stats: MOCK_STATS };
   try {
-    const { data: tools } = await supabase
-      .from("tools")
-      .select("*")
-      .eq("author_id", userId)
-      .order("created_at", { ascending: false });
+    const data = await fetchServers({ limit: 50 });
+    const tools = data.servers || [];
 
-    if (!tools?.length) return { tools: MOCK_TOOLS, stats: MOCK_STATS };
+    if (!tools.length) return { tools: MOCK_TOOLS, stats: MOCK_STATS };
 
     const totalInstalls = tools.reduce((s, t) => s + (t.installs || 0), 0);
     const monthlyRevenue = tools

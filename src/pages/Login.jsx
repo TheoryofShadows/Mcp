@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Github, Loader, AlertCircle, Zap, Shield, CheckCircle } from "lucide-react";
+import { Loader, AlertCircle, Zap, Shield, CheckCircle, Mail, Lock, User } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
-import { supabase, isSupabaseEnabled } from "../lib/supabase";
 
 const PERKS = [
   "Publish and monetize MCP tools",
@@ -12,38 +11,52 @@ const PERKS = [
 ];
 
 export default function Login() {
-  const { user } = useAuth();
+  const { user, login: authLogin, register: authRegister } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isRegister, setIsRegister] = useState(false);
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
 
   // Redirect if already logged in
   useEffect(() => {
     if (user) navigate("/dashboard");
   }, [user, navigate]);
 
-  async function handleGitHubLogin() {
-    if (!isSupabaseEnabled) {
-      setError("Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your .env file.");
-      return;
-    }
+  async function handleSubmit(e) {
+    e.preventDefault();
     setLoading(true);
     setError("");
     try {
-      const { error: authError } = await supabase.auth.signInWithOAuth({
-        provider: "github",
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`,
-          scopes: "read:user user:email",
-        },
-      });
-      if (authError) throw authError;
-      // Redirect happens via browser
+      if (isRegister) {
+        if (!username.trim()) { setError("Username is required"); setLoading(false); return; }
+        await authRegister(email, username, password);
+      } else {
+        await authLogin(email, password);
+      }
+      navigate("/dashboard");
     } catch (err) {
-      setError(err.message || "GitHub login failed. Please try again.");
+      setError(err.message || "Authentication failed. Please try again.");
+    } finally {
       setLoading(false);
     }
   }
+
+  const inputStyle = {
+    width: "100%",
+    padding: "12px 14px 12px 42px",
+    background: "#0d0d0d",
+    border: "1px solid #2a2a2a",
+    borderRadius: "10px",
+    color: "var(--text-primary)",
+    fontSize: "14px",
+    fontFamily: "var(--font-body)",
+    outline: "none",
+    transition: "border-color 0.15s",
+  };
 
   return (
     <main
@@ -71,13 +84,7 @@ export default function Login() {
         }}
       />
 
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "400px",
-          position: "relative",
-        }}
-      >
+      <div style={{ width: "100%", maxWidth: "400px", position: "relative" }}>
         {/* Logo */}
         <div style={{ textAlign: "center", marginBottom: "36px" }}>
           <div
@@ -104,7 +111,7 @@ export default function Login() {
               marginBottom: "8px",
             }}
           >
-            Sign in to MCPX
+            {isRegister ? "Create an account" : "Sign in to MCPX"}
           </h1>
           <p style={{ fontSize: "14px", color: "var(--text-muted)", lineHeight: 1.6 }}>
             Publish tools. Earn revenue. Build for Claude.
@@ -121,46 +128,90 @@ export default function Login() {
             marginBottom: "20px",
           }}
         >
-          {/* GitHub OAuth button */}
-          <button
-            onClick={handleGitHubLogin}
-            disabled={loading}
-            style={{
-              width: "100%",
-              padding: "14px",
-              background: loading ? "#1e1e1e" : "#f0f0f0",
-              border: "none",
-              borderRadius: "12px",
-              color: "#0a0a0a",
-              fontSize: "15px",
-              fontWeight: 700,
-              cursor: loading ? "not-allowed" : "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "10px",
-              marginBottom: "24px",
-              transition: "all 0.15s",
-              fontFamily: "var(--font-body)",
-            }}
-            onMouseEnter={(e) => {
-              if (!loading) {
-                e.currentTarget.style.background = "#fff";
-                e.currentTarget.style.transform = "translateY(-1px)";
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = loading ? "#1e1e1e" : "#f0f0f0";
-              e.currentTarget.style.transform = "translateY(0)";
-            }}
-          >
-            {loading ? (
-              <Loader size={18} style={{ animation: "spin 1s linear infinite" }} />
-            ) : (
-              <Github size={18} />
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "14px", marginBottom: "24px" }}>
+            {isRegister && (
+              <div style={{ position: "relative" }}>
+                <User size={16} style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }} />
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Username"
+                  required={isRegister}
+                  style={inputStyle}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(99,102,241,0.4)")}
+                  onBlur={(e) => (e.currentTarget.style.borderColor = "#2a2a2a")}
+                />
+              </div>
             )}
-            {loading ? "Redirecting to GitHub…" : "Continue with GitHub"}
-          </button>
+            <div style={{ position: "relative" }}>
+              <Mail size={16} style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }} />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email"
+                required
+                style={inputStyle}
+                onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(99,102,241,0.4)")}
+                onBlur={(e) => (e.currentTarget.style.borderColor = "#2a2a2a")}
+              />
+            </div>
+            <div style={{ position: "relative" }}>
+              <Lock size={16} style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }} />
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+                required
+                minLength={6}
+                style={inputStyle}
+                onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(99,102,241,0.4)")}
+                onBlur={(e) => (e.currentTarget.style.borderColor = "#2a2a2a")}
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                width: "100%",
+                padding: "14px",
+                background: loading ? "#1e1e1e" : "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                border: "none",
+                borderRadius: "12px",
+                color: "#fff",
+                fontSize: "15px",
+                fontWeight: 700,
+                cursor: loading ? "not-allowed" : "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "10px",
+                fontFamily: "var(--font-body)",
+                boxShadow: loading ? "none" : "0 0 24px rgba(99,102,241,0.3)",
+              }}
+            >
+              {loading && <Loader size={18} style={{ animation: "spin 1s linear infinite" }} />}
+              {loading ? "Please wait…" : isRegister ? "Create Account" : "Sign In"}
+            </button>
+          </form>
+
+          <div style={{ textAlign: "center", marginBottom: "20px" }}>
+            <button
+              onClick={() => { setIsRegister(!isRegister); setError(""); }}
+              style={{
+                background: "none",
+                border: "none",
+                color: "#818cf8",
+                fontSize: "13px",
+                cursor: "pointer",
+                fontFamily: "var(--font-body)",
+              }}
+            >
+              {isRegister ? "Already have an account? Sign in" : "Need an account? Register"}
+            </button>
+          </div>
 
           {/* Perks */}
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -199,23 +250,21 @@ export default function Login() {
             </div>
           )}
 
-          {!isSupabaseEnabled && (
-            <div
-              style={{
-                padding: "14px",
-                background: "rgba(99,102,241,0.07)",
-                border: "1px solid rgba(99,102,241,0.15)",
-                borderRadius: "10px",
-                marginTop: "20px",
-              }}
-            >
-              <p style={{ fontSize: "12px", color: "var(--text-muted)", lineHeight: 1.65, fontFamily: "var(--font-mono)" }}>
-                <strong style={{ color: "#a5b4fc" }}>Demo mode:</strong> Supabase not configured.
-                Copy <code style={{ background: "#1a1a1a", padding: "1px 5px", borderRadius: "4px" }}>.env.example</code> to{" "}
-                <code style={{ background: "#1a1a1a", padding: "1px 5px", borderRadius: "4px" }}>.env</code> and add your Supabase keys.
-              </p>
-            </div>
-          )}
+          <div
+            style={{
+              padding: "14px",
+              background: "rgba(99,102,241,0.07)",
+              border: "1px solid rgba(99,102,241,0.15)",
+              borderRadius: "10px",
+              marginTop: "20px",
+            }}
+          >
+            <p style={{ fontSize: "12px", color: "var(--text-muted)", lineHeight: 1.65, fontFamily: "var(--font-mono)" }}>
+              <strong style={{ color: "#a5b4fc" }}>Demo:</strong> Use{" "}
+              <code style={{ background: "#1a1a1a", padding: "1px 5px", borderRadius: "4px" }}>dev@mcpx.dev</code> /{" "}
+              <code style={{ background: "#1a1a1a", padding: "1px 5px", borderRadius: "4px" }}>demo1234</code> to try the dashboard.
+            </p>
+          </div>
         </div>
 
         {/* Footer */}
@@ -231,7 +280,7 @@ export default function Login() {
             }}
           >
             <Shield size={12} />
-            Secured by Supabase Auth &amp; GitHub OAuth
+            Secured with JWT authentication
           </div>
           <p style={{ fontSize: "12px", color: "var(--text-muted)" }}>
             By signing in you agree to our{" "}

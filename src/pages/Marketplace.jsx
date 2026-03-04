@@ -1,10 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Search, X } from "lucide-react";
+import { Search, X, ChevronLeft, ChevronRight } from "lucide-react";
 import ToolCard from "../components/ToolCard";
-import CategoryCard from "../components/CategoryCard";
 import { SEED_TOOLS, SEED_CATEGORIES } from "../data/seed";
-import { supabase } from "../lib/supabase";
+import { fetchServers, fetchCategories } from "../api/client";
 
 const SORT_OPTIONS = [
   { value: "popular",  label: "Most Popular" },
@@ -12,6 +11,13 @@ const SORT_OPTIONS = [
   { value: "rating",   label: "Top Rated" },
   { value: "trending", label: "Trending" },
 ];
+
+const SORT_MAP = {
+  popular: "installs",
+  newest: "newest",
+  rating: "rating",
+  trending: "installs",
+};
 
 function filterSeedTools({ search, category, priceFilter, sort }) {
   let tools = [...SEED_TOOLS];
@@ -34,51 +40,57 @@ function filterSeedTools({ search, category, priceFilter, sort }) {
   if (sort === "popular")  tools.sort((a, b) => b.installs - a.installs);
   if (sort === "rating")   tools.sort((a, b) => b.rating - a.rating);
   if (sort === "trending") tools.sort((a, b) => (b.trending ? 1 : 0) - (a.trending ? 1 : 0));
-  // newest: already ordered by id desc in seed
   if (sort === "newest")   tools.sort((a, b) => Number(b.id) - Number(a.id));
 
-  return tools;
+  return { tools, pagination: null };
 }
 
-async function loadTools({ search, category, priceFilter, sort }) {
-  if (!supabase) return filterSeedTools({ search, category, priceFilter, sort });
+async function loadTools({ search, category, priceFilter, sort, page }) {
   try {
-    let q = supabase.from("tools").select("*").eq("published", true);
-    if (search) q = q.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
-    if (category && category !== "all") q = q.eq("category_id", category);
-    if (priceFilter === "free") q = q.eq("price_type", "free");
-    if (priceFilter === "paid") q = q.eq("price_type", "paid");
-    if (sort === "popular")  q = q.order("installs", { ascending: false });
-    else if (sort === "rating") q = q.order("rating", { ascending: false });
-    else if (sort === "newest") q = q.order("created_at", { ascending: false });
-    else q = q.order("installs", { ascending: false });
-    const { data, error } = await q;
-    if (error || !data?.length) return filterSeedTools({ search, category, priceFilter, sort });
-    return data;
+    const params = { sort: SORT_MAP[sort] || "installs", page, limit: 20 };
+    if (search) params.search = search;
+    if (category && category !== "all") params.category = category;
+    if (priceFilter === "free" || priceFilter === "paid") params.price_type = priceFilter;
+    if (sort === "trending") params.trending = "true";
+
+    const data = await fetchServers(params);
+    if (!data.servers?.length && !search && !category) {
+      return filterSeedTools({ search, category, priceFilter, sort });
+    }
+    return { tools: data.servers, pagination: data.pagination };
   } catch {
     return filterSeedTools({ search, category, priceFilter, sort });
   }
 }
 
-const DISPLAY_CATEGORIES = SEED_CATEGORIES;
-
 export default function MarketplacePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [tools, setTools] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState(null);
+  const [categories, setCategories] = useState(SEED_CATEGORIES);
 
   const initQ    = searchParams.get("q") || "";
   const initCat  = searchParams.get("category") || "all";
   const initSort = searchParams.get("sort") || "popular";
   const initPrice = searchParams.get("price") || "all";
+  const initPage = parseInt(searchParams.get("page"), 10) || 1;
 
   const [search, setSearch]       = useState(initQ);
   const [debouncedQ, setDebouncedQ] = useState(initQ);
   const [category, setCategory]   = useState(initCat);
   const [sort, setSort]           = useState(initSort);
   const [priceFilter, setPriceFilter] = useState(initPrice);
+  const [page, setPage] = useState(initPage);
 
   const debounceRef = useRef(null);
+
+  // Load categories from API on mount
+  useEffect(() => {
+    fetchCategories()
+      .then((cats) => { if (cats?.length) setCategories(cats); })
+      .catch(() => {});
+  }, []);
 
   // Sync state → URL
   useEffect(() => {
@@ -87,23 +99,25 @@ export default function MarketplacePage() {
     if (category !== "all")  p.category  = category;
     if (sort !== "popular")  p.sort      = sort;
     if (priceFilter !== "all") p.price  = priceFilter;
+    if (page > 1) p.page = String(page);
     setSearchParams(p, { replace: true });
-  }, [debouncedQ, category, sort, priceFilter, setSearchParams]);
+  }, [debouncedQ, category, sort, priceFilter, page, setSearchParams]);
 
   // Load tools
   useEffect(() => {
     setLoading(true);
-    loadTools({ search: debouncedQ, category, priceFilter, sort }).then((data) => {
-      setTools(data);
+    loadTools({ search: debouncedQ, category, priceFilter, sort, page }).then(({ tools: t, pagination: pg }) => {
+      setTools(t);
+      setPagination(pg);
       setLoading(false);
     });
-  }, [debouncedQ, category, priceFilter, sort]);
+  }, [debouncedQ, category, priceFilter, sort, page]);
 
   const handleSearch = useCallback((e) => {
     const val = e.target.value;
     setSearch(val);
     clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => setDebouncedQ(val), 280);
+    debounceRef.current = setTimeout(() => { setDebouncedQ(val); setPage(1); }, 280);
   }, []);
 
   const clearFilters = () => {
@@ -112,6 +126,7 @@ export default function MarketplacePage() {
     setCategory("all");
     setSort("popular");
     setPriceFilter("all");
+    setPage(1);
   };
 
   const hasActiveFilters = debouncedQ || category !== "all" || priceFilter !== "all" || sort !== "popular";
@@ -132,7 +147,7 @@ export default function MarketplacePage() {
           MCP Marketplace
         </h1>
         <p style={{ fontSize: "14px", color: "var(--text-muted)" }}>
-          {loading ? "Loading…" : `${tools.length} tool${tools.length !== 1 ? "s" : ""} available`}
+          {loading ? "Loading…" : `${pagination?.total ?? tools.length} tool${(pagination?.total ?? tools.length) !== 1 ? "s" : ""} available`}
         </p>
       </div>
 
@@ -186,7 +201,7 @@ export default function MarketplacePage() {
           {["all", "free", "paid"].map((p) => (
             <button
               key={p}
-              onClick={() => setPriceFilter(p)}
+              onClick={() => { setPriceFilter(p); setPage(1); }}
               style={{
                 padding: "8px 14px",
                 borderRadius: "8px",
@@ -209,7 +224,7 @@ export default function MarketplacePage() {
         {/* Sort */}
         <select
           value={sort}
-          onChange={(e) => setSort(e.target.value)}
+          onChange={(e) => { setSort(e.target.value); setPage(1); }}
           style={{
             padding: "8px 12px",
             background: "#111",
@@ -265,10 +280,10 @@ export default function MarketplacePage() {
         role="toolbar"
         aria-label="Filter by category"
       >
-        {DISPLAY_CATEGORIES.map((cat) => (
+        {categories.map((cat) => (
           <button
             key={cat.id}
-            onClick={() => setCategory(cat.id)}
+            onClick={() => { setCategory(cat.id); setPage(1); }}
             aria-selected={category === cat.id}
             style={{
               display: "flex",
@@ -319,23 +334,8 @@ export default function MarketplacePage() {
         </div>
       ) : tools.length === 0 ? (
         <div style={{ textAlign: "center", padding: "80px 24px" }}>
-          <div
-            style={{
-              fontSize: "40px",
-              marginBottom: "16px",
-            }}
-            aria-hidden="true"
-          >
-            ◎
-          </div>
-          <h2
-            style={{
-              fontFamily: "var(--font-heading)",
-              fontWeight: 700,
-              fontSize: "20px",
-              marginBottom: "8px",
-            }}
-          >
+          <div style={{ fontSize: "40px", marginBottom: "16px" }} aria-hidden="true">◎</div>
+          <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "20px", marginBottom: "8px" }}>
             No tools found
           </h2>
           <p style={{ color: "var(--text-muted)", fontSize: "14px", marginBottom: "20px" }}>
@@ -357,17 +357,54 @@ export default function MarketplacePage() {
           </button>
         </div>
       ) : (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
-            gap: "14px",
-          }}
-        >
-          {tools.map((tool, i) => (
-            <ToolCard key={tool.id} tool={tool} index={i} />
-          ))}
-        </div>
+        <>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+              gap: "14px",
+            }}
+          >
+            {tools.map((tool, i) => (
+              <ToolCard key={tool.id} tool={tool} index={i} />
+            ))}
+          </div>
+
+          {/* Pagination */}
+          {pagination && pagination.pages > 1 && (
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "12px", marginTop: "40px" }}>
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}
+                style={{
+                  display: "flex", alignItems: "center", gap: "4px",
+                  padding: "8px 14px", background: page <= 1 ? "#0d0d0d" : "#111",
+                  border: "1px solid #2a2a2a", borderRadius: "8px",
+                  color: page <= 1 ? "var(--text-muted)" : "var(--text-secondary)",
+                  fontSize: "13px", cursor: page <= 1 ? "not-allowed" : "pointer", fontFamily: "var(--font-mono)",
+                }}
+              >
+                <ChevronLeft size={14} /> Prev
+              </button>
+              <span style={{ fontSize: "13px", fontFamily: "var(--font-mono)", color: "var(--text-muted)" }}>
+                Page {pagination.page} of {pagination.pages}
+              </span>
+              <button
+                onClick={() => setPage((p) => Math.min(pagination.pages, p + 1))}
+                disabled={page >= pagination.pages}
+                style={{
+                  display: "flex", alignItems: "center", gap: "4px",
+                  padding: "8px 14px", background: page >= pagination.pages ? "#0d0d0d" : "#111",
+                  border: "1px solid #2a2a2a", borderRadius: "8px",
+                  color: page >= pagination.pages ? "var(--text-muted)" : "var(--text-secondary)",
+                  fontSize: "13px", cursor: page >= pagination.pages ? "not-allowed" : "pointer", fontFamily: "var(--font-mono)",
+                }}
+              >
+                Next <ChevronRight size={14} />
+              </button>
+            </div>
+          )}
+        </>
       )}
     </main>
   );

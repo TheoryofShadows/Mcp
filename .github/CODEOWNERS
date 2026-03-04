@@ -1,0 +1,4 @@
+# Default code owners for the MCPX repository.
+# These owners will be automatically requested for review on all pull requests.
+
+* @mcpx/core

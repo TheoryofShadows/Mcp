@@ -4,25 +4,28 @@ import { Search, Zap, ArrowRight, Package, Download, DollarSign, Users } from "l
 import ToolCard from "../components/ToolCard";
 import CategoryCard from "../components/CategoryCard";
 import { SEED_TOOLS, SEED_CATEGORIES, SEED_STATS } from "../data/seed";
-import { supabase } from "../lib/supabase";
+import { fetchServers, fetchStats, fetchCategories } from "../api/client";
 
 async function loadHomeData() {
-  if (!supabase) return { tools: SEED_TOOLS, stats: SEED_STATS };
   try {
-    const [{ data: tools }] = await Promise.all([
-      supabase.from("tools").select("*").eq("published", true).order("installs", { ascending: false }).limit(6),
-      supabase.from("tools").select("installs.sum(), price_amount.sum()"),
+    const [serversRes, stats, categories] = await Promise.all([
+      fetchServers({ sort: "installs", limit: 6 }),
+      fetchStats(),
+      fetchCategories(),
     ]);
     return {
-      tools: tools?.length ? tools : SEED_TOOLS,
-      stats: SEED_STATS,
+      tools: serversRes.servers || [],
+      stats,
+      categories: categories.filter((c) => c.id !== "all"),
     };
   } catch {
-    return { tools: SEED_TOOLS, stats: SEED_STATS };
+    return {
+      tools: SEED_TOOLS,
+      stats: SEED_STATS,
+      categories: SEED_CATEGORIES.filter((c) => c.id !== "all"),
+    };
   }
 }
-
-const DISPLAY_CATEGORIES = SEED_CATEGORIES.filter((c) => c.id !== "all");
 
 const STAT_ITEMS = [
   { icon: Package,   key: "total_tools",     label: "Tools Published",  format: (v) => v.toLocaleString() },
@@ -34,11 +37,16 @@ const STAT_ITEMS = [
 export default function Home() {
   const [search, setSearch] = useState("");
   const [tools, setTools] = useState(SEED_TOOLS);
-  const [stats] = useState(SEED_STATS);
+  const [stats, setStats] = useState(SEED_STATS);
+  const [categories, setCategories] = useState(SEED_CATEGORIES.filter((c) => c.id !== "all"));
   const navigate = useNavigate();
 
   useEffect(() => {
-    loadHomeData().then(({ tools: t }) => setTools(t));
+    loadHomeData().then(({ tools: t, stats: s, categories: c }) => {
+      setTools(t);
+      setStats(s);
+      if (c.length) setCategories(c);
+    });
   }, []);
 
   function handleSearch(e) {
@@ -48,7 +56,10 @@ export default function Home() {
   }
 
   const featured = tools.slice(0, 6);
-  const countByCategory = (catId) => SEED_TOOLS.filter((t) => t.category_id === catId).length;
+  const countByCategory = (catId) => {
+    const cat = categories.find((c) => c.id === catId);
+    return cat?.count ?? SEED_TOOLS.filter((t) => t.category_id === catId).length;
+  };
 
   return (
     <main id="main-content">
@@ -108,7 +119,7 @@ export default function Home() {
                 letterSpacing: "0.06em",
               }}
             >
-              {SEED_TOOLS.length} MCP TOOLS &amp; GROWING
+              {stats.total_tools || SEED_TOOLS.length} MCP TOOLS &amp; GROWING
             </span>
           </div>
 
@@ -338,7 +349,7 @@ export default function Home() {
             gap: "12px",
           }}
         >
-          {DISPLAY_CATEGORIES.map((cat) => (
+          {categories.map((cat) => (
             <CategoryCard
               key={cat.id}
               category={cat}
@@ -450,7 +461,7 @@ export default function Home() {
             lineHeight: 1.65,
           }}
         >
-          Join 847+ developers earning revenue from their MCP tools. 85% goes straight to you.
+          Join {stats.total_developers || "847"}+ developers earning revenue from their MCP tools. 85% goes straight to you.
         </p>
         <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
           <a

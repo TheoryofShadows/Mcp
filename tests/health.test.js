@@ -28,8 +28,8 @@ describe("GET /api/stats", () => {
   it("returns platform stats", async () => {
     const res = await request(app).get("/api/stats");
     expect(res.status).toBe(200);
-    expect(res.body).toHaveProperty("server_count");
+    expect(res.body).toHaveProperty("total_tools");
     expect(res.body).toHaveProperty("total_installs");
-    expect(res.body).toHaveProperty("publisher_count");
+    expect(res.body).toHaveProperty("total_developers");
   });
 });

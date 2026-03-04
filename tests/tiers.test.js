@@ -37,23 +37,23 @@ describe("GET /api/tiers", () => {
 });
 
 describe("POST /api/tiers/subscribe", () => {
-  it("subscribes to pro tier when authenticated", async () => {
+  it("subscribes to free starter tier when authenticated", async () => {
+    const res = await request(app)
+      .post("/api/tiers/subscribe")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ tier: "starter" });
+    expect(res.status).toBe(201);
+    expect(res.body.subscription.tier).toBe("starter");
+    expect(res.body.subscription.status).toBe("active");
+  });
+
+  it("returns 501 for paid tiers (payment integration pending)", async () => {
     const res = await request(app)
       .post("/api/tiers/subscribe")
       .set("Authorization", `Bearer ${token}`)
       .send({ tier: "pro" });
-    expect(res.status).toBe(201);
-    expect(res.body.subscription.tier).toBe("pro");
-    expect(res.body.subscription.status).toBe("active");
-  });
-
-  it("can upgrade to enterprise tier", async () => {
-    const res = await request(app)
-      .post("/api/tiers/subscribe")
-      .set("Authorization", `Bearer ${token}`)
-      .send({ tier: "enterprise" });
-    expect(res.status).toBe(201);
-    expect(res.body.subscription.tier).toBe("enterprise");
+    expect(res.status).toBe(501);
+    expect(res.body.error).toMatch(/payment/i);
   });
 
   it("returns 401 without authentication", async () => {
