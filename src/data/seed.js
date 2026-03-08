@@ -153,7 +153,7 @@ Official MCP server from Stripe. Full access to the Stripe API for AI agents.
       "command": "npx",
       "args": ["-y", "@stripe/mcp"],
       "env": {
-        "STRIPE_SECRET_KEY": "sk_live_..."
+        "STRIPE_SECRET_KEY": "YOUR_STRIPE_RESTRICTED_KEY"
       }
     }
   }

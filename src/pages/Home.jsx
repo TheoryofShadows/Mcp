@@ -9,7 +9,7 @@ import { supabase } from "../lib/supabase";
 async function loadHomeData() {
   if (!supabase) return { tools: SEED_TOOLS, stats: SEED_STATS };
   try {
-    const [{ data: tools }, { data: stats }] = await Promise.all([
+    const [{ data: tools }] = await Promise.all([
       supabase.from("tools").select("*").eq("published", true).order("installs", { ascending: false }).limit(6),
       supabase.from("tools").select("installs.sum(), price_amount.sum()"),
     ]);
