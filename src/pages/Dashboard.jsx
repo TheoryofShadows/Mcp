@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
-  BarChart3, Package, DollarSign, Users, TrendingUp,
+  Package, DollarSign, Users,
   Download, Star, CreditCard, ExternalLink, Plus, AlertCircle
 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import PriceTag from "../components/PriceTag";
 import { SEED_TOOLS } from "../data/seed";
 import { supabase } from "../lib/supabase";
+import { fetchServers, getMe } from "../api/client";
 
 // Mock dashboard data for demo / no-auth mode
 const MOCK_TOOLS = SEED_TOOLS.filter((t) => ["github-mcp", "filesystem-mcp", "postgres-mcp"].includes(t.slug));
@@ -19,34 +20,98 @@ const MOCK_STATS = {
   tools_count: 3,
 };
 
-async function loadDashboard(userId) {
-  if (!supabase || !userId) return { tools: MOCK_TOOLS, stats: MOCK_STATS };
+// Compute the last 6 calendar months ending at the current month
+function getLastSixMonths() {
+  const now = new Date();
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const result = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    result.push(months[d.getMonth()]);
+  }
+  return result;
+}
+
+// Compute the next payout date (1st of next month if past the 15th, else 1st of this month)
+function getNextPayoutDate() {
+  const now = new Date();
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  // If we're past the 15th, next payout is 1st of next month, else 1st of this month
+  let month, year;
+  if (now.getDate() > 15) {
+    const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    month = months[next.getMonth()];
+    year = next.getFullYear();
+  } else {
+    month = months[now.getMonth()];
+    year = now.getFullYear();
+  }
+  return `${month} 1${year !== now.getFullYear() ? `, ${year}` : ""}`;
+}
+
+async function loadDashboard(user) {
+  if (!user) return { tools: MOCK_TOOLS, stats: MOCK_STATS };
+
+  // Supabase mode
+  if (supabase) {
+    try {
+      const { data: tools } = await supabase
+        .from("tools")
+        .select("*")
+        .eq("author_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (!tools?.length) return { tools: MOCK_TOOLS, stats: MOCK_STATS };
+
+      const totalInstalls = tools.reduce((s, t) => s + (t.installs || 0), 0);
+      const monthlyRevenue = tools
+        .filter((t) => t.price_type === "paid")
+        .reduce((s, t) => s + (t.revenue_monthly || 0), 0);
+
+      return {
+        tools,
+        stats: {
+          total_revenue: monthlyRevenue * 6,
+          monthly_revenue: monthlyRevenue,
+          total_installs: totalInstalls,
+          subscribers: Math.round(monthlyRevenue / 12),
+          tools_count: tools.length,
+        },
+      };
+    } catch {
+      return { tools: MOCK_TOOLS, stats: MOCK_STATS };
+    }
+  }
+
+  // JWT / Express API mode
   try {
-    const { data: tools } = await supabase
-      .from("tools")
-      .select("*")
-      .eq("author_id", userId)
-      .order("created_at", { ascending: false });
+    const [me, serversData] = await Promise.all([
+      getMe(),
+      fetchServers({ author: user.username, limit: 50 }),
+    ]);
 
-    if (!tools?.length) return { tools: MOCK_TOOLS, stats: MOCK_STATS };
+    const apiTools = (serversData.servers || []).map((s) => ({
+      ...s,
+      // Normalize fields to match what the table expects
+      author_name: s.author_display_name || s.author,
+      category_id: s.category,
+      revenue_monthly: s.price_type === "paid" ? (s.price_amount || 0) : 0,
+    }));
 
-    const totalInstalls = tools.reduce((s, t) => s + (t.installs || 0), 0);
-    const monthlyRevenue = tools
-      .filter((t) => t.price_type === "paid")
-      .reduce((s, t) => s + (t.revenue_monthly || 0), 0);
+    const totalMonthlyRevenue = apiTools.reduce((sum, t) => sum + (t.revenue_monthly || 0), 0);
 
     return {
-      tools,
+      tools: apiTools,
       stats: {
-        total_revenue: monthlyRevenue * 6,
-        monthly_revenue: monthlyRevenue,
-        total_installs: totalInstalls,
-        subscribers: Math.round(monthlyRevenue / 12),
-        tools_count: tools.length,
+        tools_count: me.server_count ?? apiTools.length,
+        total_installs: me.total_installs ?? apiTools.reduce((s, t) => s + (t.installs || 0), 0),
+        monthly_revenue: totalMonthlyRevenue,
+        total_revenue: totalMonthlyRevenue * 6,
+        subscribers: Math.round(totalMonthlyRevenue / 12),
       },
     };
   } catch {
-    return { tools: MOCK_TOOLS, stats: MOCK_STATS };
+    return { tools: [], stats: { tools_count: 0, total_installs: 0, monthly_revenue: 0, total_revenue: 0, subscribers: 0 } };
   }
 }
 
@@ -76,11 +141,13 @@ function StatCard({ icon: Icon, label, value, sub, color = "#6366f1" }) {
 
 export default function Dashboard() {
   const { user, loading: authLoading } = useAuth();
-  const navigate = useNavigate();
   const [tools, setTools] = useState([]);
   const [stats, setStats] = useState(MOCK_STATS);
   const [loading, setLoading] = useState(true);
   const [demoMode, setDemoMode] = useState(false);
+
+  const chartMonths = getLastSixMonths();
+  const nextPayout = getNextPayoutDate();
 
   useEffect(() => {
     if (authLoading) return;
@@ -91,7 +158,8 @@ export default function Dashboard() {
       setLoading(false);
       return;
     }
-    loadDashboard(user.id).then(({ tools: t, stats: s }) => {
+    setDemoMode(false);
+    loadDashboard(user).then(({ tools: t, stats: s }) => {
       setTools(t);
       setStats(s);
       setLoading(false);
@@ -156,7 +224,7 @@ export default function Dashboard() {
           <p style={{ fontSize: "13px", color: "var(--text-secondary)" }}>
             Showing demo data.{" "}
             <Link to="/login" style={{ color: "#818cf8", textDecoration: "none", fontWeight: 600 }}>
-              Sign in with GitHub
+              Sign in
             </Link>{" "}
             to see your own tools and revenue.
           </p>
@@ -215,7 +283,7 @@ export default function Dashboard() {
           ))}
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: "8px" }}>
-          {["Sep", "Oct", "Nov", "Dec", "Jan", "Feb"].map((m) => (
+          {chartMonths.map((m) => (
             <span key={m} style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "var(--font-mono)", flex: 1, textAlign: "center" }}>{m}</span>
           ))}
         </div>
@@ -268,23 +336,23 @@ export default function Dashboard() {
                         </div>
                         <div>
                           <div style={{ fontSize: "13px", fontWeight: 600, marginBottom: "2px" }}>{tool.name}</div>
-                          <div style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>@{tool.author_name}</div>
+                          <div style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>@{tool.author_name || tool.author}</div>
                         </div>
                       </div>
                     </td>
                     <td style={{ padding: "16px 20px" }}>
-                      <span style={{ fontSize: "12px", fontFamily: "var(--font-mono)", color: "var(--text-muted)", textTransform: "capitalize" }}>{tool.category_id}</span>
+                      <span style={{ fontSize: "12px", fontFamily: "var(--font-mono)", color: "var(--text-muted)", textTransform: "capitalize" }}>{tool.category_id || tool.category}</span>
                     </td>
                     <td style={{ padding: "16px 20px" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "5px", fontFamily: "var(--font-mono)", fontSize: "13px" }}>
                         <Download size={12} color="var(--text-muted)" />
-                        {(tool.installs / 1000).toFixed(1)}K
+                        {tool.installs >= 1000 ? `${(tool.installs / 1000).toFixed(1)}K` : tool.installs}
                       </div>
                     </td>
                     <td style={{ padding: "16px 20px" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "4px", fontFamily: "var(--font-mono)", fontSize: "13px" }}>
                         <Star size={11} fill="#f59e0b" color="#f59e0b" />
-                        {tool.rating}
+                        {tool.rating ? tool.rating.toFixed(1) : "—"}
                       </div>
                     </td>
                     <td style={{ padding: "16px 20px" }}>
@@ -340,12 +408,11 @@ export default function Dashboard() {
           </div>
           <div style={{ padding: "16px", background: "#0d0d0d", borderRadius: "10px", border: "1px solid #1a1a1a" }}>
             <div style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--text-muted)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Next Payout</div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "22px" }}>Mar 1</div>
+            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "22px" }}>{nextPayout}</div>
             <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px", fontFamily: "var(--font-mono)" }}>monthly automatic</div>
           </div>
         </div>
 
-        {/* TODO: Stripe Connect onboarding */}
         <button
           style={{
             width: "100%",
@@ -364,14 +431,12 @@ export default function Dashboard() {
             transition: "all 0.15s",
           }}
           onClick={() => {
-            // TODO: Redirect to Stripe Connect onboarding URL
             alert("Stripe Connect onboarding coming soon! Check back after tool approval.");
           }}
           onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(99,102,241,0.14)")}
           onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(99,102,241,0.08)")}
         >
           <CreditCard size={14} />
-          {/* TODO: Show "Manage Stripe Account" if already connected */}
           Connect Stripe for Payouts
         </button>
         <p style={{ fontSize: "11px", color: "var(--text-muted)", textAlign: "center", marginTop: "10px", fontFamily: "var(--font-mono)" }}>
