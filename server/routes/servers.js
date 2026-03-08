@@ -16,6 +16,7 @@ router.get("/", (req, res) => {
     verified,
     trending,
     price_type,
+    author,
   } = req.query;
 
   const pageNum = Math.max(1, parseInt(page, 10) || 1);
@@ -48,6 +49,11 @@ router.get("/", (req, res) => {
     where.push("s.price_type = 'free'");
   } else if (price_type === "paid") {
     where.push("s.price_type = 'paid'");
+  }
+
+  if (author) {
+    where.push("u.username = ?");
+    params.push(author);
   }
 
   const SORT_MAP = {
