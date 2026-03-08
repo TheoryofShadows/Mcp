@@ -12,7 +12,7 @@ export function createApp() {
 
   const allowedOrigins = process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(",")
-    : ["http://localhost:5173", "http://localhost:3001"];
+    : ["http://localhost:5173", "http://localhost:4173", "http://localhost:3001"];
 
   app.use(cors({
     origin(origin, callback) {
