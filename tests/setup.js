@@ -6,7 +6,7 @@ import { unlinkSync, existsSync } from "fs";
 // Use a unique temp file per test worker so concurrent workers don't collide
 const dbFile = join(tmpdir(), `mcpx-test-${randomBytes(6).toString("hex")}.db`);
 process.env.DB_PATH = dbFile;
-process.env.JWT_SECRET = "test-secret-do-not-use-in-production";
+process.env.JWT_SECRET = randomBytes(32).toString("hex");
 process.env.CORS_ORIGINS = "http://localhost:5173";
 
 // Seed the test database with minimal data needed for tests
