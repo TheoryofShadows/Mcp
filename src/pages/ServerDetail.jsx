@@ -26,10 +26,10 @@ export default function ServerDetail() {
   }, [slug]);
 
   async function handleInstall() {
+    setInstalled(true);
+    setServer((s) => s && { ...s, installs: s.installs + 1 });
     try {
       await recordInstall(slug);
-      setInstalled(true);
-      setServer((s) => s && { ...s, installs: s.installs + 1 });
     } catch { /* install is best-effort */ }
   }
 
