@@ -199,6 +199,80 @@ router.post("/", requireAuth, (req, res) => {
   res.status(201).json(formatServer(row));
 });
 
+// PUT /api/servers/:slug — update a server (author only)
+router.put("/:slug", requireAuth, (req, res) => {
+  const server = db.prepare("SELECT * FROM servers WHERE slug = ?").get(req.params.slug);
+  if (!server) {
+    return res.status(404).json({ error: "Server not found" });
+  }
+  if (server.author_id !== req.user.id) {
+    return res.status(403).json({ error: "You can only edit your own tools" });
+  }
+
+  const { name, description, long_description, category_id, price_type, price_amount, repo_url, tags } = req.body;
+
+  if (name !== undefined && (typeof name !== "string" || name.length < 2 || name.length > 60)) {
+    return res.status(400).json({ error: "Name must be between 2 and 60 characters" });
+  }
+  if (description !== undefined && (typeof description !== "string" || description.length < 10 || description.length > 500)) {
+    return res.status(400).json({ error: "Description must be between 10 and 500 characters" });
+  }
+  if (tags !== undefined && (!Array.isArray(tags) || tags.length > 10)) {
+    return res.status(400).json({ error: "Tags must be an array of up to 10 items" });
+  }
+  if (category_id !== undefined) {
+    const cat = db.prepare("SELECT id FROM categories WHERE id = ? AND id != 'all'").get(category_id);
+    if (!cat) return res.status(400).json({ error: "Invalid category" });
+  }
+
+  const updates = {};
+  if (name !== undefined) updates.name = name;
+  if (description !== undefined) updates.description = description;
+  if (long_description !== undefined) updates.long_description = long_description;
+  if (category_id !== undefined) updates.category_id = category_id;
+  if (price_type !== undefined) updates.price_type = price_type;
+  if (price_amount !== undefined) {
+    updates.price_amount = price_amount;
+    updates.price_label = price_type === "paid" && price_amount ? `$${(price_amount / 100).toFixed(0)}/mo` : "free";
+  }
+  if (repo_url !== undefined) updates.repo_url = repo_url;
+  if (tags !== undefined) updates.tags = JSON.stringify(tags);
+
+  if (Object.keys(updates).length === 0) {
+    return res.status(400).json({ error: "No fields to update" });
+  }
+
+  const setClauses = Object.keys(updates).map((k) => `${k} = ?`).join(", ");
+  db.prepare(`UPDATE servers SET ${setClauses}, updated_at = datetime('now') WHERE id = ?`).run(
+    ...Object.values(updates), server.id
+  );
+
+  const row = db.prepare(`
+    SELECT s.*, u.username as author_username, u.display_name as author_display_name,
+    c.label as category_label
+    FROM servers s
+    JOIN users u ON s.author_id = u.id
+    JOIN categories c ON s.category_id = c.id
+    WHERE s.id = ?
+  `).get(server.id);
+
+  res.json(formatServer(row));
+});
+
+// DELETE /api/servers/:slug — delete a server (author only)
+router.delete("/:slug", requireAuth, (req, res) => {
+  const server = db.prepare("SELECT id, author_id FROM servers WHERE slug = ?").get(req.params.slug);
+  if (!server) {
+    return res.status(404).json({ error: "Server not found" });
+  }
+  if (server.author_id !== req.user.id) {
+    return res.status(403).json({ error: "You can only delete your own tools" });
+  }
+
+  db.prepare("DELETE FROM servers WHERE id = ?").run(server.id);
+  res.json({ success: true, message: "Server deleted" });
+});
+
 // POST /api/servers/:slug/reviews — add a review (auth required)
 router.post("/:slug/reviews", requireAuth, (req, res) => {
   const { rating, comment } = req.body;
