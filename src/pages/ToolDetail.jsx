@@ -134,6 +134,7 @@ export default function ToolDetail() {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("Overview");
+  const [installMsg, setInstallMsg] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -512,7 +513,8 @@ export default function ToolDetail() {
               }}
               onClick={() => {
                 // TODO: Stripe checkout for paid tools
-                alert("Install by copying the command in the Install tab.");
+                setInstallMsg(true);
+                setActiveTab("Install");
               }}
               onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 0 28px rgba(99,102,241,0.4)")}
               onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "0 0 20px rgba(99,102,241,0.25)")}
@@ -520,6 +522,11 @@ export default function ToolDetail() {
               {tool.price_type === "free" ? "Install Tool" : `Subscribe — ${tool.price_label}`}
             </button>
 
+            {installMsg && tool.price_type === "free" && (
+              <p style={{ fontSize: "12px", color: "#10b981", textAlign: "center", fontFamily: "var(--font-mono)", marginBottom: "8px" }}>
+                Copy the command below to install ↓
+              </p>
+            )}
             {tool.price_type === "paid" && (
               <p style={{ fontSize: "11px", color: "var(--text-muted)", textAlign: "center", fontFamily: "var(--font-mono)" }}>
                 {/* TODO: Stripe billing portal link */}
