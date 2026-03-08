@@ -15,7 +15,7 @@
  * mirroring how a real client would behave across multiple requests.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, afterAll } from "vitest";
 import request from "supertest";
 import { cleanup } from "./setup.js";
 import { createApp } from "../server/app.js";

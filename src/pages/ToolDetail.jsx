@@ -39,7 +39,6 @@ function renderMarkdown(text) {
   const elements = [];
   let inCode = false;
   let codeLines = [];
-  let codeLang = "";
   let key = 0;
 
   for (let i = 0; i < lines.length; i++) {
@@ -68,10 +67,8 @@ function renderMarkdown(text) {
         );
         codeLines = [];
         inCode = false;
-        codeLang = "";
       } else {
         inCode = true;
-        codeLang = line.slice(3).trim();
       }
       continue;
     }

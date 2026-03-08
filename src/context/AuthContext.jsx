@@ -7,14 +7,6 @@ export { AuthContext };
 
 const TOKEN_KEY = "mcpx_token";
 
-function hasToken() {
-  try {
-    return !!localStorage.getItem(TOKEN_KEY);
-  } catch {
-    return false;
-  }
-}
-
 export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
