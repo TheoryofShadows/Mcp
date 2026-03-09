@@ -35,13 +35,35 @@ router.post("/stripe/checkout", requireAuth, async (req, res) => {
 /**
  * POST /api/payments/stripe/webhook
  * Handle Stripe webhook events (payment_intent.succeeded, etc.)
+ *
+ * Stripe requires the raw body for signature verification — mount this route
+ * BEFORE express.json() or use express.raw({ type: "application/json" }) here.
  */
 router.post("/stripe/webhook", async (req, res) => {
-  // TODO: Verify Stripe webhook signature
-  // const sig = req.headers["stripe-signature"];
-  // const event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+  const sig = req.headers["stripe-signature"];
+  const secret = process.env.STRIPE_WEBHOOK_SECRET;
 
-  res.json({ received: true });
+  // Reject all webhook calls if no secret is configured — prevents spoofed events.
+  if (!secret) {
+    return res.status(501).json({ error: "Stripe webhook not configured" });
+  }
+
+  if (!sig) {
+    return res.status(400).json({ error: "Missing stripe-signature header" });
+  }
+
+  // TODO: Uncomment when Stripe SDK is installed:
+  // import Stripe from "stripe";
+  // const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  // try {
+  //   const event = stripe.webhooks.constructEvent(req.body, sig, secret);
+  //   // handle event.type ...
+  //   return res.json({ received: true });
+  // } catch (err) {
+  //   return res.status(400).json({ error: `Webhook signature invalid: ${err.message}` });
+  // }
+
+  res.status(501).json({ error: "Stripe webhook handler not yet implemented" });
 });
 
 /**

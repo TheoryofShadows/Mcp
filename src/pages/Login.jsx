@@ -336,20 +336,22 @@ export default function Login() {
                   </button>
                 </p>
 
-                <div
-                  style={{
-                    padding: "10px 14px",
-                    background: "rgba(99,102,241,0.07)",
-                    border: "1px solid rgba(99,102,241,0.15)",
-                    borderRadius: "10px",
-                    fontSize: "12px",
-                    color: "var(--text-muted)",
-                    fontFamily: "var(--font-mono)",
-                    textAlign: "center",
-                  }}
-                >
-                  Demo: <strong style={{ color: "#a5b4fc" }}>dev@mcpx.dev</strong> / <strong style={{ color: "#a5b4fc" }}>demo1234</strong>
-                </div>
+                {import.meta.env.DEV && (
+                  <div
+                    style={{
+                      padding: "10px 14px",
+                      background: "rgba(99,102,241,0.07)",
+                      border: "1px solid rgba(99,102,241,0.15)",
+                      borderRadius: "10px",
+                      fontSize: "12px",
+                      color: "var(--text-muted)",
+                      fontFamily: "var(--font-mono)",
+                      textAlign: "center",
+                    }}
+                  >
+                    Dev only — Demo: <strong style={{ color: "#a5b4fc" }}>dev@mcpx.dev</strong> / <strong style={{ color: "#a5b4fc" }}>demo1234</strong>
+                  </div>
+                )}
               </form>
             </>
           )}

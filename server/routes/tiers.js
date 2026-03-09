@@ -93,6 +93,14 @@ router.post("/subscribe", requireAuth, (req, res) => {
     return res.status(400).json({ error: "Invalid tier" });
   }
 
+  // Paid tiers require Stripe payment processing — block until Stripe is wired up.
+  if (valid.price_amount > 0 && !process.env.STRIPE_SECRET_KEY) {
+    return res.status(402).json({
+      error: "Payment required",
+      message: `${valid.name} (${valid.price}) requires a payment method. Stripe integration coming soon.`,
+    });
+  }
+
   // Cancel any existing active subscription
   db.prepare("UPDATE subscriptions SET status = 'cancelled' WHERE user_id = ? AND status = 'active'").run(req.user.id);
 
