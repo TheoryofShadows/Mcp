@@ -1,0 +1,23 @@
+# Railway deployment configuration
+# https://docs.railway.app/reference/config-as-code
+
+[build]
+builder = "nixpacks"
+buildCommand = "npm run build"
+
+[deploy]
+startCommand = "npm start"
+healthcheckPath = "/api/health"
+healthcheckTimeout = 60
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 5
+
+# ─── Persistent volume ────────────────────────────────────────────────────────
+# Create the volume in the Railway dashboard:
+#   Service → Volumes → Add Volume → Mount Path: /data
+# Then set the environment variable:
+#   DB_PATH=/data/mcpx.db
+#
+# The /data mount survives redeploys and restarts.
+# Without a volume, SQLite defaults to server/mcpx.db inside the ephemeral
+# container filesystem and data is lost on every deploy.
