@@ -63,10 +63,16 @@ export default function Login() {
     setLoading(true);
     setError("");
     try {
+      // Use VITE_APP_URL if set (recommended for Vercel — set it to your main
+      // deployment URL so only one redirect URL needs to be whitelisted in
+      // Supabase, covering both production and all preview deployments for free).
+      const appOrigin =
+        import.meta.env.VITE_APP_URL?.replace(/\/$/, "") ||
+        window.location.origin;
       const { error: authError } = await supabase.auth.signInWithOAuth({
         provider: "github",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${appOrigin}/auth/callback`,
           scopes: "read:user user:email",
         },
       });
