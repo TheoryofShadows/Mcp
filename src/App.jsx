@@ -10,6 +10,7 @@ const Submit       = lazy(() => import("./pages/Submit"));
 const Dashboard    = lazy(() => import("./pages/Dashboard"));
 const Login        = lazy(() => import("./pages/Login"));
 const AuthCallback = lazy(() => import("./pages/AuthCallback"));
+const Admin        = lazy(() => import("./pages/Admin"));
 
 function PageLoader() {
   return (
@@ -52,6 +53,7 @@ export default function App() {
             <Route path="/dashboard"      element={<Dashboard />} />
             <Route path="/login"          element={<Login />} />
             <Route path="/auth/callback"  element={<AuthCallback />} />
+            <Route path="/admin"          element={<Admin />} />
             {/* Legacy route compat */}
             <Route path="/servers/:slug" element={<ToolDetail />} />
           </Routes>

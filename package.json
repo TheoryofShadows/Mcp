@@ -3,7 +3,17 @@
   "private": true,
   "version": "1.0.0",
   "description": "MCPX — The Marketplace for AI Agent Tools (MCP Servers). Discover, install, and publish Model Context Protocol servers for Claude, Cursor, and VS Code.",
-  "keywords": ["mcp", "mcpx", "model-context-protocol", "ai-agents", "marketplace", "claude", "cursor", "vscode", "llm-tools"],
+  "keywords": [
+    "mcp",
+    "mcpx",
+    "model-context-protocol",
+    "ai-agents",
+    "marketplace",
+    "claude",
+    "cursor",
+    "vscode",
+    "llm-tools"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/TheoryofShadows/Mcp.git"
@@ -24,6 +34,8 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@descope/node-sdk": "^1.10.0",
+    "@descope/react-sdk": "^2.26.7",
     "@supabase/supabase-js": "^2.98.0",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.6.2",
