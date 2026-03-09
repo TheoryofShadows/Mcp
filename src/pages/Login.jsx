@@ -37,7 +37,11 @@ const labelStyle = {
 export default function Login() {
   const { user, login, register } = useAuth();
   const navigate = useNavigate();
-  const [error, setError] = useState("");
+  const [error, setError] = useState(() => {
+    // Surface errors forwarded back from /auth/callback (e.g. Safari PKCE failure)
+    const params = new URLSearchParams(window.location.search);
+    return params.get("error") ? decodeURIComponent(params.get("error")) : "";
+  });
   const [loading, setLoading] = useState(false);
 
   // Email/password form state (used when Supabase not configured)
@@ -62,7 +66,7 @@ export default function Login() {
       const { error: authError } = await supabase.auth.signInWithOAuth({
         provider: "github",
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
+          redirectTo: `${window.location.origin}/auth/callback`,
           scopes: "read:user user:email",
         },
       });
