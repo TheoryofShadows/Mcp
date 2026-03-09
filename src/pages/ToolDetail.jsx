@@ -7,6 +7,8 @@ import {
 import VerifiedBadge from "../components/VerifiedBadge";
 import PriceTag from "../components/PriceTag";
 import InstallCommand from "../components/InstallCommand";
+import InstallButtons from "../components/InstallButtons";
+import CapabilitiesWarning from "../components/CapabilitiesWarning";
 import { SEED_TOOLS, SEED_REVIEWS } from "../data/seed";
 import { supabase } from "../lib/supabase";
 
@@ -232,7 +234,7 @@ export default function ToolDetail() {
                   <h1 style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "22px", letterSpacing: "-0.5px" }}>
                     {tool.name}
                   </h1>
-                  {tool.verified && <VerifiedBadge size={18} />}
+                  {tool.verified && <VerifiedBadge verified={tool.verified} size="md" />}
                   <PriceTag tool={tool} size="md" />
                   {tool.trending && (
                     <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "11px", fontFamily: "var(--font-mono)", color: "#f59e0b", background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: "5px", padding: "2px 8px" }}>
@@ -360,54 +362,23 @@ export default function ToolDetail() {
           )}
 
           {activeTab === "Install" && (
-            <div
-              style={{
-                background: "#111",
-                border: "1px solid #1e1e1e",
-                borderRadius: "14px",
-                padding: "28px",
-              }}
-            >
-              <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "18px", marginBottom: "20px" }}>
-                Installation
-              </h2>
-              <InstallCommand command={tool.install_command} label="Quick Install" />
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <InstallButtons server={tool} />
+              {(tool.capabilities?.length > 0 || tool.risk_level) && (
+                <CapabilitiesWarning capabilities={tool.capabilities} riskLevel={tool.risk_level} />
+              )}
               <div
                 style={{
-                  marginTop: "24px",
-                  padding: "16px",
-                  background: "rgba(99,102,241,0.06)",
-                  border: "1px solid rgba(99,102,241,0.15)",
-                  borderRadius: "10px",
+                  background: "#111",
+                  border: "1px solid #1e1e1e",
+                  borderRadius: "14px",
+                  padding: "20px",
                 }}
               >
-                <p style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.7, marginBottom: "8px" }}>
-                  <strong style={{ color: "var(--text-primary)" }}>Claude Desktop config</strong>
+                <p style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "var(--font-mono)", marginBottom: "10px", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                  Quick install (legacy)
                 </p>
-                <pre
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "12px",
-                    color: "#e2e8f0",
-                    background: "#0d0d0d",
-                    borderRadius: "8px",
-                    padding: "14px",
-                    overflowX: "auto",
-                    border: "1px solid #222",
-                  }}
-                >
-{`{
-  "mcpServers": {
-    "${tool.slug.replace('-mcp', '')}": {
-      "command": "npx",
-      "args": ${JSON.stringify(tool.install_command.replace("npx ", "").split(" ").filter(Boolean))}
-    }
-  }
-}`}
-                </pre>
-                <p style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "10px", fontFamily: "var(--font-mono)" }}>
-                  Add to: ~/Library/Application Support/Claude/claude_desktop_config.json (macOS)
-                </p>
+                <InstallCommand command={tool.install_command} label="" />
               </div>
             </div>
           )}

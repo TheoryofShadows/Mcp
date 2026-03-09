@@ -6,6 +6,7 @@ import serverRoutes from "./routes/servers.js";
 import categoryRoutes from "./routes/categories.js";
 import statsRoutes from "./routes/stats.js";
 import tierRoutes from "./routes/tiers.js";
+import paymentRoutes from "./routes/payments.js";
 
 export function createApp() {
   const app = express();
@@ -32,6 +33,7 @@ export function createApp() {
   app.use("/api/categories", categoryRoutes);
   app.use("/api/stats", statsRoutes);
   app.use("/api/tiers", tierRoutes);
+  app.use("/api/payments", paymentRoutes);
 
   app.get("/api/health", (_req, res) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });

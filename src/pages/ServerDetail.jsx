@@ -3,6 +3,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import { fetchServer, postReview, recordInstall } from "../api/client";
 import { useAuth } from "../hooks/useAuth";
 import { Badge } from "../components/ui";
+import InstallButtons from "../components/InstallButtons";
+import CapabilitiesWarning from "../components/CapabilitiesWarning";
+import VerifiedBadge from "../components/VerifiedBadge";
 
 export default function ServerDetail() {
   const { slug } = useParams();
@@ -112,7 +115,7 @@ export default function ServerDetail() {
             <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "var(--font-2xl)", fontWeight: 800, letterSpacing: "-0.5px" }}>
               {server.name}
             </h1>
-            {server.verified && <span role="img" aria-label="Verified" style={{ color: "var(--accent-electric)", fontSize: "var(--font-lg)" }}>{"\u2713"}</span>}
+            {server.verified && <VerifiedBadge verified={server.verified} size="md" />}
             {server.trending && <Badge variant="trending">Trending</Badge>}
             <Badge variant={server.price_type === "free" ? "free" : "paid"}>
               {server.price}
@@ -155,9 +158,9 @@ export default function ServerDetail() {
       </div>
 
       {/* Install button */}
-      <div style={{ display: "flex", gap: "var(--space-sm)", marginBottom: "var(--space-xl)", flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: "var(--space-sm)", marginBottom: "var(--space-lg)", flexWrap: "wrap" }}>
         <button className="btn btn-primary" onClick={handleInstall} disabled={installed}>
-          {installed ? "Installed \u2713" : "Install Server"}
+          {installed ? "Installed \u2713" : "Track Install"}
         </button>
         {server.repo_url && (
           <a
@@ -171,6 +174,21 @@ export default function ServerDetail() {
           </a>
         )}
       </div>
+
+      {/* One-click install commands */}
+      <div style={{ marginBottom: "var(--space-xl)" }}>
+        <InstallButtons server={server} />
+      </div>
+
+      {/* Capabilities & risk warnings */}
+      {(server.capabilities?.length > 0 || server.risk_level) && (
+        <div style={{ marginBottom: "var(--space-xl)" }}>
+          <CapabilitiesWarning
+            capabilities={server.capabilities}
+            riskLevel={server.risk_level}
+          />
+        </div>
+      )}
 
       {/* Long description */}
       {server.long_description && (
