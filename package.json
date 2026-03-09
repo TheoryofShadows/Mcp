@@ -1,7 +1,15 @@
 {
   "name": "mcpx",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "MCPX — The Marketplace for AI Agent Tools (MCP Servers). Discover, install, and publish Model Context Protocol servers for Claude, Cursor, and VS Code.",
+  "keywords": ["mcp", "mcpx", "model-context-protocol", "ai-agents", "marketplace", "claude", "cursor", "vscode", "llm-tools"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TheoryofShadows/Mcp.git"
+  },
+  "license": "MIT",
+  "author": "TheoryofShadows",
   "type": "module",
   "scripts": {
     "dev": "concurrently \"vite\" \"node server/index.js\"",

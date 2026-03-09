@@ -100,7 +100,7 @@ const ToolCard = memo(function ToolCard({ tool, index = 0 }) {
                 >
                   {tool.name}
                 </span>
-                {tool.verified && <VerifiedBadge size={14} />}
+                {tool.verified && <VerifiedBadge verified={tool.verified} showLabel={false} />}
               </div>
               <span
                 style={{

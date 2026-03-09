@@ -648,6 +648,358 @@ Access the full Hugging Face ecosystem from AI agents.
     weekly_growth: "+38%",
     revenue_monthly: 12100,
   },
+  {
+    id: "13",
+    slug: "playwright-mcp",
+    name: "Playwright MCP",
+    author_name: "microsoft",
+    category_id: "dev",
+    description:
+      "Official Microsoft Playwright MCP server. Automate browsers, scrape web pages, run E2E tests, and interact with web apps through AI agents.",
+    readme: `# Playwright MCP Server
+
+Official MCP server by Microsoft for browser automation using Playwright.
+
+## Features
+
+- Launch and control Chromium, Firefox, and WebKit browsers
+- Navigate pages, fill forms, click elements
+- Take screenshots and capture PDFs
+- Run end-to-end test scenarios
+- Extract structured data from web pages
+- Handle authentication flows and cookies
+
+## Setup
+
+\`\`\`json
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp"]
+    }
+  }
+}
+\`\`\`
+
+Or with Claude CLI:
+\`\`\`bash
+claude mcp add playwright -- npx @playwright/mcp
+\`\`\`
+
+## Permissions
+
+This server can control real browsers on your machine. Only run it in trusted environments.`,
+    github_url: "https://github.com/microsoft/playwright-mcp",
+    install_command: "npx @playwright/mcp",
+    price_type: "free",
+    price_label: "Free",
+    verified: true,
+    trending: true,
+    tags: ["playwright", "browser", "automation", "testing", "scraping"],
+    gradient: "linear-gradient(135deg, #2563eb, #7c3aed)",
+    installs: 67400,
+    rating: 4.9,
+    review_count: 334,
+    weekly_growth: "+29%",
+    revenue_monthly: null,
+    capabilities: ["browser_control", "screenshot", "network_access"],
+    risk_level: "medium",
+  },
+  {
+    id: "14",
+    slug: "puppeteer-mcp",
+    name: "Puppeteer MCP",
+    author_name: "modelcontextprotocol",
+    category_id: "dev",
+    description:
+      "Official MCP server for Puppeteer. Control headless Chrome/Chromium, automate web tasks, take screenshots, and extract data from any website.",
+    readme: `# Puppeteer MCP Server
+
+MCP server providing browser automation via Puppeteer.
+
+## Features
+
+- Headless Chrome control
+- Navigate to URLs, click elements, fill forms
+- Take full-page screenshots
+- Generate PDFs from web pages
+- Execute JavaScript in browser context
+- Handle single-page applications
+
+## Setup
+
+\`\`\`json
+{
+  "mcpServers": {
+    "puppeteer": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-puppeteer"]
+    }
+  }
+}
+\`\`\`
+
+## Use Cases
+
+- Web scraping and data extraction
+- Automated testing
+- PDF generation from HTML
+- UI screenshot capture`,
+    github_url: "https://github.com/modelcontextprotocol/servers/tree/main/src/puppeteer",
+    install_command: "npx -y @modelcontextprotocol/server-puppeteer",
+    price_type: "free",
+    price_label: "Free",
+    verified: true,
+    trending: true,
+    tags: ["puppeteer", "browser", "chrome", "automation", "scraping"],
+    gradient: "linear-gradient(135deg, #00b4d8, #0077b6)",
+    installs: 41300,
+    rating: 4.7,
+    review_count: 198,
+    weekly_growth: "+22%",
+    revenue_monthly: null,
+    capabilities: ["browser_control", "screenshot", "network_access", "js_execution"],
+    risk_level: "medium",
+  },
+  {
+    id: "15",
+    slug: "postgres-mcp-official",
+    name: "PostgreSQL MCP",
+    author_name: "modelcontextprotocol",
+    category_id: "data",
+    description:
+      "Official PostgreSQL MCP server. Give AI agents safe read access to your Postgres database — query tables, inspect schemas, and analyze data with natural language.",
+    readme: `# PostgreSQL MCP Server
+
+Official MCP server for PostgreSQL databases.
+
+## Features
+
+- Execute read-only SQL queries
+- List tables and describe schemas
+- Analyze table relationships and indexes
+- Run EXPLAIN on queries for optimization
+- View database statistics
+
+## Setup
+
+\`\`\`json
+{
+  "mcpServers": {
+    "postgres": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "postgresql://localhost/mydb"
+      ]
+    }
+  }
+}
+\`\`\`
+
+Or with Claude CLI:
+\`\`\`bash
+claude mcp add postgres -- npx -y @modelcontextprotocol/server-postgres postgresql://localhost/mydb
+\`\`\`
+
+## Security
+
+This server uses read-only connections by default. Never use a superuser connection string.`,
+    github_url: "https://github.com/modelcontextprotocol/servers/tree/main/src/postgres",
+    install_command: "npx -y @modelcontextprotocol/server-postgres postgresql://localhost/mydb",
+    price_type: "free",
+    price_label: "Free",
+    verified: true,
+    trending: true,
+    tags: ["postgresql", "postgres", "database", "sql", "data"],
+    gradient: "linear-gradient(135deg, #336791, #10b981)",
+    installs: 48200,
+    rating: 4.9,
+    review_count: 342,
+    weekly_growth: "+19%",
+    revenue_monthly: null,
+    capabilities: ["database_read", "schema_inspection"],
+    risk_level: "low",
+  },
+  {
+    id: "16",
+    slug: "ssh-commander-mcp",
+    name: "SSH Commander",
+    author_name: "community",
+    category_id: "infra",
+    description:
+      "Execute commands on remote servers via SSH. AI agents can run shell commands, manage files, tail logs, and automate DevOps tasks on any SSH-accessible host.",
+    readme: `# SSH Commander MCP
+
+Execute shell commands on remote hosts via SSH from AI agents.
+
+## Features
+
+- Connect to remote servers via SSH key or password
+- Execute arbitrary shell commands
+- Transfer files with SCP
+- Tail logs in real-time
+- Manage multiple server profiles
+
+## Setup
+
+\`\`\`json
+{
+  "mcpServers": {
+    "ssh": {
+      "command": "npx",
+      "args": ["-y", "mcp-server-ssh"],
+      "env": {
+        "SSH_HOST": "your-server.com",
+        "SSH_USER": "ubuntu",
+        "SSH_KEY_PATH": "~/.ssh/id_rsa"
+      }
+    }
+  }
+}
+\`\`\`
+
+## WARNING
+
+This server grants AI agents arbitrary remote code execution. Only connect to servers you own or have permission to access. Use read-only accounts where possible.`,
+    github_url: "https://github.com/ckreiling/mcp-server-docker",
+    install_command: "npx -y mcp-server-ssh",
+    price_type: "free",
+    price_label: "Free",
+    verified: false,
+    trending: false,
+    tags: ["ssh", "devops", "shell", "remote", "linux"],
+    gradient: "linear-gradient(135deg, #1a1a2e, #16213e)",
+    installs: 22100,
+    rating: 4.3,
+    review_count: 87,
+    weekly_growth: "+8%",
+    revenue_monthly: null,
+    capabilities: ["remote_code_execution", "file_transfer", "network_access"],
+    risk_level: "high",
+  },
+  {
+    id: "17",
+    slug: "chess-analysis-mcp",
+    name: "Chess Analysis MCP",
+    author_name: "community",
+    category_id: "creative",
+    description:
+      "Analyze chess positions, get move suggestions, and explore opening theory with Stockfish engine integration. Perfect for building chess tools with AI agents.",
+    readme: `# Chess Analysis MCP
+
+Bring Stockfish chess engine power to your AI agents.
+
+## Features
+
+- Analyze any FEN position with Stockfish
+- Get best move suggestions with depth control
+- Evaluate opening theory and transpositions
+- Generate PGN games and annotations
+- Calculate tactics puzzles
+- Support for chess960 variants
+
+## Setup
+
+\`\`\`json
+{
+  "mcpServers": {
+    "chess": {
+      "command": "npx",
+      "args": ["-y", "mcp-chess-server"]
+    }
+  }
+}
+\`\`\`
+
+## Requirements
+
+- Stockfish binary (auto-downloaded on first run)
+- Node.js 18+
+
+## Use Cases
+
+- AI chess tutors
+- Opening preparation tools
+- Game analysis assistants`,
+    github_url: "https://github.com/punkpeye/mcp-chess",
+    install_command: "npx -y mcp-chess-server",
+    price_type: "free",
+    price_label: "Free",
+    verified: false,
+    trending: false,
+    tags: ["chess", "stockfish", "games", "strategy", "ai"],
+    gradient: "linear-gradient(135deg, #b45309, #78350f)",
+    installs: 8400,
+    rating: 4.5,
+    review_count: 42,
+    weekly_growth: "+15%",
+    revenue_monthly: null,
+    capabilities: ["compute"],
+    risk_level: "low",
+  },
+  {
+    id: "18",
+    slug: "cal-scheduler-mcp",
+    name: "Cal.com Scheduler MCP",
+    author_name: "cal.com",
+    category_id: "business",
+    description:
+      "AI-powered meeting scheduling via Cal.com. Book appointments, check availability, manage calendar events, and send invites — all through natural language.",
+    readme: `# Cal.com Scheduler MCP
+
+Schedule meetings and manage calendars through Cal.com's API.
+
+## Features
+
+- Check availability across team members
+- Book meetings and appointments
+- Cancel and reschedule events
+- Send meeting invites via email
+- Manage event types and durations
+- Integrate with Google/Outlook calendars
+
+## Setup
+
+1. Get your Cal.com API key from Settings → API Keys
+
+\`\`\`json
+{
+  "mcpServers": {
+    "cal": {
+      "command": "npx",
+      "args": ["-y", "@calcom/mcp-server"],
+      "env": {
+        "CAL_API_KEY": "cal_live_..."
+      }
+    }
+  }
+}
+\`\`\`
+
+## Use Cases
+
+- AI assistants that can book meetings
+- Automated follow-up scheduling
+- Availability-based calendar management`,
+    github_url: "https://github.com/calcom/cal.com",
+    install_command: "npx -y @calcom/mcp-server",
+    price_type: "free",
+    price_label: "Free",
+    verified: true,
+    trending: true,
+    tags: ["calendar", "scheduling", "meetings", "productivity", "cal.com"],
+    gradient: "linear-gradient(135deg, #0ea5e9, #6366f1)",
+    installs: 29800,
+    rating: 4.7,
+    review_count: 156,
+    weekly_growth: "+33%",
+    revenue_monthly: null,
+    capabilities: ["calendar_access", "email_send", "network_access"],
+    risk_level: "low",
+  },
 ];
 
 // ─── Seed Reviews ─────────────────────────────────────────────────────────────
@@ -662,12 +1014,16 @@ export const SEED_REVIEWS = [
   { id: "r8", tool_id: "8", user: { username: "cloud_architect", avatar_url: null }, rating: 5, body: "Managing 50+ AWS accounts is now a conversation with Claude. Worth every penny.", created_at: "2025-01-28T15:45:00Z" },
   { id: "r9", tool_id: "8", user: { username: "devops_lead", avatar_url: null }, rating: 4, body: "Excellent coverage of AWS services. The IAM policy generation alone saves hours.", created_at: "2025-02-10T10:00:00Z" },
   { id: "r10", tool_id: "12", user: { username: "mleng", avatar_url: null }, rating: 5, body: "Access to every model on HuggingFace through Claude is incredible. Rapid prototyping has never been faster.", created_at: "2025-02-08T12:30:00Z" },
+  { id: "r11", tool_id: "13", user: { username: "testeng", avatar_url: null }, rating: 5, body: "Playwright MCP turned Claude into a full browser automation agent. Our QA pipeline is now AI-driven.", created_at: "2025-02-12T09:00:00Z" },
+  { id: "r12", tool_id: "13", user: { username: "scraper_pro", avatar_url: null }, rating: 5, body: "Finally a reliable way to scrape dynamic JS sites through Claude. Saves hours of custom scripts.", created_at: "2025-02-15T14:30:00Z" },
+  { id: "r13", tool_id: "15", user: { username: "backend_eng", avatar_url: null }, rating: 5, body: "Claude can now answer questions about our DB schema instantly. Schema inspection is buttery smooth.", created_at: "2025-02-18T11:00:00Z" },
+  { id: "r14", tool_id: "18", user: { username: "saas_ops", avatar_url: null }, rating: 5, body: "AI assistant now books meetings for our sales team automatically. Incredible ROI.", created_at: "2025-02-20T16:00:00Z" },
 ];
 
 // ─── Platform Stats ───────────────────────────────────────────────────────────
 export const SEED_STATS = {
-  total_tools: 12,
-  total_installs: 485000,
-  total_revenue: 58900,
-  total_developers: 847,
+  total_tools: 18,
+  total_installs: 762000,
+  total_revenue: 89400,
+  total_developers: 1847,
 };
