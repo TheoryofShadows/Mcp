@@ -1,6 +1,7 @@
 import { Descope, useDescope, useSession, useUser } from "@descope/react-sdk";
 
-const ADMIN_PERMISSION = "PERM3AginJK2YlsHu6UrjhQcz7wf2iR";
+const ADMIN_PERMISSION =
+  import.meta.env.VITE_DESCOPE_ADMIN_PERMISSION ?? "PERM3AginJK2YlsHu6UrjhQcz7wf2iR";
 
 const mono = { fontFamily: "var(--font-mono)", fontSize: "13px" };
 
@@ -9,20 +10,9 @@ export default function Admin() {
   const { user } = useUser();
   const { logout } = useDescope();
 
-  const hasAdminPermission =
-    isAuthenticated &&
-    Array.isArray(user?.roleNames)
-      ? false // roles checked via permissions below
-      : isAuthenticated &&
-        (user?.userTenants ?? []).some((t) =>
-          (t.roleNames ?? []).includes("Admin")
-        );
-
-  // Check permissions array if available
-  const permissions = user?.customAttributes?.permissions ?? [];
-  const isAdmin =
-    isAuthenticated &&
-    (hasAdminPermission || permissions.includes(ADMIN_PERMISSION));
+  // Descope exposes granted permissions directly on user.permissions (string[])
+  const permissions = user?.permissions ?? [];
+  const isAdmin = isAuthenticated && permissions.includes(ADMIN_PERMISSION);
 
   if (isSessionLoading) {
     return (
