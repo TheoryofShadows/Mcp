@@ -102,8 +102,22 @@ export async function fetchTiers() {
 }
 
 export async function subscribeTier(tier) {
-  return request("/tiers/subscribe", {
+  const data = await request("/tiers/subscribe", {
     method: "POST",
     body: JSON.stringify({ tier }),
   });
+
+  // Paid tiers: server returns { requires_payment: true, checkout_endpoint, tier }
+  if (data?.requires_payment) {
+    const checkout = await request("/payments/stripe/checkout", {
+      method: "POST",
+      body: JSON.stringify({ tier: data.tier }),
+    });
+    if (checkout?.checkout_url) {
+      window.location.href = checkout.checkout_url;
+      return null; // navigation in progress
+    }
+  }
+
+  return data;
 }

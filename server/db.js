@@ -103,4 +103,12 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_installs_server ON installs(server_id);
 `);
 
+// ─── Stripe migrations (idempotent) ───────────────────────────────────────────
+for (const sql of [
+  "ALTER TABLE users ADD COLUMN stripe_customer_id TEXT",
+  "ALTER TABLE subscriptions ADD COLUMN stripe_subscription_id TEXT",
+]) {
+  try { db.prepare(sql).run(); } catch { /* column already exists */ }
+}
+
 export default db;

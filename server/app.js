@@ -27,6 +27,11 @@ export function createApp() {
     },
     credentials: true,
   }));
+
+  // Stripe webhook needs the raw body for signature verification — must be
+  // registered BEFORE express.json() consumes and parses the body.
+  app.use("/api/payments/stripe/webhook", express.raw({ type: "application/json" }));
+
   app.use(express.json({ limit: "1mb" }));
   app.use(authenticateToken);
   app.use(authenticateDescopeToken);

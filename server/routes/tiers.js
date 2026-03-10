@@ -93,11 +93,12 @@ router.post("/subscribe", requireAuth, (req, res) => {
     return res.status(400).json({ error: "Invalid tier" });
   }
 
-  // Paid tiers require Stripe payment processing — block until Stripe is wired up.
-  if (valid.price_amount > 0 && !process.env.STRIPE_SECRET_KEY) {
-    return res.status(402).json({
-      error: "Payment required",
-      message: `${valid.name} (${valid.price}) requires a payment method. Stripe integration coming soon.`,
+  // Paid tiers must go through Stripe Checkout — redirect the client.
+  if (valid.price_amount > 0) {
+    return res.status(200).json({
+      requires_payment: true,
+      checkout_endpoint: "/api/payments/stripe/checkout",
+      tier,
     });
   }
 
