@@ -106,6 +106,8 @@ db.exec(`
 // ─── Stripe migrations (idempotent) ───────────────────────────────────────────
 for (const sql of [
   "ALTER TABLE users ADD COLUMN stripe_customer_id TEXT",
+  "ALTER TABLE users ADD COLUMN stripe_account_id TEXT",        // Connect: publisher payout account
+  "ALTER TABLE users ADD COLUMN stripe_onboarding_done INTEGER DEFAULT 0",
   "ALTER TABLE subscriptions ADD COLUMN stripe_subscription_id TEXT",
 ]) {
   try { db.prepare(sql).run(); } catch { /* column already exists */ }
