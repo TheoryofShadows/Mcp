@@ -50,8 +50,8 @@ router.post("/register", async (req, res) => {
     return res.status(400).json({ error: "Invalid input types" });
   }
 
-  if (password.length < 6) {
-    return res.status(400).json({ error: "Password must be at least 6 characters" });
+  if (password.length < 10) {
+    return res.status(400).json({ error: "Password must be at least 10 characters" });
   }
 
   if (username.length < 2 || username.length > 30) {

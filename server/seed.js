@@ -2,6 +2,10 @@ import db from "./db.js";
 import { v4 as uuid } from "uuid";
 import bcrypt from "bcryptjs";
 
+if (process.env.NODE_ENV === "production") {
+  throw new Error("[seed] Refusing to seed in production — this would delete all data.");
+}
+
 console.log("Seeding database...");
 
 // ─── Clear existing data ───

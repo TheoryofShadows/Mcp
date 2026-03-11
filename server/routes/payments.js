@@ -73,19 +73,23 @@ async function getPriceId(tierId) {
     }
   }
 
-  // 3. Create product + recurring price
-  const product = existing || await stripe.products.create({
-    name: cfg.name,
-    metadata: { mcpx_tier: tierId },
-  });
+  // 3. Create product + recurring price — idempotency key prevents duplicate
+  //    products if two requests race before the cache is populated.
+  const product = existing || await stripe.products.create(
+    { name: cfg.name, metadata: { mcpx_tier: tierId } },
+    { idempotencyKey: `mcpx-product-${tierId}` }
+  );
 
-  const price = await stripe.prices.create({
-    product: product.id,
-    unit_amount: cfg.amount,
-    currency: "usd",
-    recurring: { interval: "month" },
-    metadata: { mcpx_tier: tierId },
-  });
+  const price = await stripe.prices.create(
+    {
+      product: product.id,
+      unit_amount: cfg.amount,
+      currency: "usd",
+      recurring: { interval: "month" },
+      metadata: { mcpx_tier: tierId },
+    },
+    { idempotencyKey: `mcpx-price-${tierId}` }
+  );
 
   priceIdCache[tierId] = price.id;
   console.log(`[stripe] Created price for ${tierId}: ${price.id} — save as ${cfg.env}=${price.id}`);
@@ -306,6 +310,15 @@ router.post("/stripe/webhook", async (req, res) => {
           const tier = Object.entries(TIER_CONFIG).find(
             ([id, cfg]) => priceIdCache[id] === priceId || process.env[cfg.env] === priceId
           )?.[0] || stripeSub.items.data[0]?.price?.metadata?.mcpx_tier;
+
+          if (!tier) {
+            // Payment taken but tier unresolvable — log for manual recovery, don't swallow
+            console.error(
+              `[stripe] UNRESOLVED TIER for user ${userId} — priceId=${priceId}` +
+              ` subscriptionId=${session.subscription} — manual upgrade required`
+            );
+            break;
+          }
 
           if (tier) {
             db.prepare("UPDATE users SET stripe_customer_id = ?, tier = ?, updated_at = datetime('now') WHERE id = ?")

@@ -20,10 +20,20 @@ const app = createApp();
 // Serve static files in production
 const distPath = join(__dirname, "..", "dist");
 app.use((await import("express")).default.static(distPath));
-app.get("/{*splat}", (_req, res) => {
+// SPA fallback — must use "*" in Express 5 (not "/{*splat}")
+app.get("*", (_req, res) => {
   res.sendFile(join(distPath, "index.html"));
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`MCPX API server running on http://localhost:${PORT}`);
+});
+
+// Graceful shutdown — Railway sends SIGTERM before killing the process
+process.on("SIGTERM", () => {
+  console.log("[server] SIGTERM received — shutting down gracefully");
+  server.close(() => {
+    db.close();
+    process.exit(0);
+  });
 });

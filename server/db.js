@@ -101,6 +101,9 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_servers_trending ON servers(trending);
   CREATE INDEX IF NOT EXISTS idx_reviews_server ON reviews(server_id);
   CREATE INDEX IF NOT EXISTS idx_installs_server ON installs(server_id);
+  CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+  CREATE INDEX IF NOT EXISTS idx_users_stripe_customer ON users(stripe_customer_id);
+  CREATE INDEX IF NOT EXISTS idx_subscriptions_user_status ON subscriptions(user_id, status);
 `);
 
 // ─── Stripe migrations (idempotent) ───────────────────────────────────────────

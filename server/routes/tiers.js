@@ -106,7 +106,8 @@ router.post("/subscribe", requireAuth, (req, res) => {
   db.prepare("UPDATE subscriptions SET status = 'cancelled' WHERE user_id = ? AND status = 'active'").run(req.user.id);
 
   const id = uuid();
-  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+  // Free tier never expires — expires_at stays NULL
+  const expiresAt = null;
 
   db.prepare(
     "INSERT INTO subscriptions (id, user_id, tier, status, expires_at) VALUES (?, ?, ?, 'active', ?)"
