@@ -37,7 +37,11 @@ const labelStyle = {
 export default function Login() {
   const { user, login, register } = useAuth();
   const navigate = useNavigate();
-  const [error, setError] = useState("");
+  const [error, setError] = useState(() => {
+    // Surface errors forwarded back from /auth/callback (e.g. Safari PKCE failure)
+    const params = new URLSearchParams(window.location.search);
+    return params.get("error") ? decodeURIComponent(params.get("error")) : "";
+  });
   const [loading, setLoading] = useState(false);
 
   // Email/password form state (used when Supabase not configured)
@@ -59,10 +63,16 @@ export default function Login() {
     setLoading(true);
     setError("");
     try {
+      // Use VITE_APP_URL if set (recommended for Vercel — set it to your main
+      // deployment URL so only one redirect URL needs to be whitelisted in
+      // Supabase, covering both production and all preview deployments for free).
+      const appOrigin =
+        import.meta.env.VITE_APP_URL?.replace(/\/$/, "") ||
+        window.location.origin;
       const { error: authError } = await supabase.auth.signInWithOAuth({
         provider: "github",
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
+          redirectTo: `${appOrigin}/auth/callback`,
           scopes: "read:user user:email",
         },
       });
@@ -326,20 +336,22 @@ export default function Login() {
                   </button>
                 </p>
 
-                <div
-                  style={{
-                    padding: "10px 14px",
-                    background: "rgba(99,102,241,0.07)",
-                    border: "1px solid rgba(99,102,241,0.15)",
-                    borderRadius: "10px",
-                    fontSize: "12px",
-                    color: "var(--text-muted)",
-                    fontFamily: "var(--font-mono)",
-                    textAlign: "center",
-                  }}
-                >
-                  Demo: <strong style={{ color: "#a5b4fc" }}>dev@mcpx.dev</strong> / <strong style={{ color: "#a5b4fc" }}>demo1234</strong>
-                </div>
+                {import.meta.env.DEV && (
+                  <div
+                    style={{
+                      padding: "10px 14px",
+                      background: "rgba(99,102,241,0.07)",
+                      border: "1px solid rgba(99,102,241,0.15)",
+                      borderRadius: "10px",
+                      fontSize: "12px",
+                      color: "var(--text-muted)",
+                      fontFamily: "var(--font-mono)",
+                      textAlign: "center",
+                    }}
+                  >
+                    Dev only — Demo: <strong style={{ color: "#a5b4fc" }}>dev@mcpx.dev</strong> / <strong style={{ color: "#a5b4fc" }}>demo1234</strong>
+                  </div>
+                )}
               </form>
             </>
           )}

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutGrid, Upload, BarChart3, LogIn, Menu, X, Zap } from "lucide-react";
+import { LayoutGrid, Upload, BarChart3, LogIn, Menu, X, Zap, ShieldCheck } from "lucide-react";
+import { useSession } from "@descope/react-sdk";
 import { useAuth } from "../hooks/useAuth";
 
 const NAV_LINKS = [
@@ -12,6 +13,7 @@ const NAV_LINKS = [
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user, logout } = useAuth();
+  const { isAuthenticated: isDescopeAdmin } = useSession();
   const location = useLocation();
 
   const isActive = (path) => location.pathname === path;
@@ -124,6 +126,40 @@ export default function Navbar() {
             {label}
           </Link>
         ))}
+        {isDescopeAdmin && (
+          <Link
+            to="/admin"
+            style={{
+              textDecoration: "none",
+              padding: "6px 14px",
+              borderRadius: "8px",
+              fontFamily: "var(--font-body)",
+              fontSize: "13px",
+              fontWeight: 500,
+              color: isActive("/admin") ? "#a5b4fc" : "var(--text-secondary)",
+              background: isActive("/admin") ? "rgba(99,102,241,0.1)" : "transparent",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              transition: "all 0.15s ease",
+            }}
+            onMouseEnter={(e) => {
+              if (!isActive("/admin")) {
+                e.currentTarget.style.color = "var(--text-primary)";
+                e.currentTarget.style.background = "#1a1a1a";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isActive("/admin")) {
+                e.currentTarget.style.color = "var(--text-secondary)";
+                e.currentTarget.style.background = "transparent";
+              }
+            }}
+          >
+            <ShieldCheck size={13} />
+            Admin
+          </Link>
+        )}
       </div>
 
       {/* Auth */}
@@ -281,6 +317,28 @@ export default function Navbar() {
               {label}
             </Link>
           ))}
+          {isDescopeAdmin && (
+            <Link
+              to="/admin"
+              onClick={() => setMobileOpen(false)}
+              style={{
+                textDecoration: "none",
+                padding: "12px 16px",
+                borderRadius: "10px",
+                fontFamily: "var(--font-body)",
+                fontSize: "15px",
+                fontWeight: 500,
+                color: isActive("/admin") ? "#a5b4fc" : "var(--text-secondary)",
+                background: isActive("/admin") ? "rgba(99,102,241,0.1)" : "transparent",
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+              }}
+            >
+              <ShieldCheck size={16} />
+              Admin
+            </Link>
+          )}
         </div>
       )}
     </nav>

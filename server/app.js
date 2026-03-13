@@ -1,12 +1,14 @@
 import express from "express";
 import cors from "cors";
 import { authenticateToken } from "./middleware/auth.js";
+import { authenticateDescopeToken } from "./middleware/descopeAuth.js";
 import authRoutes from "./routes/auth.js";
 import serverRoutes from "./routes/servers.js";
 import categoryRoutes from "./routes/categories.js";
 import statsRoutes from "./routes/stats.js";
 import tierRoutes from "./routes/tiers.js";
 import paymentRoutes from "./routes/payments.js";
+import adminRoutes from "./routes/admin.js";
 
 export function createApp() {
   const app = express();
@@ -25,8 +27,14 @@ export function createApp() {
     },
     credentials: true,
   }));
+
+  // Stripe webhook needs the raw body for signature verification — must be
+  // registered BEFORE express.json() consumes and parses the body.
+  app.use("/api/payments/stripe/webhook", express.raw({ type: "application/json" }));
+
   app.use(express.json({ limit: "1mb" }));
   app.use(authenticateToken);
+  app.use(authenticateDescopeToken);
 
   app.use("/api/auth", authRoutes);
   app.use("/api/servers", serverRoutes);
@@ -34,6 +42,7 @@ export function createApp() {
   app.use("/api/stats", statsRoutes);
   app.use("/api/tiers", tierRoutes);
   app.use("/api/payments", paymentRoutes);
+  app.use("/api/admin", adminRoutes);
 
   app.get("/api/health", (_req, res) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });

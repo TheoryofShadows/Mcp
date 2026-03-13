@@ -1,22 +1,20 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
-  Package, DollarSign, Users,
-  Download, Star, CreditCard, ExternalLink, Plus, AlertCircle
+  Package, DollarSign, Download, Star, CreditCard, ExternalLink, Plus, AlertCircle
 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import PriceTag from "../components/PriceTag";
 import { SEED_TOOLS } from "../data/seed";
 import { supabase } from "../lib/supabase";
-import { fetchServers, getMe } from "../api/client";
+import { fetchServers, getMe, connectStripe } from "../api/client";
 
 // Mock dashboard data for demo / no-auth mode
 const MOCK_TOOLS = SEED_TOOLS.filter((t) => ["github-mcp", "filesystem-mcp", "postgres-mcp"].includes(t.slug));
 const MOCK_STATS = {
-  total_revenue: 4820,
   monthly_revenue: 580,
   total_installs: 89400,
-  subscribers: 48,
+  avg_rating: 4.7,
   tools_count: 3,
 };
 
@@ -68,13 +66,13 @@ async function loadDashboard(user) {
         .filter((t) => t.price_type === "paid")
         .reduce((s, t) => s + (t.revenue_monthly || 0), 0);
 
+      const avgRating = tools.filter((t) => t.rating).reduce((s, t, _, a) => s + t.rating / a.length, 0) || null;
       return {
         tools,
         stats: {
-          total_revenue: monthlyRevenue * 6,
           monthly_revenue: monthlyRevenue,
           total_installs: totalInstalls,
-          subscribers: Math.round(monthlyRevenue / 12),
+          avg_rating: avgRating,
           tools_count: tools.length,
         },
       };
@@ -100,18 +98,18 @@ async function loadDashboard(user) {
 
     const totalMonthlyRevenue = apiTools.reduce((sum, t) => sum + (t.revenue_monthly || 0), 0);
 
+    const avgRating = apiTools.filter((t) => t.rating).reduce((s, t, _, a) => s + t.rating / a.length, 0) || null;
     return {
       tools: apiTools,
       stats: {
         tools_count: me.server_count ?? apiTools.length,
         total_installs: me.total_installs ?? apiTools.reduce((s, t) => s + (t.installs || 0), 0),
         monthly_revenue: totalMonthlyRevenue,
-        total_revenue: totalMonthlyRevenue * 6,
-        subscribers: Math.round(totalMonthlyRevenue / 12),
+        avg_rating: avgRating,
       },
     };
   } catch {
-    return { tools: [], stats: { tools_count: 0, total_installs: 0, monthly_revenue: 0, total_revenue: 0, subscribers: 0 } };
+    return { tools: [], stats: { tools_count: 0, total_installs: 0, monthly_revenue: 0, avg_rating: null } };
   }
 }
 
@@ -145,6 +143,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState(MOCK_STATS);
   const [loading, setLoading] = useState(true);
   const [demoMode, setDemoMode] = useState(false);
+  const [stripeLoading, setStripeLoading] = useState(false);
 
   const chartMonths = getLastSixMonths();
   const nextPayout = getNextPayoutDate();
@@ -241,10 +240,10 @@ export default function Dashboard() {
         }}
         className="stats-grid"
       >
-        <StatCard icon={Package}    label="Tools Listed"       value={stats.tools_count}                      sub="published & pending"       color="#6366f1" />
-        <StatCard icon={DollarSign} label="Monthly Revenue"    value={`$${stats.monthly_revenue.toLocaleString()}`} sub={`$${(stats.monthly_revenue * 0.85).toLocaleString()} after 15% fee`} color="#10b981" />
-        <StatCard icon={Download}   label="Total Installs"     value={`${(stats.total_installs / 1000).toFixed(1)}K`} sub="all time"              color="#3b82f6" />
-        <StatCard icon={Users}      label="Subscribers"        value={stats.subscribers}                       sub="active this month"         color="#a78bfa" />
+        <StatCard icon={Package}    label="Tools Listed"       value={stats.tools_count}                                               sub="published & pending"              color="#6366f1" />
+        <StatCard icon={DollarSign} label="Monthly Revenue"    value={`$${stats.monthly_revenue.toLocaleString()}`}                    sub={`$${(stats.monthly_revenue * 0.85).toLocaleString()} after 15% fee`} color="#10b981" />
+        <StatCard icon={Download}   label="Total Installs"     value={stats.total_installs >= 1000 ? `${(stats.total_installs / 1000).toFixed(1)}K` : stats.total_installs} sub="all time" color="#3b82f6" />
+        <StatCard icon={Star}       label="Avg Rating"         value={stats.avg_rating ? stats.avg_rating.toFixed(1) : "—"}            sub="across all tools"                 color="#a78bfa" />
       </div>
 
       {/* Revenue placeholder chart */}
@@ -260,7 +259,7 @@ export default function Dashboard() {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
           <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "16px" }}>Revenue (last 6 months)</h2>
           <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--text-muted)" }}>
-            Total: ${stats.total_revenue.toLocaleString()}
+            This month: ${stats.monthly_revenue.toLocaleString()}
           </span>
         </div>
         {/* Placeholder bar chart */}
@@ -423,21 +422,33 @@ export default function Dashboard() {
             color: "#a5b4fc",
             fontSize: "13px",
             fontWeight: 600,
-            cursor: "pointer",
+            cursor: stripeLoading ? "not-allowed" : "pointer",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             gap: "8px",
             transition: "all 0.15s",
+            opacity: stripeLoading ? 0.7 : 1,
           }}
-          onClick={() => {
-            alert("Stripe Connect onboarding coming soon! Check back after tool approval.");
+          disabled={stripeLoading}
+          onClick={async () => {
+            if (!user) { window.location.href = "/login"; return; }
+            setStripeLoading(true);
+            try {
+              const data = await connectStripe();
+              if (data?.onboarding_url) window.location.href = data.onboarding_url;
+              else if (data?.dashboard_url) window.location.href = data.dashboard_url;
+            } catch (err) {
+              alert(`Stripe Connect error: ${err.message}`);
+            } finally {
+              setStripeLoading(false);
+            }
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(99,102,241,0.14)")}
+          onMouseEnter={(e) => { if (!stripeLoading) e.currentTarget.style.background = "rgba(99,102,241,0.14)"; }}
           onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(99,102,241,0.08)")}
         >
           <CreditCard size={14} />
-          Connect Stripe for Payouts
+          {stripeLoading ? "Connecting…" : "Connect Stripe for Payouts"}
         </button>
         <p style={{ fontSize: "11px", color: "var(--text-muted)", textAlign: "center", marginTop: "10px", fontFamily: "var(--font-mono)" }}>
           Powered by Stripe Connect · Payouts every 1st of the month

@@ -7,6 +7,14 @@ const __dirname = dirname(__filename);
 
 const DB_PATH = process.env.DB_PATH || join(__dirname, "mcpx.db");
 
+if (process.env.NODE_ENV === "production" && !process.env.DB_PATH) {
+  console.warn(
+    "[db] WARNING: DB_PATH is not set. Defaulting to server/mcpx.db inside the " +
+    "container filesystem — data will be lost on every redeploy.\n" +
+    "  → Mount a Railway volume at /data and set DB_PATH=/data/mcpx.db"
+  );
+}
+
 const db = new Database(DB_PATH);
 
 // Enable WAL mode for better concurrent read performance
@@ -93,6 +101,19 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_servers_trending ON servers(trending);
   CREATE INDEX IF NOT EXISTS idx_reviews_server ON reviews(server_id);
   CREATE INDEX IF NOT EXISTS idx_installs_server ON installs(server_id);
+  CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+  CREATE INDEX IF NOT EXISTS idx_users_stripe_customer ON users(stripe_customer_id);
+  CREATE INDEX IF NOT EXISTS idx_subscriptions_user_status ON subscriptions(user_id, status);
 `);
+
+// ─── Stripe migrations (idempotent) ───────────────────────────────────────────
+for (const sql of [
+  "ALTER TABLE users ADD COLUMN stripe_customer_id TEXT",
+  "ALTER TABLE users ADD COLUMN stripe_account_id TEXT",        // Connect: publisher payout account
+  "ALTER TABLE users ADD COLUMN stripe_onboarding_done INTEGER DEFAULT 0",
+  "ALTER TABLE subscriptions ADD COLUMN stripe_subscription_id TEXT",
+]) {
+  try { db.prepare(sql).run(); } catch { /* column already exists */ }
+}
 
 export default db;

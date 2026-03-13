@@ -3,12 +3,14 @@ import { Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import ErrorBoundary from "./components/ErrorBoundary";
 
-const Home        = lazy(() => import("./pages/Home"));
-const Marketplace = lazy(() => import("./pages/Marketplace"));
-const ToolDetail  = lazy(() => import("./pages/ToolDetail"));
-const Submit      = lazy(() => import("./pages/Submit"));
-const Dashboard   = lazy(() => import("./pages/Dashboard"));
-const Login       = lazy(() => import("./pages/Login"));
+const Home         = lazy(() => import("./pages/Home"));
+const Marketplace  = lazy(() => import("./pages/Marketplace"));
+const ToolDetail   = lazy(() => import("./pages/ToolDetail"));
+const Submit       = lazy(() => import("./pages/Submit"));
+const Dashboard    = lazy(() => import("./pages/Dashboard"));
+const Login        = lazy(() => import("./pages/Login"));
+const AuthCallback = lazy(() => import("./pages/AuthCallback"));
+const Admin        = lazy(() => import("./pages/Admin"));
 
 function PageLoader() {
   return (
@@ -48,8 +50,10 @@ export default function App() {
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/tool/:slug"  element={<ToolDetail />} />
             <Route path="/submit"      element={<Submit />} />
-            <Route path="/dashboard"   element={<Dashboard />} />
-            <Route path="/login"       element={<Login />} />
+            <Route path="/dashboard"      element={<Dashboard />} />
+            <Route path="/login"          element={<Login />} />
+            <Route path="/auth/callback"  element={<AuthCallback />} />
+            <Route path="/admin"          element={<Admin />} />
             {/* Legacy route compat */}
             <Route path="/servers/:slug" element={<ToolDetail />} />
           </Routes>

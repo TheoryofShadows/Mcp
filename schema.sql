@@ -1,5 +1,6 @@
 -- MCPX Marketplace Schema for Supabase
 -- Run this in the Supabase SQL editor
+-- Aligned with server/db.js (SQLite) — table names, columns, and Stripe fields match.
 
 -- ─── Extensions ───────────────────────────────────────────────────────────────
 create extension if not exists "uuid-ossp";
@@ -9,20 +10,26 @@ create table if not exists categories (
   id          text primary key,
   label       text not null,
   icon        text,
-  description text,
+  sort_order  integer default 0,
   created_at  timestamptz default now()
 );
 
 -- ─── Users (mirrors Supabase auth.users) ─────────────────────────────────────
 create table if not exists users (
-  id               uuid primary key references auth.users(id) on delete cascade,
-  username         text unique not null,
-  display_name     text,
-  avatar_url       text,
-  github_url       text,
-  bio              text,
-  stripe_account_id text,  -- Stripe Connect account for payouts
-  created_at       timestamptz default now()
+  id                     uuid primary key references auth.users(id) on delete cascade,
+  username               text unique not null,
+  display_name           text,
+  avatar_url             text,
+  github_url             text,
+  bio                    text,
+  tier                   text not null default 'starter' check (tier in ('starter','pro','enterprise')),
+  -- Stripe: platform subscription
+  stripe_customer_id     text,
+  -- Stripe Connect: publisher payout account
+  stripe_account_id      text,
+  stripe_onboarding_done boolean default false,
+  created_at             timestamptz default now(),
+  updated_at             timestamptz default now()
 );
 
 -- Auto-create user profile on signup
@@ -47,38 +54,34 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure handle_new_user();
 
--- ─── Tools ────────────────────────────────────────────────────────────────────
-create table if not exists tools (
-  id              uuid primary key default gen_random_uuid(),
-  slug            text unique not null,
-  name            text not null,
-  author_id       uuid references users(id) on delete set null,
-  author_name     text not null,
-  category_id     text references categories(id),
-  description     text not null,
-  readme          text,
-  github_url      text,
-  install_command text,
+-- ─── Servers (was "tools" — renamed to match SQLite backend) ─────────────────
+create table if not exists servers (
+  id               uuid primary key default gen_random_uuid(),
+  slug             text unique not null,
+  name             text not null,
+  author_id        uuid references users(id) on delete set null,
+  author_name      text not null,
+  category_id      text references categories(id),
+  description      text not null,
+  long_description text,
+  repo_url         text,
   -- Pricing
-  price_type      text not null default 'free' check (price_type in ('free', 'paid')),
-  price_amount    numeric(10,2),
-  price_label     text,
-  -- Stripe (populated after Stripe Connect setup)
-  stripe_product_id text,   -- TODO: set via Stripe dashboard
-  stripe_price_id   text,   -- TODO: set via Stripe dashboard
+  price_type       text not null default 'free' check (price_type in ('free', 'paid')),
+  price_amount     integer default 0,     -- in cents, matches SQLite schema
+  price_label      text default 'free',
   -- Meta
-  verified        boolean default false,
-  trending        boolean default false,
-  tags            text[]  default '{}',
-  gradient        text,
-  installs        integer default 0,
-  rating          numeric(3,2) default 0,
-  review_count    integer default 0,
-  weekly_growth   text,
-  revenue_monthly numeric(10,2),
-  published       boolean default true,
-  created_at      timestamptz default now(),
-  updated_at      timestamptz default now()
+  verified         boolean default false,
+  trending         boolean default false,
+  tags             text[]  default '{}',
+  gradient         text not null default 'linear-gradient(135deg,#4DFFB4,#4D9FFF)',
+  installs         integer default 0,
+  rating           numeric(3,2) default 0,
+  rating_count     integer default 0,
+  weekly_growth    text default '+0%',
+  monthly_revenue  integer default 0,    -- in cents
+  status           text not null default 'active' check (status in ('active','inactive','pending')),
+  created_at       timestamptz default now(),
+  updated_at       timestamptz default now()
 );
 
 -- Update updated_at on row change
@@ -87,30 +90,30 @@ returns trigger language plpgsql as $$
 begin new.updated_at = now(); return new; end;
 $$;
 
-drop trigger if exists tools_updated_at on tools;
-create trigger tools_updated_at
-  before update on tools
+drop trigger if exists servers_updated_at on servers;
+create trigger servers_updated_at
+  before update on servers
   for each row execute procedure update_updated_at();
 
 -- ─── Reviews ──────────────────────────────────────────────────────────────────
 create table if not exists reviews (
   id         uuid primary key default gen_random_uuid(),
-  tool_id    uuid references tools(id) on delete cascade,
+  server_id  uuid references servers(id) on delete cascade,
   user_id    uuid references users(id) on delete cascade,
   rating     integer not null check (rating between 1 and 5),
-  body       text,
+  comment    text,
   created_at timestamptz default now(),
-  unique(tool_id, user_id)
+  unique(server_id, user_id)
 );
 
--- Recompute tool rating + review_count after review insert/delete/update
-create or replace function refresh_tool_rating()
+-- Recompute server rating + rating_count after review insert/delete/update
+create or replace function refresh_server_rating()
 returns trigger language plpgsql as $$
 begin
-  update tools set
-    rating       = (select coalesce(round(avg(rating)::numeric, 2), 0) from reviews where tool_id = coalesce(new.tool_id, old.tool_id)),
-    review_count = (select count(*) from reviews where tool_id = coalesce(new.tool_id, old.tool_id))
-  where id = coalesce(new.tool_id, old.tool_id);
+  update servers set
+    rating       = (select coalesce(round(avg(rating)::numeric, 2), 0) from reviews where server_id = coalesce(new.server_id, old.server_id)),
+    rating_count = (select count(*) from reviews where server_id = coalesce(new.server_id, old.server_id))
+  where id = coalesce(new.server_id, old.server_id);
   return null;
 end;
 $$;
@@ -118,22 +121,43 @@ $$;
 drop trigger if exists reviews_rating_refresh on reviews;
 create trigger reviews_rating_refresh
   after insert or update or delete on reviews
-  for each row execute procedure refresh_tool_rating();
+  for each row execute procedure refresh_server_rating();
+
+-- ─── Installs ─────────────────────────────────────────────────────────────────
+create table if not exists installs (
+  id           uuid primary key default gen_random_uuid(),
+  server_id    uuid references servers(id) on delete cascade,
+  user_id      uuid references users(id) on delete set null,
+  installed_at timestamptz default now()
+);
+
+-- ─── Subscriptions ────────────────────────────────────────────────────────────
+create table if not exists subscriptions (
+  id                     uuid primary key default gen_random_uuid(),
+  user_id                uuid not null references users(id) on delete cascade,
+  tier                   text not null check (tier in ('starter','pro','enterprise')),
+  status                 text not null default 'active' check (status in ('active','cancelled','expired')),
+  stripe_subscription_id text,
+  created_at             timestamptz default now(),
+  expires_at             timestamptz  -- NULL = no expiry (free tier)
+);
 
 -- ─── Row Level Security ───────────────────────────────────────────────────────
-alter table tools      enable row level security;
-alter table users      enable row level security;
-alter table reviews    enable row level security;
-alter table categories enable row level security;
+alter table servers       enable row level security;
+alter table users         enable row level security;
+alter table reviews       enable row level security;
+alter table categories    enable row level security;
+alter table installs      enable row level security;
+alter table subscriptions enable row level security;
 
--- Tools
-create policy "Public can read published tools" on tools
-  for select using (published = true);
-create policy "Authors can insert their tools" on tools
+-- Servers
+create policy "Public can read active servers" on servers
+  for select using (status = 'active');
+create policy "Authors can insert their servers" on servers
   for insert with check (auth.uid() = author_id);
-create policy "Authors can update their tools" on tools
+create policy "Authors can update their servers" on servers
   for update using (auth.uid() = author_id);
-create policy "Authors can delete their tools" on tools
+create policy "Authors can delete their servers" on servers
   for delete using (auth.uid() = author_id);
 
 -- Categories
@@ -156,13 +180,23 @@ create policy "Users can update own reviews" on reviews
 create policy "Users can delete own reviews" on reviews
   for delete using (auth.uid() = user_id);
 
+-- Installs
+create policy "Users can read own installs" on installs
+  for select using (auth.uid() = user_id);
+create policy "Authenticated users can record installs" on installs
+  for insert with check (auth.uid() = user_id);
+
+-- Subscriptions
+create policy "Users can read own subscriptions" on subscriptions
+  for select using (auth.uid() = user_id);
+
 -- ─── Seed Categories ──────────────────────────────────────────────────────────
-insert into categories (id, label, icon, description) values
-  ('all',      'All Tools',      '◎', 'Browse all MCP tools'),
-  ('dev',      'Developer',      '⌘', 'Code, CI/CD, and developer tools'),
-  ('data',     'Data & APIs',    '⬡', 'Databases, APIs, and data pipelines'),
-  ('ai',       'AI & ML',        '◈', 'Machine learning and AI integrations'),
-  ('business', 'Business',       '▣', 'Payments, CRM, and productivity'),
-  ('creative', 'Creative',       '✦', 'Design, media, and content tools'),
-  ('infra',    'Infrastructure', '⌤', 'Cloud, DevOps, and infrastructure')
+insert into categories (id, label, icon, sort_order) values
+  ('all',      'All Tools',      '◎', 0),
+  ('dev',      'Developer',      '⌘', 1),
+  ('data',     'Data & APIs',    '⬡', 2),
+  ('ai',       'AI & ML',        '◈', 3),
+  ('business', 'Business',       '▣', 4),
+  ('creative', 'Creative',       '✦', 5),
+  ('infra',    'Infrastructure', '⌤', 6)
 on conflict (id) do nothing;

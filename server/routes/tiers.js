@@ -93,11 +93,21 @@ router.post("/subscribe", requireAuth, (req, res) => {
     return res.status(400).json({ error: "Invalid tier" });
   }
 
+  // Paid tiers must go through Stripe Checkout — redirect the client.
+  if (valid.price_amount > 0) {
+    return res.status(200).json({
+      requires_payment: true,
+      checkout_endpoint: "/api/payments/stripe/checkout",
+      tier,
+    });
+  }
+
   // Cancel any existing active subscription
   db.prepare("UPDATE subscriptions SET status = 'cancelled' WHERE user_id = ? AND status = 'active'").run(req.user.id);
 
   const id = uuid();
-  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+  // Free tier never expires — expires_at stays NULL
+  const expiresAt = null;
 
   db.prepare(
     "INSERT INTO subscriptions (id, user_id, tier, status, expires_at) VALUES (?, ?, ?, 'active', ?)"

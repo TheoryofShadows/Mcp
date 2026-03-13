@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Github, Loader, AlertCircle, CheckCircle, CreditCard, ArrowRight, Info } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
@@ -35,8 +35,12 @@ async function fetchGitHubMeta(url) {
 }
 
 export default function Submit() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && !user) navigate("/login");
+  }, [user, loading, navigate]);
 
   const [githubUrl, setGithubUrl] = useState("");
   const [fetching, setFetching] = useState(false);

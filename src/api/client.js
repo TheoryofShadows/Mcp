@@ -11,12 +11,27 @@ function getToken() {
 async function request(path, options = {}) {
   const token = getToken();
   const headers = { "Content-Type": "application/json", ...options.headers };
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
+  if (token) headers.Authorization = `Bearer ${token}`;
 
-  const res = await fetch(`${BASE}${path}`, { ...options, headers });
-  const data = await res.json();
+  // 30-second timeout — prevents silent hangs on slow/dead server
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 30_000);
+
+  let res;
+  try {
+    res = await fetch(`${BASE}${path}`, { ...options, headers, signal: controller.signal });
+  } catch (err) {
+    clearTimeout(timer);
+    if (err.name === "AbortError") throw new Error("Request timed out");
+    throw err;
+  }
+  clearTimeout(timer);
+
+  // Guard: server may return HTML (nginx 502, Express unhandled error) instead of JSON
+  const ct = res.headers.get("content-type") || "";
+  const data = ct.includes("application/json")
+    ? await res.json()
+    : { error: `Server error (${res.status})` };
 
   if (!res.ok) {
     const error = new Error(data.error || `Request failed (${res.status})`);
@@ -52,9 +67,7 @@ export async function getMe() {
 export async function fetchServers(params = {}) {
   const qs = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) {
-    if (v !== undefined && v !== null && v !== "") {
-      qs.set(k, v);
-    }
+    if (v !== undefined && v !== null && v !== "") qs.set(k, v);
   }
   return request(`/servers?${qs.toString()}`);
 }
@@ -102,8 +115,68 @@ export async function fetchTiers() {
 }
 
 export async function subscribeTier(tier) {
-  return request("/tiers/subscribe", {
+  const data = await request("/tiers/subscribe", {
     method: "POST",
     body: JSON.stringify({ tier }),
   });
+
+  // Paid tiers: server returns { requires_payment: true, checkout_endpoint, tier }
+  if (data?.requires_payment) {
+    const checkout = await request("/payments/stripe/checkout", {
+      method: "POST",
+      body: JSON.stringify({ tier: data.tier }),
+    });
+    if (checkout?.checkout_url) {
+      window.location.href = checkout.checkout_url;
+      return null; // navigation in progress
+    }
+  }
+
+  return data;
+}
+
+// ─── Stripe Payments ───
+
+/** Redirect user to Stripe Checkout for a paid tool (destination charge). */
+export async function toolCheckout(serverSlug) {
+  const data = await request("/payments/stripe/tool-checkout", {
+    method: "POST",
+    body: JSON.stringify({ server_slug: serverSlug }),
+  });
+  if (data?.checkout_url) {
+    window.location.href = data.checkout_url;
+    return null;
+  }
+  return data;
+}
+
+/**
+ * Start Stripe Connect onboarding (or get dashboard link if already onboarded).
+ * Returns { onboarding_url } or { dashboard_url, onboarding_done: true }.
+ */
+export async function connectStripe() {
+  return request("/payments/stripe/connect");
+}
+
+// ─── Admin ───
+
+export async function adminFetchServers() {
+  return request("/admin/servers");
+}
+
+export async function adminPatchServer(id, updates) {
+  return request(`/admin/servers/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify(updates),
+  });
+}
+
+export async function adminDeleteServer(id) {
+  return request(`/admin/servers/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+}
+
+export async function adminFetchUsers() {
+  return request("/admin/users");
 }

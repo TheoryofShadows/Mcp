@@ -11,6 +11,7 @@ import InstallButtons from "../components/InstallButtons";
 import CapabilitiesWarning from "../components/CapabilitiesWarning";
 import { SEED_TOOLS, SEED_REVIEWS } from "../data/seed";
 import { supabase } from "../lib/supabase";
+import { toolCheckout, recordInstall } from "../api/client";
 
 async function loadTool(slug) {
   if (!supabase) {
@@ -137,6 +138,7 @@ export default function ToolDetail() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("Overview");
   const [installMsg, setInstallMsg] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -477,20 +479,32 @@ export default function ToolDetail() {
                 color: "#fff",
                 fontSize: "14px",
                 fontWeight: 600,
-                cursor: "pointer",
+                cursor: checkoutLoading ? "not-allowed" : "pointer",
+                opacity: checkoutLoading ? 0.7 : 1,
                 marginBottom: "10px",
                 boxShadow: "0 0 20px rgba(99,102,241,0.25)",
                 transition: "all 0.15s",
               }}
-              onClick={() => {
-                // TODO: Stripe checkout for paid tools
-                setInstallMsg(true);
-                setActiveTab("Install");
+              onClick={async () => {
+                if (tool.price_type === "paid") {
+                  setCheckoutLoading(true);
+                  try {
+                    await toolCheckout(tool.slug);
+                  } catch (err) {
+                    alert(`Checkout error: ${err.message}`);
+                  } finally {
+                    setCheckoutLoading(false);
+                  }
+                } else {
+                  recordInstall(tool.slug).catch(() => {});
+                  setInstallMsg(true);
+                  setActiveTab("Install");
+                }
               }}
               onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 0 28px rgba(99,102,241,0.4)")}
               onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "0 0 20px rgba(99,102,241,0.25)")}
             >
-              {tool.price_type === "free" ? "Install Tool" : `Subscribe — ${tool.price_label}`}
+              {checkoutLoading ? "Redirecting…" : tool.price_type === "free" ? "Install Tool" : `Subscribe — ${tool.price_label}`}
             </button>
 
             {installMsg && tool.price_type === "free" && (
@@ -500,7 +514,6 @@ export default function ToolDetail() {
             )}
             {tool.price_type === "paid" && (
               <p style={{ fontSize: "11px", color: "var(--text-muted)", textAlign: "center", fontFamily: "var(--font-mono)" }}>
-                {/* TODO: Stripe billing portal link */}
                 Secure payment via Stripe
               </p>
             )}
