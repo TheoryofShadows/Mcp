@@ -40,11 +40,16 @@ Google didn't win by listing pages; it won the auction at the moment of intent. 
 of intent is the tool *call*, not the tool *listing*.
 
 **Steelman against.** Agents may not want a third party in the hot path (latency, privacy, single
-point of failure), and a model vendor could ship a first-party gateway in its SDK. **Rebuttal:**
-exactly why the wedge is *neutral verification* (a model vendor grading its own ecosystem is
-conflicted) and why you ship an **open-source proxy devs want to self-host**, then monetize the
-managed/enterprise control plane — the Sentry/GitLab pattern. Note the adjacent bet is already
-funded: **Arcade.dev raised $12M (Mar 2025) for authenticated agent tool-calling**.[^arcade]
+point of failure); a model vendor could ship a first-party gateway in its SDK; **and the gateway
+land-grab is already underway** — Docker (MCP Gateway + 300+ verified signed-image catalog),
+Cloudflare (MCP Server Portals), Composio (Tool Router), and Arcade.dev are all building exactly
+this layer.[^infra] **Rebuttal:** the crowd validates the bet but doesn't close it — none of them
+is the *neutral cross-vendor trust authority* (Docker/Cloudflare sell their own platform lock-in; a
+model vendor grading its own ecosystem is conflicted). Ship an **open-source proxy devs want to
+self-host**, win on neutral verification + data, and monetize the managed control plane (the
+Sentry/GitLab pattern). The adjacent auth bet is already funded: **Arcade.dev raised $12M (Mar
+2025)**.[^arcade] *Honest read: this is the most contested of the four positions — move fast or
+don't play.*
 
 ### Position 2 — You cannot tax an open protocol. So don't. Sell trust, hosting, and settlement.
 
@@ -77,10 +82,12 @@ tool-selection — and tool *sprawl* (~10k active servers, ~97M monthly SDK down
 ("which tool, which scopes, what cost, what trust score, for this task now?") with the human UI as
 a thin management layer.
 
-**Why it's right.** Agents degrade when handed hundreds of tools. Whoever solves runtime
-tool-selection (rank, scope, budget-cap) becomes infrastructure the agent can't run without —
-far stickier than a pretty catalog. The funding signal is here: **Composio raised $25M (Jul 2025)**
-to connect agents to 3,000+ apps.[^composio]
+**Why it's right.** Agents measurably degrade when handed too many tools — the "context rot"
+problem is documented (Chroma; Red Hat's Tool-RAG work), and the fix is *retrieving a minimal,
+relevant tool subset per task*, not exposing the whole catalog.[^infra] Whoever solves runtime
+tool-selection (rank, scope, budget-cap) becomes infrastructure the agent can't run without — far
+stickier than a pretty catalog. The funding signal is here: **Composio raised $25M (Jul 2025)** to
+connect agents to 3,000+ apps via a single Tool Router endpoint.[^composio]
 
 **Steelman against.** Frameworks (LangChain — now a **$1.25B unicorn**, Oct 2025 — and the model
 SDKs) will absorb tool-selection natively.[^lc] **Rebuttal:** likely true for the *selection
@@ -91,11 +98,16 @@ Bloomberg-for-tools data moat, not an algorithm.
 ### Position 4 — The endgame is agent-side settlement/identity; the marketplace is the trojan horse.
 
 **Claim.** The biggest prize isn't marketplace revenue — it's being the **settlement and identity
-layer for agent-to-tool commerce**. Agent-payment rails are emerging fast (Stripe's agent toolkit,
-Coinbase x402, Google's Agent Payments Protocol), signaling agents will soon *pay* for tool calls
-autonomously.[^pay] A marketplace that already holds the supplier relationships and the call path
-is the natural **clearinghouse**: identity, metering, billing, payout. The directory gets you the
-two-sided relationship; settlement is the defensible business.
+layer for agent-to-tool commerce**. Agent-payment rails went from zero to a crowded field in ~18
+months: **Stripe Agent Toolkit** (Nov 2024) and **Stripe×OpenAI Agentic Commerce Protocol** (Sept
+29, 2025), **Coinbase x402** (May 2025; x402 Foundation with Cloudflare, Sept 2025), **Google's
+Agent Payments Protocol / AP2** (Sept 16, 2025, 60+ partners incl. Mastercard/PayPal/Amex — and
+**explicitly positioned as an extension to MCP**), **Skyfire** (agent wallets, $8.5M seed Aug
+2024), plus **Mastercard Agent Pay / Visa Intelligent Commerce** and **PayPal×Perplexity Instant
+Buy** (Nov 2025).[^pay] Agents will pay for tool calls autonomously, and soon. A marketplace that
+already holds the supplier relationships and the call path is the natural **clearinghouse**:
+identity, metering, billing, payout. The directory gets you the two-sided relationship; settlement
+is the defensible business.
 
 **Why it's right.** Whoever sits where money settles earns a durable take-rate (Stripe/Plaid
 economics — Plaid raised $575M at $6.1B in Apr 2025 owning bank-connection rails), unlike whoever
@@ -104,9 +116,8 @@ intermediary — a role model vendors are structurally conflicted to play.
 
 **Steelman against.** Payment rails are brutal, regulated, and contested by Stripe, Coinbase, and
 the model vendors. **Rebuttal:** you don't *build the rail* — you're the **distribution + trust
-layer on top of** whichever rail wins, owning the tool-maker relationship and the agent's trust
-graph. Shopify on top of Stripe, not Stripe. *(Detailed agent-payment landscape is in a final
-verification pass; treat protocol specifics as directional until the Appendix is updated.)*
+layer on top of** whichever rail wins (AP2 being MCP-aware is the opening), owning the tool-maker
+relationship and the agent's trust graph. Shopify on top of Stripe, not Stripe.
 
 ---
 
@@ -151,7 +162,8 @@ yours.[^lf2]
 4. **Tool reliability telemetry ("Bloomberg for tools")** — uptime, latency, cost/call,
    breaking-change alerts; collectible only from the call path.
 5. **Private/internal registries** — enterprise "internal app store" for sanctioned servers
-   (Backstage pattern); cleanest enterprise willingness-to-pay.
+   (the Backstage pattern; Spotify already monetizes a managed "Portal" atop the free framework —
+   proof enterprises pay for a curated catalog layer); cleanest enterprise willingness-to-pay.[^idp]
 6. **Agentic settlement** — metered billing + payouts atop whichever agent-payment rail wins.
 
 ## Lens 3 — Business Model / Monetization
@@ -258,6 +270,8 @@ Confidence: **H** primary/official, **M** reputable secondary or estimate, **L**
 [^sec]: MCP attack research/CVEs: tool poisoning (Invariant Labs, 2025-04-01); line-jumping (Trail of Bits, 2025-04-21); CVE-2025-49596 (MCP Inspector RCE, CVSS 9.4); CVE-2025-6514 (mcp-remote RCE, 9.6, JFrog); CVE-2025-54136 "MCPoison" (Cursor, Check Point); Asana cross-tenant exposure (~1,000 orgs, Jun 2025); postmark-mcp backdoor (Sep 2025); OWASP MCP04:2025 supply-chain. Respective vendor blogs + owasp.org/www-project-mcp-top-10 — **H** (most) / **M** (some figures)
 [^tam]: Agentic-AI TAM spread: GVR $24.5B/2030 (46.2%), M&M $52.6B/2030 (46.3%), Precedence $199B/2034 (43.8%), MarkNtel $33.2B/2030 (30.5%). All **M/L** — market-research estimates, definition-dependent. Respective firm report pages.
 [^gartner]: Gartner (2025-06-25): >40% of agentic AI projects canceled by 2027; "agent washing" (~130 real vendors); 15% of work decisions autonomous & 33% of enterprise apps agentic by 2028. (2025-08-05) AI agents at Peak of Inflated Expectations. gartner.com newsroom — **H** (quoted text; direct fetch was 403, corroborated by multiple outlets)
-[^pay]: Agent-payment rails (Stripe agent toolkit, Coinbase x402, Google AP2) — specifics in a final verification pass; **treat as directional (L/M)** until this note is updated.
+[^pay]: Agent-payment rails: Stripe Agent Toolkit (Nov 2024, stripe.com/blog/giving-agents-the-ability-to-pay); Stripe×OpenAI Agentic Commerce Protocol (2025-09-29, stripe.com/newsroom); Coinbase x402 (2025-05-06, github.com/coinbase/x402) + x402 Foundation w/ Cloudflare (2025-09-23); Google AP2 (2025-09-16, 60+ partners, Intent/Cart/Payment mandates, extends A2A + MCP; cloud.google.com/blog AP2); Skyfire ($8.5M seed 2024-08-21, agent wallets, techcrunch.com); Mastercard Agent Pay / Visa Intelligent Commerce (2025, trade press — **M**); PayPal×Perplexity Instant Buy (2025-11-25, paypal newsroom). — **H** (most) / **M** (card-network dates, exact days)
+[^infra]: MCP gateway/routing infra already shipping: Docker MCP Catalog (300+ verified signed images) + open-source MCP Gateway (isolated containers, routing, logging); Cloudflare MCP Server Portals (OAuth 2.1 provider, centralized auth/observability, open beta ~Aug 2025); Composio Tool Router (1,000+ apps via one MCP endpoint); Arcade.dev MCP runtime (per-user OAuth). docker.com/blog/docker-mcp-gateway...; blog.cloudflare.com/zero-trust-mcp-server-portals; composio.dev; arcade.dev — **H**. Tool-sprawl/"context rot" evidence for runtime selection: Chroma context-rot study; Red Hat Tool-RAG (next.redhat.com 2025-11-26). — **H** problem / **M** exact figures
+[^idp]: Internal developer portal analogy: Backstage (Spotify, OSS 2020, CNCF Incubating) — Software Catalog + golden paths; Spotify monetizes via premium plugins (since 2022) and managed "Spotify Portal" (GA ~Oct 2025), i.e. paid curated catalog atop free framework. backstage.spotify.com — **H** model / **M** vendor-reported adoption stats
 
 *Drafted on `claude/market-growth-analysis-RNXNO`. Positions are deliberately falsifiable — argue with them.*
