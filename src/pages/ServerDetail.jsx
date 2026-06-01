@@ -6,6 +6,7 @@ import { Badge } from "../components/ui";
 import InstallButtons from "../components/InstallButtons";
 import CapabilitiesWarning from "../components/CapabilitiesWarning";
 import VerifiedBadge from "../components/VerifiedBadge";
+import TrustScore from "../components/TrustScore";
 
 export default function ServerDetail() {
   const { slug } = useParams();
@@ -179,6 +180,9 @@ export default function ServerDetail() {
       <div style={{ marginBottom: "var(--space-xl)" }}>
         <InstallButtons server={server} />
       </div>
+
+      {/* Trust Score — computed, transparent trust report */}
+      {server.trust && <TrustScore trust={server.trust} />}
 
       {/* Capabilities & risk warnings */}
       {(server.capabilities?.length > 0 || server.risk_level) && (

@@ -102,18 +102,24 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_reviews_server ON reviews(server_id);
   CREATE INDEX IF NOT EXISTS idx_installs_server ON installs(server_id);
   CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-  CREATE INDEX IF NOT EXISTS idx_users_stripe_customer ON users(stripe_customer_id);
   CREATE INDEX IF NOT EXISTS idx_subscriptions_user_status ON subscriptions(user_id, status);
 `);
 
-// ─── Stripe migrations (idempotent) ───────────────────────────────────────────
+// ─── Idempotent column migrations ─────────────────────────────────────────────
 for (const sql of [
   "ALTER TABLE users ADD COLUMN stripe_customer_id TEXT",
   "ALTER TABLE users ADD COLUMN stripe_account_id TEXT",        // Connect: publisher payout account
   "ALTER TABLE users ADD COLUMN stripe_onboarding_done INTEGER DEFAULT 0",
   "ALTER TABLE subscriptions ADD COLUMN stripe_subscription_id TEXT",
+  "ALTER TABLE servers ADD COLUMN license TEXT",                // Trust Score: license-clarity signal
 ]) {
   try { db.prepare(sql).run(); } catch { /* column already exists */ }
 }
+
+// Indexes that depend on migrated columns must run *after* the ALTERs above,
+// otherwise a fresh database fails ("no such column: stripe_customer_id").
+db.exec(`
+  CREATE INDEX IF NOT EXISTS idx_users_stripe_customer ON users(stripe_customer_id);
+`);
 
 export default db;
