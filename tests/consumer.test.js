@@ -455,35 +455,34 @@ describe("Chapter 7 – Subscription Tiers", () => {
     expect(res.body.error).toMatch(/invalid tier/i);
   });
 
-  it("consumer subscribes to the pro tier", async () => {
+  it("consumer subscribing to pro is routed to Stripe Checkout", async () => {
     const res = await request(app)
       .post("/api/tiers/subscribe")
       .set("Authorization", `Bearer ${consumerToken}`)
       .send({ tier: "pro" });
-    expect(res.status).toBe(201);
-    expect(res.body.subscription).toMatchObject({
-      tier: "pro",
-      status: "active",
-    });
+    expect(res.status).toBe(200);
+    expect(res.body.requires_payment).toBe(true);
+    expect(res.body.tier).toBe("pro");
   });
 
-  it("consumer can upgrade to enterprise tier", async () => {
+  it("consumer upgrading to enterprise is routed to Stripe Checkout", async () => {
     const res = await request(app)
       .post("/api/tiers/subscribe")
       .set("Authorization", `Bearer ${consumerToken}`)
       .send({ tier: "enterprise" });
-    expect(res.status).toBe(201);
-    expect(res.body.subscription.tier).toBe("enterprise");
-    expect(res.body.subscription.status).toBe("active");
+    expect(res.status).toBe(200);
+    expect(res.body.requires_payment).toBe(true);
+    expect(res.body.tier).toBe("enterprise");
   });
 
-  it("publisher subscribes to pro tier", async () => {
+  it("publisher subscribing to pro is routed to Stripe Checkout", async () => {
     const res = await request(app)
       .post("/api/tiers/subscribe")
       .set("Authorization", `Bearer ${publisherToken}`)
       .send({ tier: "pro" });
-    expect(res.status).toBe(201);
-    expect(res.body.subscription.tier).toBe("pro");
+    expect(res.status).toBe(200);
+    expect(res.body.requires_payment).toBe(true);
+    expect(res.body.tier).toBe("pro");
   });
 });
 
