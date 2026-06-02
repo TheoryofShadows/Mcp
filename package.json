@@ -21,6 +21,9 @@
   "license": "MIT",
   "author": "TheoryofShadows",
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "concurrently \"vite\" \"node server/index.js\"",
     "dev:client": "vite",
