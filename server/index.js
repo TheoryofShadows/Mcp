@@ -20,8 +20,9 @@ const app = createApp();
 // Serve static files in production
 const distPath = join(__dirname, "..", "dist");
 app.use((await import("express")).default.static(distPath));
-// SPA fallback — must use "*" in Express 5 (not "/{*splat}")
-app.get("*", (_req, res) => {
+// SPA fallback — Express 5 (path-to-regexp v8) rejects a bare "*"; a named
+// wildcard splat is required so deep links resolve to index.html.
+app.get("/{*splat}", (_req, res) => {
   res.sendFile(join(distPath, "index.html"));
 });
 
