@@ -1,11 +1,17 @@
 import Database from "better-sqlite3";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
+import { mkdirSync } from "fs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const DB_PATH = process.env.DB_PATH || join(__dirname, "mcpx.db");
+
+// Ensure the database's parent directory exists. On a fresh Railway volume
+// (e.g. DB_PATH=/data/mcpx.db) the mount exists, but a custom nested path or
+// first local run might not — mkdir -p is idempotent and safe either way.
+mkdirSync(dirname(DB_PATH), { recursive: true });
 
 if (process.env.NODE_ENV === "production" && !process.env.DB_PATH) {
   console.warn(

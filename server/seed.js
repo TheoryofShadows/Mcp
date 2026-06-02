@@ -2,8 +2,18 @@ import db from "./db.js";
 import { v4 as uuid } from "uuid";
 import bcrypt from "bcryptjs";
 
+// Guard against destroying real data. An *empty* database is always safe to
+// seed — the DELETEs below are no-ops — which is how first-boot auto-seeding
+// works in production (see server/index.js). A *populated* production database
+// means someone ran this manually; refuse, because the DELETEs would wipe it.
 if (process.env.NODE_ENV === "production") {
-  throw new Error("[seed] Refusing to seed in production — this would delete all data.");
+  const existing = db.prepare("SELECT COUNT(*) AS c FROM users").get().c;
+  if (existing > 0) {
+    throw new Error(
+      "[seed] Refusing to seed: production database already contains data. " +
+      "Seeding is destructive and only runs automatically on an empty database."
+    );
+  }
 }
 
 console.log("Seeding database...");
