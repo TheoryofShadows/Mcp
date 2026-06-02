@@ -50,10 +50,8 @@ router.post("/register", async (req, res) => {
     return res.status(400).json({ error: "Invalid input types" });
   }
 
-  if (password.length < 10) {
-    return res.status(400).json({ error: "Password must be at least 10 characters" });
-  }
-
+  // Field-format checks first, so a weak password doesn't mask a malformed
+  // email/username — each field reports its own structural problem.
   if (username.length < 2 || username.length > 30) {
     return res.status(400).json({ error: "Username must be between 2 and 30 characters" });
   }
@@ -64,6 +62,10 @@ router.post("/register", async (req, res) => {
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return res.status(400).json({ error: "Invalid email format" });
+  }
+
+  if (password.length < 10) {
+    return res.status(400).json({ error: "Password must be at least 10 characters" });
   }
 
   const existing = db.prepare("SELECT id FROM users WHERE email = ? OR username = ?").get(email, username);

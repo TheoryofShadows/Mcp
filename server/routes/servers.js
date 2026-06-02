@@ -2,6 +2,7 @@ import { Router } from "express";
 import { v4 as uuid } from "uuid";
 import db from "../db.js";
 import { requireAuth } from "../middleware/auth.js";
+import { computeTrust } from "../lib/trustScore.js";
 
 const router = Router();
 
@@ -125,6 +126,30 @@ router.get("/:slug", (req, res) => {
   `).all(row.id);
 
   res.json({ ...formatServer(row), reviews });
+});
+
+// GET /api/servers/:slug/trust — machine-readable trust report.
+// This is the "agent-native" endpoint: an agent can query trust *before* it
+// installs or calls a tool, which is the whole product thesis (see MARKET.md).
+router.get("/:slug/trust", (req, res) => {
+  const row = db.prepare("SELECT * FROM servers WHERE slug = ?").get(req.params.slug);
+  if (!row) {
+    return res.status(404).json({ error: "Server not found" });
+  }
+  res.json({
+    slug: row.slug,
+    name: row.name,
+    ...computeTrust({
+      repo_url: row.repo_url,
+      license: row.license,
+      verified: row.verified,
+      installs: row.installs,
+      rating: row.rating,
+      rating_count: row.rating_count,
+      created_at: row.created_at,
+      tags: row.tags,
+    }),
+  });
 });
 
 // POST /api/servers — create a new server (auth required)
@@ -308,10 +333,22 @@ function formatServer(row) {
     weeklyGrowth: row.weekly_growth,
     revenue: row.monthly_revenue > 0 ? `$${(row.monthly_revenue / 100).toLocaleString()}/mo` : null,
     repo_url: row.repo_url,
+    license: row.license || null,
     tags: JSON.parse(row.tags || "[]"),
     status: row.status,
     created_at: row.created_at,
     updated_at: row.updated_at,
+    // Computed, transparent trust report (see server/lib/trustScore.js)
+    trust: computeTrust({
+      repo_url: row.repo_url,
+      license: row.license,
+      verified: row.verified,
+      installs: row.installs,
+      rating: row.rating,
+      rating_count: row.rating_count,
+      created_at: row.created_at,
+      tags: row.tags,
+    }),
   };
 }
 

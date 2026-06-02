@@ -37,23 +37,35 @@ describe("GET /api/tiers", () => {
 });
 
 describe("POST /api/tiers/subscribe", () => {
-  it("subscribes to pro tier when authenticated", async () => {
+  it("routes pro tier through Stripe Checkout (payment required)", async () => {
     const res = await request(app)
       .post("/api/tiers/subscribe")
       .set("Authorization", `Bearer ${token}`)
       .send({ tier: "pro" });
-    expect(res.status).toBe(201);
-    expect(res.body.subscription.tier).toBe("pro");
-    expect(res.body.subscription.status).toBe("active");
+    expect(res.status).toBe(200);
+    expect(res.body.requires_payment).toBe(true);
+    expect(res.body.checkout_endpoint).toMatch(/stripe/i);
+    expect(res.body.tier).toBe("pro");
   });
 
-  it("can upgrade to enterprise tier", async () => {
+  it("routes enterprise tier through Stripe Checkout (payment required)", async () => {
     const res = await request(app)
       .post("/api/tiers/subscribe")
       .set("Authorization", `Bearer ${token}`)
       .send({ tier: "enterprise" });
+    expect(res.status).toBe(200);
+    expect(res.body.requires_payment).toBe(true);
+    expect(res.body.tier).toBe("enterprise");
+  });
+
+  it("subscribes to the free starter tier immediately", async () => {
+    const res = await request(app)
+      .post("/api/tiers/subscribe")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ tier: "starter" });
     expect(res.status).toBe(201);
-    expect(res.body.subscription.tier).toBe("enterprise");
+    expect(res.body.subscription.tier).toBe("starter");
+    expect(res.body.subscription.status).toBe("active");
   });
 
   it("returns 401 without authentication", async () => {

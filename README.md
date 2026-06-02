@@ -10,6 +10,47 @@
 
 ---
 
+## 🚀 Deploy a live link (Vercel frontend + Railway API)
+
+MCPX is a full-stack app: a **React SPA** + an **Express API** backed by **SQLite**. Vercel hosts the static SPA; the API + database run on Railway. The frontend finds the API through the `VITE_API_BASE_URL` build variable.
+
+> ⚠️ Vercel alone cannot run this app — its serverless platform won't host the persistent Express server or the SQLite file, so every `/api/*` call returns the SPA's HTML instead of data. You need the API on Railway (or any Node host).
+
+### Step 1 — Deploy the API on Railway
+
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/template?code=https://github.com/TheoryofShadows/Mcp)
+
+In the Railway service settings:
+
+1. **Add a volume** (data survives redeploys): *Service → Volumes → Add Volume*, mount path `/data`.
+2. **Set environment variables:**
+   - `DB_PATH=/data/mcpx.db`
+   - `JWT_SECRET=` *(any long random string)*
+   - `NODE_ENV=production`
+   - `CORS_ORIGINS=https://mcp-eaef.vercel.app` *(your Vercel URL — this lets the browser call the API)*
+3. Note the generated API URL, e.g. `https://mcpx-production.up.railway.app`.
+4. *(Optional)* Seed demo data: open the Railway shell and run `npm run seed`.
+
+### Step 2 — Point the Vercel frontend at the API
+
+In your Vercel project → **Settings → Environment Variables**, add:
+
+- `VITE_API_BASE_URL=https://mcpx-production.up.railway.app` *(your Railway URL from step 1 — host only, no `/api`)*
+
+Then **redeploy** the Vercel project (env vars only take effect on a fresh build). Your existing `https://mcp-eaef.vercel.app` will now load real data from the API.
+
+### Verify it's live
+
+```bash
+curl https://YOUR-RAILWAY-URL/api/health      # → {"status":"ok"} (JSON, not HTML)
+```
+
+Open `https://mcp-eaef.vercel.app` — the marketplace should now show server listings, Trust Scores, and working login. See [`.env.example`](.env.example) for all optional keys (Stripe, OAuth, etc.).
+
+> **Single-service alternative:** the Express server can also serve the built SPA itself (`npm run build && npm start`), so you can run the whole thing on Railway alone and skip Vercel — just don't set `VITE_API_BASE_URL`.
+
+---
+
 ## What is MCPX?
 
 [Model Context Protocol (MCP)](https://modelcontextprotocol.io) is the open standard that lets AI agents like Claude connect to real tools — databases, APIs, file systems, cloud services, and more. **MCPX is the central registry** where developers publish MCP servers and AI power-users find the best ones.
