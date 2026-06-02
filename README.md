@@ -10,6 +10,26 @@
 
 ---
 
+## 🚀 Deploy your own (one click)
+
+MCPX is a single full-stack service (React SPA + Express API + SQLite), so it runs anywhere Node runs. The fastest path to a live URL is Railway:
+
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/template?code=https://github.com/TheoryofShadows/Mcp)
+
+**After it deploys, set two things in the Railway dashboard:**
+
+1. **Add a volume** so your data survives redeploys: *Service → Volumes → Add Volume*, mount path `/data`.
+2. **Set environment variables** (see [`.env.example`](.env.example) for the full list):
+   - `DB_PATH=/data/mcpx.db`
+   - `JWT_SECRET=` *(any long random string)*
+   - `NODE_ENV=production`
+
+Then open the generated `*.up.railway.app` URL — that's your live marketplace. Seed demo data once with `npm run seed` (Railway shell) if you want the catalog pre-filled.
+
+> Prefer split hosting (Vercel frontend + separate API)? The repo also ships `vercel.json`; point `VITE_API_URL` at your API host. Railway is recommended because the Express server already serves the built frontend on one port.
+
+---
+
 ## What is MCPX?
 
 [Model Context Protocol (MCP)](https://modelcontextprotocol.io) is the open standard that lets AI agents like Claude connect to real tools — databases, APIs, file systems, cloud services, and more. **MCPX is the central registry** where developers publish MCP servers and AI power-users find the best ones.
