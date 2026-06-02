@@ -311,21 +311,36 @@ const insertServer = db.prepare(`
     id, name, slug, author_id, category_id, description, long_description,
     installs, rating, rating_count, price_type, price_amount, price_label,
     verified, trending, gradient, weekly_growth, monthly_revenue,
-    repo_url, tags
+    repo_url, tags, license, created_at
   ) VALUES (
     ?, ?, ?, ?, ?, ?, ?,
     ?, ?, ?, ?, ?, ?,
     ?, ?, ?, ?, ?,
-    ?, ?
+    ?, ?, ?, ?
   )
 `);
 
-for (const s of servers) {
+// Common OSI licenses to assign realistically. Verified/established servers get
+// a clear license; newer community ones may be unlicensed (lower trust on purpose).
+const LICENSES = ["MIT", "Apache-2.0", "BSD-3-Clause", "MPL-2.0"];
+
+for (const [i, s] of servers.entries()) {
+  // Derive a believable age from adoption: more-installed servers are older.
+  // This gives the Trust Score's maturity + license factors real signal instead
+  // of every seed row scoring 0 on both.
+  const ageDays = Math.min(900, Math.round((s.installs || 0) / 60) + 20);
+  const createdAt = new Date(Date.now() - ageDays * 86400_000)
+    .toISOString().replace("T", " ").slice(0, 19);
+  // Verified servers always carry a license; unverified get one ~half the time.
+  const license = s.license
+    ?? (s.verified ? LICENSES[i % LICENSES.length]
+                   : (i % 2 === 0 ? LICENSES[i % LICENSES.length] : null));
+
   insertServer.run(
     s.id, s.name, s.slug, s.author_id, s.category_id, s.description, s.long_description,
     s.installs, s.rating, s.rating_count, s.price_type, s.price_amount, s.price_label,
     s.verified, s.trending, s.gradient, s.weekly_growth, s.monthly_revenue,
-    s.repo_url, s.tags
+    s.repo_url, s.tags, license, createdAt
   );
 }
 
