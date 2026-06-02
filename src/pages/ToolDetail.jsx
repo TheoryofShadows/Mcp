@@ -5,31 +5,31 @@ import {
   Copy, Check, TrendingUp, AlertCircle
 } from "lucide-react";
 import VerifiedBadge from "../components/VerifiedBadge";
+import TrustScore from "../components/TrustScore";
 import PriceTag from "../components/PriceTag";
 import InstallCommand from "../components/InstallCommand";
 import InstallButtons from "../components/InstallButtons";
 import CapabilitiesWarning from "../components/CapabilitiesWarning";
 import { SEED_TOOLS, SEED_REVIEWS } from "../data/seed";
-import { supabase } from "../lib/supabase";
-import { toolCheckout, recordInstall } from "../api/client";
+import { fetchServer, toolCheckout, recordInstall } from "../api/client";
+
+// Normalize the API server shape to the fields this page/seed expect.
+function normalize(s) {
+  if (!s) return s;
+  return {
+    ...s,
+    author_name: s.author_display_name || s.author || s.author_name,
+    weekly_growth: s.weeklyGrowth ?? s.weekly_growth,
+    category_id: s.category ?? s.category_id,
+  };
+}
 
 async function loadTool(slug) {
-  if (!supabase) {
-    const tool = SEED_TOOLS.find((t) => t.slug === slug) || null;
-    const reviews = tool ? SEED_REVIEWS.filter((r) => r.tool_id === tool.id) : [];
-    return { tool, reviews };
-  }
   try {
-    const [{ data: tool }, { data: reviews }] = await Promise.all([
-      supabase.from("tools").select("*").eq("slug", slug).single(),
-      supabase.from("reviews").select("*, user:users(username, avatar_url)").eq("tool_id", slug).order("created_at", { ascending: false }),
-    ]);
-    if (!tool) {
-      const fallback = SEED_TOOLS.find((t) => t.slug === slug) || null;
-      return { tool: fallback, reviews: SEED_REVIEWS.filter((r) => r.tool_id === fallback?.id) };
-    }
-    return { tool, reviews: reviews || [] };
+    const data = await fetchServer(slug);
+    return { tool: normalize(data), reviews: data.reviews || [] };
   } catch {
+    // API unreachable or 404 — fall back to static seed so the page still renders.
     const tool = SEED_TOOLS.find((t) => t.slug === slug) || null;
     return { tool, reviews: SEED_REVIEWS.filter((r) => r.tool_id === tool?.id) };
   }
@@ -236,7 +236,9 @@ export default function ToolDetail() {
                   <h1 style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "22px", letterSpacing: "-0.5px" }}>
                     {tool.name}
                   </h1>
-                  {tool.verified && <VerifiedBadge verified={tool.verified} size="md" />}
+                  {tool.trust
+                    ? <VerifiedBadge level={tool.trust.tier} size="md" />
+                    : tool.verified && <VerifiedBadge verified={tool.verified} size="md" />}
                   <PriceTag tool={tool} size="md" />
                   {tool.trending && (
                     <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "11px", fontFamily: "var(--font-mono)", color: "#f59e0b", background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: "5px", padding: "2px 8px" }}>
@@ -359,7 +361,8 @@ export default function ToolDetail() {
                 padding: "28px",
               }}
             >
-              {renderMarkdown(tool.readme)}
+              {tool.trust && <TrustScore trust={tool.trust} />}
+              {renderMarkdown(tool.readme || tool.long_description)}
             </div>
           )}
 

@@ -100,7 +100,11 @@ const ToolCard = memo(function ToolCard({ tool, index = 0 }) {
                 >
                   {tool.name}
                 </span>
-                {tool.verified && <VerifiedBadge verified={tool.verified} showLabel={false} />}
+                {/* Prefer the computed Trust Score tier when available; fall back
+                    to the legacy verified flag for static/seed data. */}
+                {tool.trust
+                  ? <VerifiedBadge level={tool.trust.tier} showLabel={false} />
+                  : tool.verified && <VerifiedBadge verified={tool.verified} showLabel={false} />}
               </div>
               <span
                 style={{

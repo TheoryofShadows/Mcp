@@ -2,9 +2,22 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Search, X } from "lucide-react";
 import ToolCard from "../components/ToolCard";
-import CategoryCard from "../components/CategoryCard";
 import { SEED_TOOLS, SEED_CATEGORIES } from "../data/seed";
-import { supabase } from "../lib/supabase";
+import { fetchServers } from "../api/client";
+
+// Map the API's server shape onto the fields ToolCard expects (which originate
+// from the legacy seed shape). Keeps the card component untouched.
+function normalize(s) {
+  return {
+    ...s,
+    author_name: s.author_display_name || s.author || s.author_name,
+    weekly_growth: s.weeklyGrowth ?? s.weekly_growth,
+    category_id: s.category ?? s.category_id,
+  };
+}
+
+// API sort keys differ from the UI's labels.
+const SORT_TO_API = { popular: "installs", newest: "newest", rating: "rating", trending: "trending" };
 
 const SORT_OPTIONS = [
   { value: "popular",  label: "Most Popular" },
@@ -41,21 +54,17 @@ function filterSeedTools({ search, category, priceFilter, sort }) {
 }
 
 async function loadTools({ search, category, priceFilter, sort }) {
-  if (!supabase) return filterSeedTools({ search, category, priceFilter, sort });
   try {
-    let q = supabase.from("tools").select("*").eq("published", true);
-    if (search) q = q.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
-    if (category && category !== "all") q = q.eq("category_id", category);
-    if (priceFilter === "free") q = q.eq("price_type", "free");
-    if (priceFilter === "paid") q = q.eq("price_type", "paid");
-    if (sort === "popular")  q = q.order("installs", { ascending: false });
-    else if (sort === "rating") q = q.order("rating", { ascending: false });
-    else if (sort === "newest") q = q.order("created_at", { ascending: false });
-    else q = q.order("installs", { ascending: false });
-    const { data, error } = await q;
-    if (error || !data?.length) return filterSeedTools({ search, category, priceFilter, sort });
-    return data;
+    const params = { sort: SORT_TO_API[sort] || "installs", limit: 100 };
+    if (search) params.search = search;
+    if (category && category !== "all") params.category = category;
+    if (priceFilter !== "all") params.price_type = priceFilter;
+    const res = await fetchServers(params);
+    const servers = (res.servers || []).map(normalize);
+    // If the API is reachable but empty, fall back to seed so the page is never blank.
+    return servers.length ? servers : filterSeedTools({ search, category, priceFilter, sort });
   } catch {
+    // API unreachable (e.g. static-only deploy) — degrade gracefully to seed data.
     return filterSeedTools({ search, category, priceFilter, sort });
   }
 }

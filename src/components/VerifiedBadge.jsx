@@ -1,4 +1,4 @@
-import { ShieldCheck, BadgeCheck, Users } from "lucide-react";
+import { ShieldCheck, BadgeCheck, Users, ShieldAlert } from "lucide-react";
 
 const TRUST_LEVELS = {
   official: {
@@ -24,6 +24,14 @@ const TRUST_LEVELS = {
     border: "rgba(245,158,11,0.25)",
     icon: Users,
     title: "Community server — not officially verified, use with caution",
+  },
+  caution: {
+    label: "Caution",
+    color: "#ef4444",
+    bg: "rgba(239,68,68,0.10)",
+    border: "rgba(239,68,68,0.25)",
+    icon: ShieldAlert,
+    title: "Low trust score — unverified, limited signals. Review before installing.",
   },
 };
 
