@@ -1,5 +1,5 @@
 import { fileURLToPath } from "url";
-import { dirname, join } from "path";
+import { dirname, join, extname } from "path";
 import { createApp } from "./app.js";
 import db from "./db.js";
 
@@ -22,7 +22,21 @@ const distPath = join(__dirname, "..", "dist");
 app.use((await import("express")).default.static(distPath));
 // SPA fallback — Express 5 (path-to-regexp v8) rejects a bare "*"; a named
 // wildcard splat is required so deep links resolve to index.html.
-app.get("/{*splat}", (_req, res) => {
+app.get("/{*splat}", (req, res) => {
+  // Any path with a file extension is a static-asset request. If express.static
+  // didn't serve it above, the file genuinely doesn't exist — return a real 404
+  // instead of the SPA shell. Serving index.html (HTML) for a missing .js/.css
+  // request makes a stale client try to execute HTML as a module and
+  // white-screens the page — e.g. after a redeploy changes the hashed asset
+  // filenames, or if a cached index.html points at a different base path
+  // (like the /Mcp/ GitHub Pages build). A clean 404 lets a reload recover.
+  // SPA routes never contain a "." (slugs are [a-z0-9-]), so this is safe.
+  if (extname(req.path)) {
+    return res.status(404).type("text/plain").send("Not found");
+  }
+  // Always revalidate the SPA shell so a new deploy's asset hashes are picked up
+  // instead of a stale cached document referencing files that no longer exist.
+  res.set("Cache-Control", "no-cache");
   res.sendFile(join(distPath, "index.html"));
 });
 
