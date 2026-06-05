@@ -10,8 +10,10 @@ import App from "./App.jsx";
 const descopeProjectId = import.meta.env.VITE_DESCOPE_PROJECT_ID;
 
 // The router + app tree. Wrapped below.
+// basename follows Vite's configured base (import.meta.env.BASE_URL): "/" for
+// the Railway/single-origin build, "/Mcp/" for the GitHub Pages project page.
 const appTree = (
-  <BrowserRouter>
+  <BrowserRouter basename={import.meta.env.BASE_URL}>
     <AuthProvider>
       <App />
     </AuthProvider>

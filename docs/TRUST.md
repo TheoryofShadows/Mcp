@@ -1,0 +1,119 @@
+# Trust & Security Model
+
+A marketplace's only durable moat is **trust** — and on MCPX trust is
+**computed and transparent**, not a manually-toggled badge. This document
+explains exactly how the Trust Score works, so a human (or an agent) can see
+*why* a server is trusted, not just that someone said so.
+
+The engine lives in [`server/lib/trustScore.js`](../server/lib/trustScore.js)
+and is pure and deterministic: the same inputs always produce the same score.
+
+---
+
+## Where to see it
+
+- On every **server card** and **detail page** as a badge + expandable breakdown.
+- As structured JSON at **`GET /api/servers/:slug/trust`** — the *agent-native*
+  endpoint, so an agent can check trust **before** it installs or calls a tool.
+
+---
+
+## The score (0–100)
+
+The score is the sum of six weighted factors, then risk penalties are applied,
+clamped to `[0, 100]`.
+
+| Factor | Max | What earns the points |
+|--------|-----|-----------------------|
+| **Source provenance** | 25 | Public repo on a known host (GitHub/GitLab/Bitbucket) = full; other URL = partial; none = 0 |
+| **License clarity** | 15 | Recognized OSI license (MIT, Apache-2.0, BSD, ISC, MPL, GPL/LGPL/AGPL) = full; other declared = partial; none = 0 |
+| **Publisher identity** | 20 | MCPX-verified publisher = full; community (unreviewed) = small base |
+| **Adoption** | 15 | Logarithmic in install count — rewards real traction without letting whales max it out |
+| **User satisfaction** | 15 | Average rating scaled by review volume; needs ~25+ reviews for full credit; <3 reviews barely counts |
+| **Maturity** | 10 | Logarithmic in days listed — ~1 year reaches full |
+
+### Risk penalties
+
+Servers tagged with **sensitive capabilities** —
+`filesystem`, `exec`, `shell`, `payments`, `credentials`, `email`, `database`,
+`admin` — lose up to **15 points** *while unverified*. Verification (which
+implies a review) **removes** the penalty. This mirrors real MCP attack classes
+(tool poisoning, over-broad permissions): powerful tools must earn trust through
+review, not just exist.
+
+### Confidence
+
+Alongside the score, the report includes a `confidence` of `high` / `medium` /
+`low`, based on how many real signals were available (repo, license, reviews,
+age). **Missing signals lower confidence rather than silently inflating the
+score** — honesty over optimism.
+
+---
+
+## Tiers (the badge)
+
+The numeric score plus the `verified` flag map to a tier:
+
+| Tier | Condition | Reading |
+|------|-----------|---------|
+| **Official** | `verified` **and** score ≥ 80 | First-party / audited |
+| **Verified** | score ≥ 70 | Well-established, strong provenance |
+| **Community** | score ≥ 40 | Community-published, fewer signals |
+| **Caution** | score < 40 | New, unsourced, or unreviewed sensitive access |
+
+---
+
+## Worked example
+
+A new, MIT-licensed tool with a public GitHub repo, no reviews yet, and no
+sensitive tags:
+
+```
+provenance    25  (public repo on known host)
+license       15  (MIT)
+publisher      6  (community — not yet reviewed)
+adoption       0  (no installs yet)
+satisfaction   0  (no reviews yet)
+maturity       0  (just listed)
+penalties      0
+────────────────
+score         46  → "Community", confidence "medium"
+```
+
+As it gains installs, earns reviews, ages, and (optionally) gets verified, the
+same tool climbs toward **Verified** and **Official** — automatically, from real
+signals.
+
+---
+
+## What this means for each audience
+
+- **Users:** prefer higher tiers for anything that touches your files,
+  credentials, or money. Expand the breakdown — the *reasons* tell you what's
+  missing.
+- **Publishers:** you raise your score by linking a real repo, declaring an OSI
+  license, being honest about capabilities, and getting verified. See
+  [PUBLISHING](PUBLISHING.md#3-earn-a-higher-trust-score).
+- **Agents:** call `/api/servers/:slug/trust` and gate behavior on `tier`,
+  `score`, and the `penalties` array before invoking a tool.
+
+---
+
+## Application security notes
+
+Defensive measures already in the codebase:
+
+- **Passwords** hashed with `bcrypt` (cost 10); credentials never logged.
+- **JWT** bearer auth for user actions; **Descope** permission-gating for admin.
+- **Input validation** on every write (lengths, formats, types, enums).
+- **Rate limiting** on auth (20 / 15 min / IP) and installs (1 / min / IP /
+  server).
+- **CORS allow-list** via `CORS_ORIGINS` (tolerant of pasted whitespace/brackets).
+- **Stripe webhooks** verified against `STRIPE_WEBHOOK_SECRET` using the raw
+  request body.
+- **Non-JSON response guard** in the API client so an upstream HTML error page
+  never gets parsed as data.
+
+To report a vulnerability, see [SECURITY.md](../SECURITY.md). **Please don't file
+security issues as public GitHub issues.**
+</content>
