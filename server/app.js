@@ -15,6 +15,10 @@ export function createApp() {
 
   const allowedOrigins = process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(",")
+        // Tolerate stray whitespace and angle brackets that sneak in when
+        // pasting env values (e.g. "<https://mcpx.digital>, https://www...").
+        .map((o) => o.trim().replace(/^<|>$/g, ""))
+        .filter(Boolean)
     : ["http://localhost:5173", "http://localhost:4173", "http://localhost:3001"];
 
   app.use(cors({

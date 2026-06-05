@@ -139,7 +139,7 @@ export default function MarketplacePage() {
         >
           MCP Marketplace
         </h1>
-        <p style={{ fontSize: "14px", color: "var(--text-muted)" }}>
+        <p role="status" aria-live="polite" style={{ fontSize: "14px", color: "var(--text-muted)" }}>
           {loading ? "Loading…" : `${tools.length} tool${tools.length !== 1 ? "s" : ""} available`}
         </p>
       </div>
@@ -305,6 +305,7 @@ export default function MarketplacePage() {
       {/* Grid */}
       {loading ? (
         <div
+          aria-hidden="true"
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",

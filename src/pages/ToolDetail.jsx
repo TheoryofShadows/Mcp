@@ -151,7 +151,7 @@ export default function ToolDetail() {
 
   if (loading) {
     return (
-      <div style={{ maxWidth: "900px", margin: "60px auto", padding: "0 24px", textAlign: "center", color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: "13px" }}>
+      <div role="status" aria-live="polite" style={{ maxWidth: "900px", margin: "60px auto", padding: "0 24px", textAlign: "center", color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: "13px" }}>
         Loading…
       </div>
     );
@@ -159,7 +159,7 @@ export default function ToolDetail() {
 
   if (!tool) {
     return (
-      <div style={{ maxWidth: "900px", margin: "80px auto", padding: "0 24px", textAlign: "center" }}>
+      <div role="alert" style={{ maxWidth: "900px", margin: "80px auto", padding: "0 24px", textAlign: "center" }}>
         <h1 style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "24px", marginBottom: "12px" }}>Tool not found</h1>
         <Link to="/marketplace" style={{ color: "#818cf8", fontSize: "14px" }}>← Back to Marketplace</Link>
       </div>
@@ -214,6 +214,7 @@ export default function ToolDetail() {
             />
             <div style={{ display: "flex", alignItems: "flex-start", gap: "16px", marginBottom: "20px" }}>
               <div
+                aria-hidden="true"
                 style={{
                   width: 64,
                   height: 64,
@@ -322,10 +323,14 @@ export default function ToolDetail() {
           </div>
 
           {/* Tabs */}
-          <div style={{ display: "flex", gap: "2px", marginBottom: "20px", background: "#0d0d0d", borderRadius: "10px", padding: "4px", border: "1px solid #1a1a1a" }}>
+          <div role="tablist" aria-label="Tool details" style={{ display: "flex", gap: "2px", marginBottom: "20px", background: "#0d0d0d", borderRadius: "10px", padding: "4px", border: "1px solid #1a1a1a" }}>
             {TABS.map((tab) => (
               <button
                 key={tab}
+                role="tab"
+                id={`tab-${tab}`}
+                aria-selected={activeTab === tab}
+                aria-controls={`panel-${tab}`}
                 onClick={() => setActiveTab(tab)}
                 style={{
                   flex: 1,
@@ -354,6 +359,9 @@ export default function ToolDetail() {
           {/* Tab content */}
           {activeTab === "Overview" && (
             <div
+              role="tabpanel"
+              id="panel-Overview"
+              aria-labelledby="tab-Overview"
               style={{
                 background: "#111",
                 border: "1px solid #1e1e1e",
@@ -367,7 +375,7 @@ export default function ToolDetail() {
           )}
 
           {activeTab === "Install" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <div role="tabpanel" id="panel-Install" aria-labelledby="tab-Install" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
               <InstallButtons server={tool} />
               {(tool.capabilities?.length > 0 || tool.risk_level) && (
                 <CapabilitiesWarning capabilities={tool.capabilities} riskLevel={tool.risk_level} />
@@ -389,7 +397,7 @@ export default function ToolDetail() {
           )}
 
           {activeTab === "Reviews" && (
-            <div style={{ background: "#111", border: "1px solid #1e1e1e", borderRadius: "14px", padding: "28px" }}>
+            <div role="tabpanel" id="panel-Reviews" aria-labelledby="tab-Reviews" style={{ background: "#111", border: "1px solid #1e1e1e", borderRadius: "14px", padding: "28px" }}>
               <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "18px", marginBottom: "20px" }}>
                 Reviews
               </h2>

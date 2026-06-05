@@ -16,9 +16,14 @@ export default class ErrorBoundary extends Component {
         <div
           role="alert"
           style={{
-            padding: "var(--space-2xl, 48px) var(--space-lg, 24px)",
+            // Self-contained dark styling with hard-coded fallbacks: this can be
+            // the outermost boundary, rendering before the app's theme mounts
+            // (or if globals.css fails), so it must stay legible on a bare page.
+            padding: "48px 24px",
+            minHeight: "100vh",
+            boxSizing: "border-box",
+            background: "#0a0a0a",
             textAlign: "center",
-            minHeight: "200px",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
@@ -32,7 +37,7 @@ export default class ErrorBoundary extends Component {
               fontFamily: "var(--font-heading, 'Syne', sans-serif)",
               fontSize: "18px",
               fontWeight: 700,
-              color: "var(--text-primary, #F0F0F5)",
+              color: "#F0F0F5",
             }}
           >
             Something went wrong
@@ -41,17 +46,27 @@ export default class ErrorBoundary extends Component {
             style={{
               fontFamily: "var(--font-mono, 'Space Mono', monospace)",
               fontSize: "12px",
-              color: "var(--text-muted, #707088)",
+              color: "#A0A0B8",
+              maxWidth: "32rem",
+              wordBreak: "break-word",
             }}
           >
             {this.state.error?.message || "An unexpected error occurred."}
           </p>
-          <button
-            className="btn btn-outline-green"
-            onClick={() => this.setState({ hasError: false, error: null })}
-          >
-            Try Again
-          </button>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", justifyContent: "center" }}>
+            <button
+              className="btn btn-outline-green"
+              onClick={() => this.setState({ hasError: false, error: null })}
+            >
+              Try Again
+            </button>
+            <button
+              className="btn btn-outline-green"
+              onClick={() => window.location.reload()}
+            >
+              Reload Page
+            </button>
+          </div>
         </div>
       );
     }
