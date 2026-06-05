@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { AuthContext } from "./authContextValue";
 import { supabase, isSupabaseEnabled } from "../lib/supabase";
 import { login as apiLogin, register as apiRegister, getMe } from "../api/client";
+import { getItem, setItem, removeItem } from "../lib/safeStorage";
 
 export { AuthContext };
 
@@ -26,12 +27,12 @@ export default function AuthProvider({ children }) {
       return () => subscription.unsubscribe();
     } else {
       // ── Fallback: custom JWT auth via Express API ───────────────────────────
-      const token = localStorage.getItem(TOKEN_KEY);
+      const token = getItem(TOKEN_KEY);
       if (!token) { setLoading(false); return; }
       let cancelled = false;
       getMe()
         .then((u) => { if (!cancelled) setUser(u); })
-        .catch(() => { localStorage.removeItem(TOKEN_KEY); })
+        .catch(() => { removeItem(TOKEN_KEY); })
         .finally(() => { if (!cancelled) setLoading(false); });
       return () => { cancelled = true; };
     }
@@ -46,7 +47,7 @@ export default function AuthProvider({ children }) {
       return data.user;
     }
     const { token, user: u } = await apiLogin(email, password);
-    localStorage.setItem(TOKEN_KEY, token);
+    setItem(TOKEN_KEY, token);
     setUser(u);
     return u;
   }, []);
@@ -60,7 +61,7 @@ export default function AuthProvider({ children }) {
       return data.user;
     }
     const { token, user: u } = await apiRegister(email, username, password);
-    localStorage.setItem(TOKEN_KEY, token);
+    setItem(TOKEN_KEY, token);
     setUser(u);
     return u;
   }, []);
@@ -70,7 +71,7 @@ export default function AuthProvider({ children }) {
     if (isSupabaseEnabled) {
       await supabase.auth.signOut();
     } else {
-      localStorage.removeItem(TOKEN_KEY);
+      removeItem(TOKEN_KEY);
     }
     setUser(null);
   }, []);

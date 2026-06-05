@@ -10,44 +10,48 @@
 
 ---
 
-## 🚀 Deploy a live link (Vercel frontend + Railway API)
+## 🌐 Live site
 
-MCPX is a full-stack app: a **React SPA** + an **Express API** backed by **SQLite**. Vercel hosts the static SPA; the API + database run on Railway. The frontend finds the API through the `VITE_API_BASE_URL` build variable.
+**[www.mcpx.digital](https://www.mcpx.digital)** — the marketplace, running on a single Railway service.
 
-> ⚠️ Vercel alone cannot run this app — its serverless platform won't host the persistent Express server or the SQLite file, so every `/api/*` call returns the SPA's HTML instead of data. You need the API on Railway (or any Node host).
+---
 
-### Step 1 — Deploy the API on Railway
+## 🚀 Deploy your own
+
+MCPX is a full-stack app: a **React SPA** + an **Express API** backed by **SQLite**. The Express server can serve the built SPA itself, so the simplest — and **recommended** — deployment is **one Railway service** that hosts the frontend, API, and database together. No second platform, no split origins, no CORS to configure.
+
+### Recommended: single Railway service
 
 [![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/template?code=https://github.com/TheoryofShadows/Mcp)
 
-In the Railway service settings:
-
-1. **Add a volume** (data survives redeploys): *Service → Volumes → Add Volume*, mount path `/data`.
+1. **Add a volume** so data survives redeploys: *Service → Volumes → Add Volume*, mount path `/data`.
 2. **Set environment variables:**
-   - `DB_PATH=/data/mcpx.db`
-   - `JWT_SECRET=` *(any long random string)*
    - `NODE_ENV=production`
-   - `CORS_ORIGINS=https://mcp-eaef.vercel.app` *(your Vercel URL — this lets the browser call the API)*
-3. Note the generated API URL, e.g. `https://mcpx-production.up.railway.app`.
-4. *(Optional)* Seed demo data: open the Railway shell and run `npm run seed`.
+   - `DB_PATH=/data/mcpx.db`
+   - `JWT_SECRET=` *(any long random string — generate with `openssl rand -hex 32`)*
+   - Leave **`VITE_API_BASE_URL` unset** — the SPA calls the same origin via a relative `/api`.
+   - Leave **`CORS_ORIGINS` unset** — not needed when the site and API share one origin.
+3. Railway builds with `npm run build` and starts with `npm start`; Express serves `dist/` **and** the API on one port.
+4. *(Optional)* **Custom domain:** *Service → Settings → Networking → Custom Domain*. If you bought the domain through Railway, DNS is created automatically — add the **`www.`** subdomain (the bare apex may sit on a registrar parking page until you point it).
+5. *(Optional)* **Seed demo data:** open the Railway shell and run `npm run seed`.
 
-### Step 2 — Point the Vercel frontend at the API
-
-In your Vercel project → **Settings → Environment Variables**, add:
-
-- `VITE_API_BASE_URL=https://mcpx-production.up.railway.app` *(your Railway URL from step 1 — host only, no `/api`)*
-
-Then **redeploy** the Vercel project (env vars only take effect on a fresh build). Your existing `https://mcp-eaef.vercel.app` will now load real data from the API.
-
-### Verify it's live
+**Verify:**
 
 ```bash
-curl https://YOUR-RAILWAY-URL/api/health      # → {"status":"ok"} (JSON, not HTML)
+curl https://YOUR-APP.up.railway.app/api/health   # → {"status":"ok"} (JSON, not HTML)
 ```
 
-Open `https://mcp-eaef.vercel.app` — the marketplace should now show server listings, Trust Scores, and working login. See [`.env.example`](.env.example) for all optional keys (Stripe, OAuth, etc.).
+### Alternative: split frontend (Vercel) + API (Railway)
 
-> **Single-service alternative:** the Express server can also serve the built SPA itself (`npm run build && npm start`), so you can run the whole thing on Railway alone and skip Vercel — just don't set `VITE_API_BASE_URL`.
+Only worth it if you specifically want the SPA served from a CDN separate from the API.
+
+1. Deploy the API on Railway (steps above); note its URL, e.g. `https://your-api.up.railway.app`.
+2. On **Railway**, set `CORS_ORIGINS` to your **exact** frontend origin, no trailing slash, e.g. `https://your-frontend.vercel.app`.
+3. On **Vercel**, set `VITE_API_BASE_URL=https://your-api.up.railway.app` *(host only, no `/api`)* and **redeploy** (env vars only apply to a fresh build).
+
+> ⚠️ Vercel alone cannot run this app — its serverless platform won't host the persistent Express server or the SQLite file, so every `/api/*` call would return the SPA's HTML instead of data. You always need the API on a Node host (Railway, Render, or a VPS).
+
+See [`.env.example`](.env.example) for all optional keys (Stripe, OAuth, etc.).
 
 ---
 
@@ -185,26 +189,16 @@ Open **http://localhost:5173** — the app is live.
 
 ---
 
-## Deploy to Vercel
+## Production build (any Node host)
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/TheoryofShadows/Mcp)
+For a single-server deployment (Railway, Render, Fly, or your own VPS), build the SPA and start Express — it serves `dist/` and the API together on one port:
 
-> **Note:** Vercel serves the static frontend. For full API functionality (auth, reviews, install tracking) you need a backend deployment.
-
-### Deployment Options
-
-**Option A — Vercel (frontend) + Railway/Render (backend)**
-1. Deploy the Express API to [Railway](https://railway.app) or [Render](https://render.com)
-2. Set `VITE_API_BASE_URL` in Vercel env vars to your Railway URL
-3. Deploy frontend to Vercel — `npm run build` produces `dist/`
-
-**Option B — Single VPS (full stack)**
 ```bash
 npm run build
 NODE_ENV=production npm start
 ```
 
-The Express server serves `dist/` as static files in production.
+See [🚀 Deploy your own](#-deploy-your-own) above for the step-by-step Railway setup (volume, env vars, custom domain) and the Vercel split-deployment alternative.
 
 ---
 
