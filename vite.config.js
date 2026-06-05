@@ -1,8 +1,13 @@
+import process from 'node:process'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
 export default defineConfig({
+  // Base public path. Defaults to "/" (Railway / single-origin production).
+  // The GitHub Pages workflow sets PAGES_BASE=/Mcp/ so assets resolve under
+  // the project-page sub-path without affecting the Railway build.
+  base: process.env.PAGES_BASE || '/',
   plugins: [react()],
   build: {
     // Pin output to syntax older iOS Safari / Android browsers can parse.
