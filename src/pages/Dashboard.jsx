@@ -167,7 +167,7 @@ export default function Dashboard() {
 
   if (loading || authLoading) {
     return (
-      <div style={{ maxWidth: "1100px", margin: "80px auto", padding: "0 24px", textAlign: "center", color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: "13px" }}>
+      <div role="status" aria-live="polite" style={{ maxWidth: "1100px", margin: "80px auto", padding: "0 24px", textAlign: "center", color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: "13px" }}>
         Loading dashboard…
       </div>
     );

@@ -59,7 +59,7 @@ export default function ServerDetail() {
 
   if (loading) {
     return (
-      <div style={{ padding: "80px var(--section-px)", textAlign: "center", color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: "var(--font-sm)" }}>
+      <div role="status" aria-live="polite" style={{ padding: "80px var(--section-px)", textAlign: "center", color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: "var(--font-sm)" }}>
         Loading...
       </div>
     );
@@ -67,7 +67,7 @@ export default function ServerDetail() {
 
   if (error || !server) {
     return (
-      <div style={{ padding: "80px var(--section-px)", textAlign: "center" }}>
+      <div role="alert" style={{ padding: "80px var(--section-px)", textAlign: "center" }}>
         <p style={{ color: "var(--accent-pink)", fontFamily: "var(--font-mono)", fontSize: "var(--font-md)", marginBottom: "var(--space-md)" }}>
           {error || "Server not found"}
         </p>
