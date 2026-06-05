@@ -104,8 +104,8 @@ NODE_ENV=production npm start    # Express serves dist/ AND /api on one port
 ```
 
 Minimum production env: `NODE_ENV=production`, `DB_PATH=/data/mcpx.db` (with a
-mounted volume), `JWT_SECRET`. Step-by-step Railway setup, the Vercel split
-alternative, and the full env-var table are in
+mounted volume), `JWT_SECRET`. Step-by-step Railway setup, the advanced
+split-hosting alternative, and the full env-var table are in
 **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
 
 ```bash
