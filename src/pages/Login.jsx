@@ -63,9 +63,9 @@ export default function Login() {
     setLoading(true);
     setError("");
     try {
-      // Use VITE_APP_URL if set (recommended for Vercel — set it to your main
-      // deployment URL so only one redirect URL needs to be whitelisted in
-      // Supabase, covering both production and all preview deployments for free).
+      // Use VITE_APP_URL if set — point it at your main deployment URL so only
+      // one redirect URL needs to be whitelisted in Supabase. Falls back to the
+      // current origin when unset.
       const appOrigin =
         import.meta.env.VITE_APP_URL?.replace(/\/$/, "") ||
         window.location.origin;

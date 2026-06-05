@@ -8,7 +8,7 @@ origins, no CORS to configure.
 - [Recommended: single Railway service](#recommended-single-railway-service)
 - [Environment variables](#environment-variables)
 - [Database persistence](#database-persistence)
-- [Alternative: split frontend (Vercel) + API (Railway)](#alternative-split-frontend--api)
+- [Advanced: split frontend + API](#advanced-split-frontend--api)
 - [GitHub Pages demo](#github-pages-demo)
 - [Local development](#local-development)
 
@@ -89,20 +89,23 @@ aligned schema with row-level-security policies and triggers.
 
 ---
 
-## Alternative: split frontend + API
+## Advanced: split frontend + API
 
-Only worth it if you specifically want the SPA on a CDN separate from the API.
+Only worth it if you specifically want the SPA on a separate static/CDN host
+from the API. The single-service setup above is simpler and is what production
+uses — reach for this only if you have a concrete reason.
 
-1. Deploy the **API** on Railway (as above); note its URL.
-2. On **Railway**, set `CORS_ORIGINS` to your **exact** frontend origin (no
-   trailing slash), e.g. `https://your-frontend.vercel.app`.
-3. On **Vercel**, set `VITE_API_BASE_URL=https://your-api.up.railway.app` (host
-   only, no `/api`) and **redeploy** (env vars only apply to a fresh build).
+1. Deploy the **API** on a Node host (Railway, Render, Fly, or a VPS); note its
+   URL.
+2. On the **API host**, set `CORS_ORIGINS` to your **exact** frontend origin (no
+   trailing slash).
+3. On the **static host**, set `VITE_API_BASE_URL=https://your-api-host` (host
+   only, no `/api`) and rebuild (env vars only apply to a fresh build).
 
-> ⚠️ Vercel alone can't host this app — its serverless platform won't run the
-> persistent Express server or hold the SQLite file, so every `/api/*` call
-> would return the SPA's HTML instead of data. The API always needs a Node host
-> (Railway, Render, Fly, or a VPS).
+> ⚠️ A static/serverless host **alone** can't run this app — it won't keep the
+> persistent Express server or the SQLite file alive, so every `/api/*` call
+> would return the SPA's HTML instead of data. The API always needs a real Node
+> host.
 
 ---
 

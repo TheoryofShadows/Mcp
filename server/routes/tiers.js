@@ -67,7 +67,7 @@ const REVENUE_PROJECTIONS = [
 ];
 
 const TECH_STACK = [
-  { icon: "\u25B3", title: "Frontend", tech: "Next.js + Vercel", desc: "React framework with edge deployment. Zero config, instant global CDN.", cost: "$0", color: "#4DFFB4" },
+  { icon: "\u25B3", title: "Frontend", tech: "React + Vite", desc: "Fast SPA build, served by the Express API on Railway. One service, automatic deploys from GitHub.", cost: "$0", color: "#4DFFB4" },
   { icon: "\u25C8", title: "Database + Auth", tech: "Supabase", desc: "Postgres database with built-in auth, real-time subscriptions, and storage.", cost: "$0", color: "#4D9FFF" },
   { icon: "\u2261", title: "Payments", tech: "Stripe Connect", desc: "Split payments between marketplace and publishers. Automatic payouts.", cost: "$0*", color: "#9B6DFF" },
   { icon: "\u25A3", title: "MCP Registry", tech: "GitHub + npm", desc: "Version control and package distribution. Leverage existing infrastructure.", cost: "$0", color: "#FF6DB4" },

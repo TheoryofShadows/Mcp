@@ -70,8 +70,8 @@ export const TECH_STACK = [
   {
     icon: "\u2B21",
     title: "Frontend",
-    tech: "Next.js + Vercel",
-    desc: "Free hosting, edge functions, automatic deploys from GitHub",
+    tech: "React + Vite",
+    desc: "Fast SPA build, served by the API on Railway with automatic deploys from GitHub",
     cost: "$0",
     color: "var(--accent-electric)",
   },
