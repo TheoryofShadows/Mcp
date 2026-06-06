@@ -45,6 +45,18 @@ describe("GET /api/servers", () => {
     expect(res.status).toBe(200);
     expect(res.body.pagination.limit).toBe(100);
   });
+
+  it("filters by author without erroring (regression: COUNT join)", async () => {
+    const res = await request(app).get("/api/servers?author=servertest");
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body.servers)).toBe(true);
+  });
+
+  it("returns 200 for an author with no servers", async () => {
+    const res = await request(app).get("/api/servers?author=ghost-no-such-user");
+    expect(res.status).toBe(200);
+    expect(res.body.servers).toHaveLength(0);
+  });
 });
 
 describe("POST /api/servers", () => {
