@@ -125,7 +125,9 @@ router.post("/stripe/checkout", requireAuth, async (req, res) => {
     res.json({ checkout_url: session.url });
   } catch (err) {
     console.error("[stripe] checkout error:", err.message);
-    res.status(500).json({ error: "Failed to create checkout session" });
+    // Surface Stripe's actual reason (e.g. account not activated for live
+    // charges) so failures are diagnosable instead of an opaque 500.
+    res.status(500).json({ error: "Failed to create checkout session", detail: err.message });
   }
 });
 
