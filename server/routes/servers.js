@@ -68,9 +68,16 @@ router.get("/", (req, res) => {
 
   const whereClause = where.length ? `WHERE ${where.join(" AND ")}` : "";
 
-  const total = db.prepare(
-    `SELECT COUNT(*) as c FROM servers s ${whereClause}`
-  ).get(...params).c;
+  // COUNT must use the same JOINs as the list query below — the WHERE clause can
+  // reference u.username (the ?author= filter), so without the users join this
+  // throws a 500 (which broke the dashboard's "your tools" list).
+  const total = db.prepare(`
+    SELECT COUNT(*) as c
+    FROM servers s
+    JOIN users u ON s.author_id = u.id
+    JOIN categories c ON s.category_id = c.id
+    ${whereClause}
+  `).get(...params).c;
 
   const rows = db.prepare(`
     SELECT
