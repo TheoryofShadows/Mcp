@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { Github, Loader, AlertCircle, CheckCircle, CreditCard, ArrowRight, Info } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { supabase } from "../lib/supabase";
+import { createServer } from "../api/client";
 import { SEED_CATEGORIES } from "../data/seed";
 
 const CATEGORIES = SEED_CATEGORIES.filter((c) => c.id !== "all");
@@ -95,34 +96,47 @@ export default function Submit() {
   async function handleSubmit(e) {
     e.preventDefault();
     if (!user) { navigate("/login"); return; }
-    if (!supabase) {
-      // Demo mode – just simulate success
-      setSubmitted(true);
-      return;
-    }
     setSubmitting(true);
     setSubmitError("");
     try {
-      const slug = form.name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
       const tags = form.tags.split(",").map((t) => t.trim().replace(/^#/, "")).filter(Boolean);
-      const { error } = await supabase.from("tools").insert({
-        slug,
-        name: form.name,
-        description: form.description,
-        readme: form.readme,
-        author_id: user.id,
-        author_name: form.author_name || user.username,
-        category_id: form.category_id,
-        price_type: form.price_type,
-        price_amount: form.price_type === "paid" ? Number(form.price_amount) : null,
-        price_label: form.price_type === "paid" ? parsePriceLabel(form.price_amount) : "Free",
-        github_url: githubUrl,
-        install_command: form.install_command,
-        tags,
-        gradient: "linear-gradient(135deg, #6366f1, #8b5cf6)",
-        published: false, // pending review
-      });
-      if (error) throw error;
+
+      if (supabase) {
+        // Supabase backend (when configured)
+        const slug = form.name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+        const { error } = await supabase.from("tools").insert({
+          slug,
+          name: form.name,
+          description: form.description,
+          readme: form.readme,
+          author_id: user.id,
+          author_name: form.author_name || user.username,
+          category_id: form.category_id,
+          price_type: form.price_type,
+          price_amount: form.price_type === "paid" ? Number(form.price_amount) : null,
+          price_label: form.price_type === "paid" ? parsePriceLabel(form.price_amount) : "Free",
+          github_url: githubUrl,
+          install_command: form.install_command,
+          tags,
+          gradient: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+          published: false, // pending review
+        });
+        if (error) throw error;
+      } else {
+        // Default deployment: persist through the Express API (SQLite).
+        // price_amount is stored in cents server-side; the form collects dollars.
+        await createServer({
+          name: form.name,
+          category_id: form.category_id,
+          description: form.description,
+          long_description: form.readme || "",
+          price_type: form.price_type,
+          price_amount: form.price_type === "paid" ? Math.round(Number(form.price_amount) * 100) : 0,
+          repo_url: githubUrl || "",
+          tags,
+        });
+      }
+
       setSubmitted(true);
     } catch (err) {
       setSubmitError(err.message);
