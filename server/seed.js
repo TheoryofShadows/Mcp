@@ -28,23 +28,42 @@ db.exec(`
   DELETE FROM users;
 `);
 
-// ─── Users ───
+// ─── Users (publishers) ───
+// A mix of recognizable org publishers (verified) and individual community
+// builders. Passwords are demo-only.
 
 const hashPassword = (pw) => bcrypt.hashSync(pw, 10);
 
 const users = [
-  { id: uuid(), email: "sarah@supabase.io", username: "sarahchen", display_name: "Sarah Chen", password_hash: hashPassword("password123") },
-  { id: uuid(), email: "marcus@stripe.com", username: "marcuswei", display_name: "Marcus Wei", password_hash: hashPassword("password123") },
-  { id: uuid(), email: "alex@figma.com", username: "alexrivera", display_name: "Alex Rivera", password_hash: hashPassword("password123") },
-  { id: uuid(), email: "jordan@github.com", username: "jordanlee", display_name: "Jordan Lee", password_hash: hashPassword("password123") },
-  { id: uuid(), email: "priya@huggingface.co", username: "priyapatel", display_name: "Priya Patel", password_hash: hashPassword("password123") },
-  { id: uuid(), email: "kai@aws.com", username: "kainakamura", display_name: "Kai Nakamura", password_hash: hashPassword("password123") },
-  { id: uuid(), email: "emma@notion.so", username: "emmadavis", display_name: "Emma Davis", password_hash: hashPassword("password123") },
-  { id: uuid(), email: "leo@vercel.com", username: "leozhang", display_name: "Leo Zhang", password_hash: hashPassword("password123") },
-  { id: uuid(), email: "nina@datadog.com", username: "ninakowalski", display_name: "Nina Kowalski", password_hash: hashPassword("password123") },
-  { id: uuid(), email: "omar@cloudflare.com", username: "omarhassan", display_name: "Omar Hassan", password_hash: hashPassword("password123") },
-  { id: uuid(), email: "zoe@openai.com", username: "zoewilliams", display_name: "Zoe Williams", password_hash: hashPassword("password123") },
-  { id: uuid(), email: "dev@mcpx.dev", username: "demo", display_name: "Demo User", password_hash: hashPassword("demo1234") },
+  // Org / official publishers
+  { username: "anthropic",   display_name: "Anthropic",        email: "mcp@anthropic.com" },
+  { username: "modelcontextprotocol", display_name: "MCP Reference", email: "team@modelcontextprotocol.io" },
+  { username: "microsoft",   display_name: "Microsoft",        email: "oss@microsoft.com" },
+  { username: "github",      display_name: "GitHub",           email: "mcp@github.com" },
+  { username: "cloudflare",  display_name: "Cloudflare",       email: "mcp@cloudflare.com" },
+  { username: "sentry",      display_name: "Sentry",           email: "mcp@sentry.io" },
+  { username: "notion",      display_name: "Notion",           email: "mcp@makenotion.com" },
+  { username: "stripe",      display_name: "Stripe",           email: "mcp@stripe.com" },
+  { username: "supabase",    display_name: "Supabase",         email: "mcp@supabase.io" },
+  { username: "redis",       display_name: "Redis",            email: "mcp@redis.io" },
+  { username: "mongodb",     display_name: "MongoDB",          email: "mcp@mongodb.com" },
+  { username: "firecrawl",   display_name: "Firecrawl",        email: "mcp@firecrawl.dev" },
+  { username: "exalabs",     display_name: "Exa Labs",         email: "mcp@exa.ai" },
+  { username: "upstash",     display_name: "Upstash",          email: "mcp@upstash.com" },
+  { username: "figma",       display_name: "Figma",            email: "mcp@figma.com" },
+  { username: "elevenlabs",  display_name: "ElevenLabs",       email: "mcp@elevenlabs.io" },
+  { username: "awslabs",     display_name: "AWS Labs",         email: "mcp@aws.com" },
+  { username: "grafana",     display_name: "Grafana Labs",     email: "mcp@grafana.com" },
+  { username: "qdrant",      display_name: "Qdrant",           email: "mcp@qdrant.tech" },
+  { username: "tavily",      display_name: "Tavily",           email: "mcp@tavily.com" },
+  // Community builders
+  { username: "ahujasid",    display_name: "Siddharth Ahuja",  email: "sid@example.com" },
+  { username: "glips",       display_name: "Graham Lipsman",   email: "graham@example.com" },
+  { username: "sooperset",   display_name: "Soomin Kim",       email: "soomin@example.com" },
+  { username: "flux159",     display_name: "Vivek Reddy",      email: "vivek@example.com" },
+  { username: "punkpeye",    display_name: "Frank Fiegel",     email: "frank@example.com" },
+  { username: "ckreiling",   display_name: "Cole Kreiling",    email: "cole@example.com" },
+  { username: "demo",        display_name: "Demo User",        email: "dev@mcpx.dev",  password: "demo1234" },
 ];
 
 const insertUser = db.prepare(
@@ -52,268 +71,266 @@ const insertUser = db.prepare(
 );
 
 for (const u of users) {
-  insertUser.run(u.id, u.email, u.username, u.display_name, u.password_hash);
+  u.id = uuid();
+  insertUser.run(u.id, u.email, u.username, u.display_name, hashPassword(u.password || "password123"));
 }
+
+const userByName = (name) => users.find((u) => u.username === name);
 
 // ─── Categories ───
 
 const categories = [
-  { id: "all", label: "All Tools", icon: "\u25CE", sort_order: 0 },
-  { id: "data", label: "Data & APIs", icon: "\u2B21", sort_order: 1 },
-  { id: "dev", label: "Developer", icon: "\u2318", sort_order: 2 },
-  { id: "ai", label: "AI & ML", icon: "\u25C8", sort_order: 3 },
-  { id: "business", label: "Business", icon: "\u25A3", sort_order: 4 },
-  { id: "creative", label: "Creative", icon: "\u2726", sort_order: 5 },
-  { id: "infra", label: "Infrastructure", icon: "\u2394", sort_order: 6 },
+  { id: "all", label: "All Tools", icon: "◎", sort_order: 0 },
+  { id: "data", label: "Data & APIs", icon: "⬡", sort_order: 1 },
+  { id: "dev", label: "Developer", icon: "⌘", sort_order: 2 },
+  { id: "ai", label: "AI & ML", icon: "◈", sort_order: 3 },
+  { id: "business", label: "Business", icon: "▣", sort_order: 4 },
+  { id: "creative", label: "Creative", icon: "✦", sort_order: 5 },
+  { id: "infra", label: "Infrastructure", icon: "⎔", sort_order: 6 },
 ];
 
 const insertCategory = db.prepare(
   `INSERT INTO categories (id, label, icon, sort_order) VALUES (?, ?, ?, ?)`
 );
+for (const c of categories) insertCategory.run(c.id, c.label, c.icon, c.sort_order);
 
-for (const c of categories) {
-  insertCategory.run(c.id, c.label, c.icon, c.sort_order);
-}
+// ─── Servers — a real-world MCP catalog ───
+// Fields: name, slug, author, category, description, long_description,
+// installs, rating, rating_count, price_type, price_amount(¢), verified,
+// trending, weekly_growth, repo_url, tags[], license. Gradient is assigned
+// from a palette below.
 
-// ─── Servers ───
-
-const userByName = (name) => users.find((u) => u.username === name);
-
+const S = (o) => o; // identity helper for readability
 const servers = [
-  {
-    id: uuid(), name: "Postgres MCP", slug: "postgres-mcp",
-    author_id: userByName("sarahchen").id, category_id: "data",
-    description: "Full PostgreSQL database access for AI agents. Query, mutate, and manage schemas with natural language.",
-    long_description: "Postgres MCP provides a secure, sandboxed interface for AI agents to interact with PostgreSQL databases. Supports read/write queries, schema introspection, migrations, and real-time change streams. Built-in query validation prevents destructive operations unless explicitly allowed.",
-    installs: 48200, rating: 4.9, rating_count: 342,
-    price_type: "free", price_amount: 0, price_label: "free",
-    verified: 1, trending: 1,
-    gradient: "linear-gradient(135deg, #4DFFB4, #4D9FFF)",
-    weekly_growth: "+12.3%", monthly_revenue: 0,
-    repo_url: "https://github.com/sarahchen/postgres-mcp",
-    tags: JSON.stringify(["postgresql", "database", "sql", "schema"]),
-  },
-  {
-    id: uuid(), name: "Stripe Agent", slug: "stripe-agent",
-    author_id: userByName("marcuswei").id, category_id: "business",
-    description: "Complete Stripe payment management. Create charges, manage subscriptions, handle disputes through AI.",
-    long_description: "Stripe Agent gives AI systems full access to the Stripe API through a safe, audited MCP interface. Create and manage customers, process payments, handle subscription lifecycle, generate invoices, and resolve disputes—all with built-in PCI compliance guardrails.",
-    installs: 31500, rating: 4.8, rating_count: 218,
-    price_type: "paid", price_amount: 1200, price_label: "$12/mo",
-    verified: 1, trending: 1,
-    gradient: "linear-gradient(135deg, #9B6DFF, #FF6DB4)",
-    weekly_growth: "+8.7%", monthly_revenue: 1820000,
-    repo_url: "https://github.com/marcuswei/stripe-agent",
-    tags: JSON.stringify(["payments", "stripe", "billing", "subscriptions"]),
-  },
-  {
-    id: uuid(), name: "Figma Bridge", slug: "figma-bridge",
-    author_id: userByName("alexrivera").id, category_id: "creative",
-    description: "Bridge between Figma designs and code. Extract components, styles, and assets programmatically.",
-    long_description: "Figma Bridge connects your design system to your codebase through MCP. Extract component specs, design tokens, asset URLs, and layout information. Supports React, Vue, and Svelte code generation from Figma frames.",
-    installs: 27800, rating: 4.7, rating_count: 156,
-    price_type: "paid", price_amount: 800, price_label: "$8/mo",
-    verified: 1, trending: 0,
-    gradient: "linear-gradient(135deg, #FF6DB4, #FFAA4D)",
-    weekly_growth: "+15.2%", monthly_revenue: 940000,
-    repo_url: "https://github.com/alexrivera/figma-bridge",
-    tags: JSON.stringify(["figma", "design", "ui", "components"]),
-  },
-  {
-    id: uuid(), name: "GitHub Actions+", slug: "github-actions-plus",
-    author_id: userByName("jordanlee").id, category_id: "dev",
-    description: "Enhanced GitHub integration. Manage repos, trigger workflows, review PRs, and analyze code quality.",
-    long_description: "GitHub Actions+ supercharges your AI agent with deep GitHub integration. Trigger and monitor workflows, create and review pull requests, manage issues and projects, analyze code quality metrics, and automate release processes—all through a single MCP server.",
-    installs: 52100, rating: 4.9, rating_count: 487,
-    price_type: "free", price_amount: 0, price_label: "free",
-    verified: 1, trending: 1,
-    gradient: "linear-gradient(135deg, #4D9FFF, #4DFFB4)",
-    weekly_growth: "+22.1%", monthly_revenue: 0,
-    repo_url: "https://github.com/jordanlee/github-actions-plus",
-    tags: JSON.stringify(["github", "ci-cd", "automation", "devops"]),
-  },
-  {
-    id: uuid(), name: "Hugging Face Hub", slug: "hugging-face-hub",
-    author_id: userByName("priyapatel").id, category_id: "ai",
-    description: "Access 200K+ ML models directly. Run inference, fine-tune, and manage model deployments from chat.",
-    long_description: "Hugging Face Hub MCP connects AI agents to the world's largest ML model repository. Browse and search 200K+ models, run inference on any supported model, initiate fine-tuning jobs, manage Spaces deployments, and track experiment metrics.",
-    installs: 19400, rating: 4.6, rating_count: 89,
-    price_type: "paid", price_amount: 1500, price_label: "$15/mo",
-    verified: 0, trending: 0,
-    gradient: "linear-gradient(135deg, #FFAA4D, #FF6DB4)",
-    weekly_growth: "+5.8%", monthly_revenue: 0,
-    repo_url: "https://github.com/priyapatel/hugging-face-hub",
-    tags: JSON.stringify(["ml", "models", "inference", "huggingface"]),
-  },
-  {
-    id: uuid(), name: "AWS Commander", slug: "aws-commander",
-    author_id: userByName("kainakamura").id, category_id: "infra",
-    description: "Manage AWS infrastructure with natural language. EC2, S3, Lambda, RDS — all through conversational AI.",
-    long_description: "AWS Commander provides a comprehensive MCP interface to Amazon Web Services. Manage EC2 instances, S3 buckets, Lambda functions, RDS databases, CloudFormation stacks, and 50+ other services. Built-in cost estimation and safety checks prevent accidental resource creation.",
-    installs: 38900, rating: 4.8, rating_count: 265,
-    price_type: "paid", price_amount: 2000, price_label: "$20/mo",
-    verified: 1, trending: 1,
-    gradient: "linear-gradient(135deg, #FFAA4D, #4D9FFF)",
-    weekly_growth: "+18.4%", monthly_revenue: 3160000,
-    repo_url: "https://github.com/kainakamura/aws-commander",
-    tags: JSON.stringify(["aws", "cloud", "infrastructure", "devops"]),
-  },
-  {
-    id: uuid(), name: "Notion Sync", slug: "notion-sync",
-    author_id: userByName("emmadavis").id, category_id: "business",
-    description: "Bidirectional Notion workspace integration. Read, write, and organize your knowledge base through AI.",
-    long_description: "Notion Sync enables AI agents to fully interact with Notion workspaces. Read and write pages, manage databases, create and update blocks, handle file attachments, and maintain workspace structure. Supports real-time sync and conflict resolution.",
-    installs: 22100, rating: 4.5, rating_count: 134,
-    price_type: "paid", price_amount: 500, price_label: "$5/mo",
-    verified: 1, trending: 0,
-    gradient: "linear-gradient(135deg, #9B6DFF, #4D9FFF)",
-    weekly_growth: "+7.2%", monthly_revenue: 0,
-    repo_url: "https://github.com/emmadavis/notion-sync",
-    tags: JSON.stringify(["notion", "productivity", "docs", "wiki"]),
-  },
-  {
-    id: uuid(), name: "Vercel Deploy", slug: "vercel-deploy",
-    author_id: userByName("leozhang").id, category_id: "dev",
-    description: "One-command deployments via AI agents. Preview, promote, rollback, and monitor your Vercel projects.",
-    long_description: "Vercel Deploy streamlines the deployment workflow for AI agents. Create preview deployments, promote to production, instant rollbacks, monitor build logs, manage environment variables, and configure domains—all through natural language commands.",
-    installs: 16800, rating: 4.7, rating_count: 98,
-    price_type: "free", price_amount: 0, price_label: "free",
-    verified: 0, trending: 0,
-    gradient: "linear-gradient(135deg, #4DFFB4, #9B6DFF)",
-    weekly_growth: "+9.1%", monthly_revenue: 0,
-    repo_url: "https://github.com/leozhang/vercel-deploy",
-    tags: JSON.stringify(["vercel", "deploy", "hosting", "preview"]),
-  },
-  {
-    id: uuid(), name: "DataDog Monitor", slug: "datadog-monitor",
-    author_id: userByName("ninakowalski").id, category_id: "infra",
-    description: "Real-time monitoring and alerting through AI. Query metrics, investigate incidents, manage dashboards.",
-    long_description: "DataDog Monitor provides AI agents with full observability capabilities. Query time-series metrics, create and manage monitors, investigate incidents with log correlation, build dashboards, and configure alerting rules. Supports APM, infrastructure, and log management.",
-    installs: 14200, rating: 4.6, rating_count: 76,
-    price_type: "paid", price_amount: 1000, price_label: "$10/mo",
-    verified: 1, trending: 0,
-    gradient: "linear-gradient(135deg, #9B6DFF, #FFAA4D)",
-    weekly_growth: "+6.5%", monthly_revenue: 520000,
-    repo_url: "https://github.com/ninakowalski/datadog-monitor",
-    tags: JSON.stringify(["monitoring", "observability", "metrics", "alerting"]),
-  },
-  {
-    id: uuid(), name: "Cloudflare Workers", slug: "cloudflare-workers",
-    author_id: userByName("omarhassan").id, category_id: "infra",
-    description: "Deploy and manage edge functions globally. Create Workers, configure routes, and monitor performance.",
-    long_description: "Cloudflare Workers MCP enables AI agents to deploy serverless code to Cloudflare's global edge network. Create and update Workers, configure custom domains and routes, manage KV storage, interact with D1 databases, and monitor real-time analytics.",
-    installs: 11300, rating: 4.4, rating_count: 52,
-    price_type: "free", price_amount: 0, price_label: "free",
-    verified: 0, trending: 0,
-    gradient: "linear-gradient(135deg, #FFAA4D, #4DFFB4)",
-    weekly_growth: "+11.7%", monthly_revenue: 0,
-    repo_url: "https://github.com/omarhassan/cloudflare-workers",
-    tags: JSON.stringify(["cloudflare", "edge", "serverless", "workers"]),
-  },
-  {
-    id: uuid(), name: "GPT Toolkit", slug: "gpt-toolkit",
-    author_id: userByName("zoewilliams").id, category_id: "ai",
-    description: "Orchestrate multiple LLM providers. Route queries, compare outputs, manage prompt templates and chains.",
-    long_description: "GPT Toolkit is a meta-MCP server that enables AI agents to orchestrate multiple LLM providers. Route queries between OpenAI, Anthropic, Google, and open-source models. Compare outputs side-by-side, manage prompt templates with versioning, and build complex chains with conditional logic.",
-    installs: 8700, rating: 4.3, rating_count: 41,
-    price_type: "paid", price_amount: 2500, price_label: "$25/mo",
-    verified: 0, trending: 0,
-    gradient: "linear-gradient(135deg, #4D9FFF, #FF6DB4)",
-    weekly_growth: "+4.2%", monthly_revenue: 0,
-    repo_url: "https://github.com/zoewilliams/gpt-toolkit",
-    tags: JSON.stringify(["llm", "openai", "anthropic", "prompts"]),
-  },
-  {
-    id: uuid(), name: "Redis Cache Pro", slug: "redis-cache-pro",
-    author_id: userByName("sarahchen").id, category_id: "data",
-    description: "High-performance Redis operations for agents. Caching, pub/sub, streams, and data structure manipulation.",
-    long_description: "Redis Cache Pro gives AI agents direct access to Redis with smart caching strategies. Supports all Redis data types, pub/sub messaging, streams for event sourcing, Lua scripting, and cluster management. Built-in TTL management and memory optimization recommendations.",
-    installs: 15600, rating: 4.7, rating_count: 112,
-    price_type: "paid", price_amount: 700, price_label: "$7/mo",
-    verified: 1, trending: 0,
-    gradient: "linear-gradient(135deg, #FF6DB4, #4DFFB4)",
-    weekly_growth: "+8.9%", monthly_revenue: 380000,
-    repo_url: "https://github.com/sarahchen/redis-cache-pro",
-    tags: JSON.stringify(["redis", "cache", "pubsub", "streams"]),
-  },
-  {
-    id: uuid(), name: "Playwright MCP", slug: "playwright-mcp",
-    author_id: userByName("marcuswei").id, category_id: "dev",
-    description: "Official Microsoft Playwright MCP. Automate browsers, scrape web pages, run E2E tests, and interact with web apps through AI agents.",
-    long_description: "Playwright MCP gives AI agents full browser automation using Microsoft's Playwright library. Navigate pages, fill forms, take screenshots, generate PDFs, and handle authentication. Supports Chromium, Firefox, and WebKit.",
-    installs: 67400, rating: 4.9, rating_count: 334,
-    price_type: "free", price_amount: 0, price_label: "free",
-    verified: 1, trending: 1,
-    gradient: "linear-gradient(135deg, #2563eb, #7c3aed)",
-    weekly_growth: "+29%", monthly_revenue: 0,
-    repo_url: "https://github.com/microsoft/playwright-mcp",
-    tags: JSON.stringify(["playwright", "browser", "automation", "testing"]),
-  },
-  {
-    id: uuid(), name: "Puppeteer MCP", slug: "puppeteer-mcp",
-    author_id: userByName("jordanlee").id, category_id: "dev",
-    description: "Official MCP server for Puppeteer. Control headless Chrome, automate web tasks, take screenshots, and extract data from any website.",
-    long_description: "Puppeteer MCP provides AI agents with headless Chrome control for web automation and data extraction. Perfect for scraping JavaScript-heavy sites, running UI tests, generating PDF reports, and automating repetitive browser tasks.",
-    installs: 41300, rating: 4.7, rating_count: 198,
-    price_type: "free", price_amount: 0, price_label: "free",
-    verified: 1, trending: 1,
-    gradient: "linear-gradient(135deg, #00b4d8, #0077b6)",
-    weekly_growth: "+22%", monthly_revenue: 0,
-    repo_url: "https://github.com/modelcontextprotocol/servers/tree/main/src/puppeteer",
-    tags: JSON.stringify(["puppeteer", "browser", "chrome", "automation"]),
-  },
-  {
-    id: uuid(), name: "PostgreSQL MCP", slug: "postgres-mcp-official",
-    author_id: userByName("sarahchen").id, category_id: "data",
-    description: "Official PostgreSQL MCP server. Give AI agents safe read access to your Postgres database — query tables, inspect schemas, and analyze data.",
-    long_description: "Official MCP server for PostgreSQL. Provides read-only database access with schema introspection, query execution, and index analysis. Built for safe use with production databases.",
-    installs: 48200, rating: 4.9, rating_count: 342,
-    price_type: "free", price_amount: 0, price_label: "free",
-    verified: 1, trending: 1,
-    gradient: "linear-gradient(135deg, #336791, #10b981)",
-    weekly_growth: "+19%", monthly_revenue: 0,
-    repo_url: "https://github.com/modelcontextprotocol/servers/tree/main/src/postgres",
-    tags: JSON.stringify(["postgresql", "postgres", "database", "sql"]),
-  },
-  {
-    id: uuid(), name: "SSH Commander", slug: "ssh-commander-mcp",
-    author_id: userByName("kainakamura").id, category_id: "infra",
-    description: "Execute commands on remote servers via SSH. AI agents can run shell commands, manage files, tail logs, and automate DevOps tasks.",
-    long_description: "SSH Commander gives AI agents the ability to connect to remote servers and execute shell commands. Supports SSH key and password authentication, multi-server profiles, file transfers, and real-time log tailing. Use with caution.",
-    installs: 22100, rating: 4.3, rating_count: 87,
-    price_type: "free", price_amount: 0, price_label: "free",
-    verified: 0, trending: 0,
-    gradient: "linear-gradient(135deg, #1a1a2e, #16213e)",
-    weekly_growth: "+8%", monthly_revenue: 0,
-    repo_url: "https://github.com/ckreiling/mcp-server-docker",
-    tags: JSON.stringify(["ssh", "devops", "shell", "remote"]),
-  },
-  {
-    id: uuid(), name: "Chess Analysis MCP", slug: "chess-analysis-mcp",
-    author_id: userByName("zoewilliams").id, category_id: "creative",
-    description: "Analyze chess positions and get Stockfish move suggestions. Perfect for chess tools, tutors, and opening theory exploration.",
-    long_description: "Chess Analysis MCP integrates the Stockfish engine into AI agents. Analyze positions by FEN, get best move suggestions at configurable depth, explore opening theory, and generate annotated PGN game files.",
-    installs: 8400, rating: 4.5, rating_count: 42,
-    price_type: "free", price_amount: 0, price_label: "free",
-    verified: 0, trending: 0,
-    gradient: "linear-gradient(135deg, #b45309, #78350f)",
-    weekly_growth: "+15%", monthly_revenue: 0,
-    repo_url: "https://github.com/punkpeye/mcp-chess",
-    tags: JSON.stringify(["chess", "stockfish", "games", "strategy"]),
-  },
-  {
-    id: uuid(), name: "Cal.com Scheduler MCP", slug: "cal-scheduler-mcp",
-    author_id: userByName("emmadavis").id, category_id: "business",
-    description: "AI-powered meeting scheduling via Cal.com. Book appointments, check availability, manage calendar events through natural language.",
-    long_description: "Cal.com Scheduler MCP enables AI agents to manage calendar and scheduling workflows. Check availability, book meetings, send invites, and integrate with Google and Outlook calendars through the Cal.com API.",
-    installs: 29800, rating: 4.7, rating_count: 156,
-    price_type: "free", price_amount: 0, price_label: "free",
-    verified: 1, trending: 1,
-    gradient: "linear-gradient(135deg, #0ea5e9, #6366f1)",
-    weekly_growth: "+33%", monthly_revenue: 0,
-    repo_url: "https://github.com/calcom/cal.com",
-    tags: JSON.stringify(["calendar", "scheduling", "meetings", "productivity"]),
-  },
+  // ── Developer ──────────────────────────────────────────────────────────────
+  S({ name: "GitHub MCP Server", slug: "github-mcp-server", author: "github", category: "dev",
+    description: "Official GitHub MCP. Manage repos, issues, pull requests, and Actions — let your agent ship code.",
+    long_description: "GitHub's official MCP server gives agents first-class access to repositories: read and write files, open and review pull requests, manage issues and projects, search code, and trigger and inspect GitHub Actions workflows. Scoped to your token's permissions.",
+    installs: 142000, rating: 4.9, rating_count: 980, price_type: "free", verified: 1, trending: 1,
+    weekly_growth: "+24%", repo_url: "https://github.com/github/github-mcp-server", license: "MIT",
+    tags: ["github", "git", "ci-cd", "devops", "code"] }),
+  S({ name: "Filesystem MCP", slug: "filesystem-mcp", author: "modelcontextprotocol", category: "dev",
+    description: "Reference server for secure local file access. Read, write, search, and edit files within allowed directories.",
+    long_description: "The official filesystem reference server lets agents read, write, move, and search files inside explicitly allowed directories. Sandboxed to a configured root so it can't wander your disk.",
+    installs: 98000, rating: 4.8, rating_count: 610, price_type: "free", verified: 1, trending: 1,
+    weekly_growth: "+17%", repo_url: "https://github.com/modelcontextprotocol/servers", license: "MIT",
+    tags: ["filesystem", "files", "reference", "local"] }),
+  S({ name: "Playwright MCP", slug: "playwright-mcp", author: "microsoft", category: "dev",
+    description: "Official Microsoft Playwright MCP. Drive real browsers — navigate, fill forms, screenshot, and run E2E flows.",
+    long_description: "Playwright MCP gives agents full browser automation via Microsoft's Playwright. Navigate pages, click and type, capture screenshots and PDFs, and handle auth across Chromium, Firefox, and WebKit using accessibility-tree snapshots.",
+    installs: 89000, rating: 4.9, rating_count: 540, price_type: "free", verified: 1, trending: 1,
+    weekly_growth: "+29%", repo_url: "https://github.com/microsoft/playwright-mcp", license: "Apache-2.0",
+    tags: ["playwright", "browser", "automation", "testing"] }),
+  S({ name: "Context7", slug: "context7", author: "upstash", category: "dev",
+    description: "Up-to-date, version-specific docs and code examples for any library, injected straight into your prompt.",
+    long_description: "Context7 pulls current documentation and real code snippets for the exact library version you're using and feeds them to the model — killing hallucinated, outdated APIs. Hugely popular with Cursor and Claude users.",
+    installs: 76000, rating: 4.8, rating_count: 430, price_type: "free", verified: 1, trending: 1,
+    weekly_growth: "+41%", repo_url: "https://github.com/upstash/context7", license: "MIT",
+    tags: ["docs", "context", "libraries", "reference"] }),
+  S({ name: "Git MCP", slug: "git-mcp", author: "modelcontextprotocol", category: "dev",
+    description: "Reference server for local Git. Read history, diffs, branches, and commits — let agents reason about your repo.",
+    long_description: "The official Git reference server exposes local repository operations: status, diffs, logs, branch and commit inspection, blame, and staged changes — so an agent can understand and narrate your codebase.",
+    installs: 54000, rating: 4.7, rating_count: 290, price_type: "free", verified: 1, trending: 0,
+    weekly_growth: "+12%", repo_url: "https://github.com/modelcontextprotocol/servers", license: "MIT",
+    tags: ["git", "version-control", "reference", "code"] }),
+  S({ name: "Puppeteer MCP", slug: "puppeteer-mcp", author: "ckreiling", category: "dev",
+    description: "Headless Chrome control for scraping and automation. Screenshot, extract, and automate JS-heavy sites.",
+    long_description: "Puppeteer MCP drives headless Chrome for web automation and data extraction — ideal for scraping dynamic sites, generating PDFs, and automating repetitive browser tasks.",
+    installs: 41000, rating: 4.6, rating_count: 210, price_type: "free", verified: 0, trending: 0,
+    weekly_growth: "+9%", repo_url: "https://github.com/modelcontextprotocol/servers", license: "MIT",
+    tags: ["puppeteer", "browser", "chrome", "scraping"] }),
+  S({ name: "Docker MCP", slug: "docker-mcp", author: "ckreiling", category: "dev",
+    description: "Manage Docker from chat. Run containers, inspect logs, build images, and compose stacks with natural language.",
+    long_description: "Docker MCP lets agents manage containers and images: run and stop containers, stream logs, build from Dockerfiles, and bring up docker-compose stacks. Handy for local dev and CI.",
+    installs: 33000, rating: 4.5, rating_count: 140, price_type: "free", verified: 0, trending: 0,
+    weekly_growth: "+14%", repo_url: "https://github.com/ckreiling/mcp-server-docker", license: "MIT",
+    tags: ["docker", "containers", "devops", "shell"] }),
+
+  // ── AI & ML ──────────────────────────────────────────────────────────────
+  S({ name: "Sequential Thinking", slug: "sequential-thinking", author: "modelcontextprotocol", category: "ai",
+    description: "Structured step-by-step reasoning for harder problems. Plan, branch, revise, and converge on an answer.",
+    long_description: "The Sequential Thinking reference server gives models a scratchpad for explicit multi-step reasoning — breaking problems into steps, revising earlier thoughts, and exploring branches before committing to a solution.",
+    installs: 61000, rating: 4.7, rating_count: 320, price_type: "free", verified: 1, trending: 1,
+    weekly_growth: "+20%", repo_url: "https://github.com/modelcontextprotocol/servers", license: "MIT",
+    tags: ["reasoning", "planning", "reference", "thinking"] }),
+  S({ name: "Memory MCP", slug: "memory-mcp", author: "modelcontextprotocol", category: "ai",
+    description: "Persistent knowledge-graph memory. Let your agent remember entities, relations, and facts across sessions.",
+    long_description: "The Memory reference server stores a knowledge graph of entities and relations the agent can read and update — giving long-running assistants durable memory of people, projects, and preferences.",
+    installs: 66000, rating: 4.7, rating_count: 350, price_type: "free", verified: 1, trending: 1,
+    weekly_growth: "+22%", repo_url: "https://github.com/modelcontextprotocol/servers", license: "MIT",
+    tags: ["memory", "knowledge-graph", "reference", "context"] }),
+  S({ name: "Hugging Face MCP", slug: "hugging-face-mcp", author: "exalabs", category: "ai",
+    description: "Browse and run 500K+ models, datasets, and Spaces from the Hub. Inference and search from your agent.",
+    long_description: "Connects agents to the Hugging Face Hub: search models and datasets, run inference endpoints, and query Spaces — the largest open ML ecosystem, available to your assistant.",
+    installs: 24000, rating: 4.5, rating_count: 120, price_type: "free", verified: 0, trending: 0,
+    weekly_growth: "+8%", repo_url: "https://github.com/huggingface/hf-mcp-server", license: "Apache-2.0",
+    tags: ["ml", "models", "inference", "huggingface"] }),
+
+  // ── Data & APIs ──────────────────────────────────────────────────────────
+  S({ name: "PostgreSQL MCP", slug: "postgres-mcp", author: "modelcontextprotocol", category: "data",
+    description: "Reference Postgres server. Safe read access — query tables, inspect schemas, and analyze data.",
+    long_description: "The official PostgreSQL reference server provides read-only database access with schema introspection and query execution — built for safe use against real databases.",
+    installs: 84000, rating: 4.9, rating_count: 470, price_type: "free", verified: 1, trending: 1,
+    weekly_growth: "+19%", repo_url: "https://github.com/modelcontextprotocol/servers", license: "MIT",
+    tags: ["postgresql", "postgres", "database", "sql"] }),
+  S({ name: "Supabase MCP", slug: "supabase-mcp", author: "supabase", category: "data",
+    description: "Manage your Supabase project. Run SQL, manage tables and migrations, branches, and edge functions.",
+    long_description: "The official Supabase MCP lets agents query and manage a Supabase project: execute SQL, design tables, run migrations, manage database branches, and deploy edge functions — your Postgres backend, agent-ready.",
+    installs: 47000, rating: 4.8, rating_count: 260, price_type: "free", verified: 1, trending: 1,
+    weekly_growth: "+33%", repo_url: "https://github.com/supabase-community/supabase-mcp", license: "Apache-2.0",
+    tags: ["supabase", "postgres", "database", "backend"] }),
+  S({ name: "Fetch MCP", slug: "fetch-mcp", author: "modelcontextprotocol", category: "data",
+    description: "Fetch any URL and convert it to clean markdown for the model. The simplest way to give agents the web.",
+    long_description: "The Fetch reference server retrieves web pages and converts HTML to clean, readable markdown the model can actually use — with content chunking for large pages.",
+    installs: 71000, rating: 4.7, rating_count: 360, price_type: "free", verified: 1, trending: 1,
+    weekly_growth: "+18%", repo_url: "https://github.com/modelcontextprotocol/servers", license: "MIT",
+    tags: ["fetch", "web", "markdown", "reference"] }),
+  S({ name: "Firecrawl MCP", slug: "firecrawl-mcp", author: "firecrawl", category: "data",
+    description: "Scrape, crawl, and search the web into clean markdown at scale. Handles JS, pagination, and anti-bot.",
+    long_description: "Firecrawl MCP turns whole websites into LLM-ready markdown — crawl entire domains, scrape single pages, run structured extraction, and search — handling JavaScript rendering and rate limits for you.",
+    installs: 58000, rating: 4.8, rating_count: 300, price_type: "paid", price_amount: 1600, verified: 1, trending: 1,
+    weekly_growth: "+37%", repo_url: "https://github.com/mendableai/firecrawl-mcp-server", license: "MIT",
+    tags: ["scraping", "crawl", "web", "markdown"] }),
+  S({ name: "Exa Search MCP", slug: "exa-search-mcp", author: "exalabs", category: "data",
+    description: "Neural web search built for AI. Semantic search, direct answers, and full-content retrieval.",
+    long_description: "Exa MCP gives agents a search engine designed for LLMs: embeddings-based semantic search, direct answers with citations, and full-page content retrieval — far cleaner than scraping a SERP.",
+    installs: 35000, rating: 4.7, rating_count: 180, price_type: "paid", price_amount: 1000, verified: 1, trending: 1,
+    weekly_growth: "+26%", repo_url: "https://github.com/exa-labs/exa-mcp-server", license: "MIT",
+    tags: ["search", "web", "neural", "research"] }),
+  S({ name: "Tavily MCP", slug: "tavily-mcp", author: "tavily", category: "data",
+    description: "Search and extract for agents. Real-time web results optimized for RAG and research workflows.",
+    long_description: "Tavily MCP provides agent-tuned web search and content extraction with relevance scoring and source control — purpose-built for retrieval-augmented generation.",
+    installs: 27000, rating: 4.6, rating_count: 140, price_type: "paid", price_amount: 900, verified: 1, trending: 0,
+    weekly_growth: "+15%", repo_url: "https://github.com/tavily-ai/tavily-mcp", license: "MIT",
+    tags: ["search", "rag", "research", "web"] }),
+  S({ name: "Redis MCP", slug: "redis-mcp", author: "redis", category: "data",
+    description: "Official Redis server. Work with strings, hashes, streams, pub/sub, and vector search from your agent.",
+    long_description: "The official Redis MCP lets agents read and write all Redis data types, use pub/sub and streams, and run vector similarity search — fast caching and real-time data for AI apps.",
+    installs: 29000, rating: 4.6, rating_count: 130, price_type: "free", verified: 1, trending: 0,
+    weekly_growth: "+11%", repo_url: "https://github.com/redis/mcp-redis", license: "MIT",
+    tags: ["redis", "cache", "pubsub", "vector"] }),
+  S({ name: "MongoDB MCP", slug: "mongodb-mcp", author: "mongodb", category: "data",
+    description: "Official MongoDB server. Query collections, run aggregations, and manage Atlas clusters with natural language.",
+    long_description: "The official MongoDB MCP connects agents to MongoDB and Atlas: find and aggregate documents, inspect schemas and indexes, and manage clusters — with read-only mode for safety.",
+    installs: 31000, rating: 4.6, rating_count: 150, price_type: "free", verified: 1, trending: 0,
+    weekly_growth: "+13%", repo_url: "https://github.com/mongodb-js/mongodb-mcp-server", license: "Apache-2.0",
+    tags: ["mongodb", "database", "nosql", "atlas"] }),
+  S({ name: "Qdrant MCP", slug: "qdrant-mcp", author: "qdrant", category: "data",
+    description: "Official vector database server. Store and semantically search embeddings — give your agent long-term recall.",
+    long_description: "Qdrant MCP turns a Qdrant vector database into a memory and retrieval layer: store embeddings with payloads and run semantic similarity search for RAG and agent memory.",
+    installs: 16000, rating: 4.5, rating_count: 70, price_type: "free", verified: 1, trending: 0,
+    weekly_growth: "+10%", repo_url: "https://github.com/qdrant/mcp-server-qdrant", license: "Apache-2.0",
+    tags: ["vector", "embeddings", "search", "rag"] }),
+
+  // ── Business ───────────────────────────────────────────────────────────────
+  S({ name: "Notion MCP", slug: "notion-mcp", author: "notion", category: "business",
+    description: "Official Notion server. Read and write pages, query databases, and keep your workspace in sync with AI.",
+    long_description: "Notion's official MCP lets agents fully work your workspace: create and edit pages and blocks, query and update databases, and search — turning Notion into an agent-writable knowledge base.",
+    installs: 52000, rating: 4.7, rating_count: 280, price_type: "free", verified: 1, trending: 1,
+    weekly_growth: "+28%", repo_url: "https://github.com/makenotion/notion-mcp-server", license: "MIT",
+    tags: ["notion", "docs", "productivity", "wiki"] }),
+  S({ name: "Stripe MCP", slug: "stripe-mcp", author: "stripe", category: "business",
+    description: "Official Stripe Agent Toolkit. Create customers, payments, invoices, and subscriptions through your agent.",
+    long_description: "Stripe's official agent toolkit exposes the Stripe API over MCP: manage customers, create payment links and invoices, handle subscriptions, and query balances — with test-mode support for safe development.",
+    installs: 41000, rating: 4.8, rating_count: 230, price_type: "free", verified: 1, trending: 1,
+    weekly_growth: "+21%", repo_url: "https://github.com/stripe/agent-toolkit", license: "MIT",
+    tags: ["payments", "stripe", "billing", "subscriptions"] }),
+  S({ name: "Slack MCP", slug: "slack-mcp", author: "modelcontextprotocol", category: "business",
+    description: "Send and read Slack messages, manage channels, and summarize threads — your agent in the team chat.",
+    long_description: "Slack MCP lets agents post and read messages, list and manage channels, react, and summarize conversations — automating standups, alerts, and team updates.",
+    installs: 44000, rating: 4.6, rating_count: 240, price_type: "free", verified: 1, trending: 0,
+    weekly_growth: "+12%", repo_url: "https://github.com/modelcontextprotocol/servers", license: "MIT",
+    tags: ["slack", "chat", "messaging", "team"] }),
+  S({ name: "Linear MCP", slug: "linear-mcp", author: "sooperset", category: "business",
+    description: "Manage Linear issues, projects, and cycles. Create tickets, triage, and report from natural language.",
+    long_description: "Linear MCP connects agents to your Linear workspace: create and update issues, manage projects and cycles, assign and label, and generate status reports — engineering project management, automated.",
+    installs: 36000, rating: 4.7, rating_count: 170, price_type: "free", verified: 1, trending: 1,
+    weekly_growth: "+24%", repo_url: "https://github.com/jerhadf/linear-mcp-server", license: "MIT",
+    tags: ["linear", "issues", "project-management", "tickets"] }),
+  S({ name: "Atlassian MCP", slug: "atlassian-mcp", author: "sooperset", category: "business",
+    description: "Jira + Confluence for agents. Create and search issues, update tickets, and read/write Confluence pages.",
+    long_description: "A popular community MCP for Atlassian: search and manage Jira issues, transition tickets, and read and write Confluence pages — works with both Cloud and Server/Data Center.",
+    installs: 28000, rating: 4.5, rating_count: 130, price_type: "free", verified: 0, trending: 0,
+    weekly_growth: "+9%", repo_url: "https://github.com/sooperset/mcp-atlassian", license: "MIT",
+    tags: ["jira", "confluence", "atlassian", "tickets"] }),
+
+  // ── Creative ───────────────────────────────────────────────────────────────
+  S({ name: "Blender MCP", slug: "blender-mcp", author: "ahujasid", category: "creative",
+    description: "Control Blender with natural language. Model, texture, and compose 3D scenes through your agent — viral hit.",
+    long_description: "Blender MCP connects Claude to Blender so you can create and modify 3D scenes conversationally: add and transform objects, apply materials, import assets, and render — the project that put MCP on the map for 3D artists.",
+    installs: 49000, rating: 4.8, rating_count: 260, price_type: "free", verified: 1, trending: 1,
+    weekly_growth: "+35%", repo_url: "https://github.com/ahujasid/blender-mcp", license: "MIT",
+    tags: ["blender", "3d", "modeling", "creative"] }),
+  S({ name: "Figma Context MCP", slug: "figma-context-mcp", author: "glips", category: "creative",
+    description: "Give your coding agent Figma context. Pull frames, layout, and design tokens to generate accurate UI code.",
+    long_description: "Framelink's Figma MCP feeds design data — layout, styles, components, and tokens — straight into coding agents like Cursor, so generated UI actually matches the design instead of guessing.",
+    installs: 44000, rating: 4.7, rating_count: 220, price_type: "free", verified: 1, trending: 1,
+    weekly_growth: "+31%", repo_url: "https://github.com/GLips/Figma-Context-MCP", license: "MIT",
+    tags: ["figma", "design", "ui", "frontend"] }),
+  S({ name: "ElevenLabs MCP", slug: "elevenlabs-mcp", author: "elevenlabs", category: "creative",
+    description: "Official ElevenLabs server. Generate speech, clone voices, and transcribe audio from your agent.",
+    long_description: "The official ElevenLabs MCP gives agents text-to-speech with lifelike voices, voice cloning and design, sound effects, and speech-to-text — full audio generation in your workflow.",
+    installs: 22000, rating: 4.6, rating_count: 110, price_type: "paid", price_amount: 1100, verified: 1, trending: 0,
+    weekly_growth: "+17%", repo_url: "https://github.com/elevenlabs/elevenlabs-mcp", license: "MIT",
+    tags: ["audio", "tts", "voice", "speech"] }),
+
+  // ── Infrastructure ─────────────────────────────────────────────────────────
+  S({ name: "Cloudflare MCP", slug: "cloudflare-mcp", author: "cloudflare", category: "infra",
+    description: "Official Cloudflare servers. Manage Workers, KV, D1, R2, and read analytics across your account.",
+    long_description: "Cloudflare's official MCP suite lets agents build and operate on the edge: deploy and configure Workers, query D1 databases, manage KV and R2 storage, and pull observability data.",
+    installs: 45000, rating: 4.7, rating_count: 240, price_type: "free", verified: 1, trending: 1,
+    weekly_growth: "+23%", repo_url: "https://github.com/cloudflare/mcp-server-cloudflare", license: "Apache-2.0",
+    tags: ["cloudflare", "edge", "serverless", "workers"] }),
+  S({ name: "AWS MCP", slug: "aws-mcp", author: "awslabs", category: "infra",
+    description: "Official AWS Labs MCP servers. Query docs, manage resources, estimate costs, and reason about your cloud.",
+    long_description: "AWS Labs' MCP collection brings AWS to agents: authoritative documentation lookup, CDK and Terraform helpers, cost analysis, and service operations across a growing list of AWS products.",
+    installs: 38000, rating: 4.6, rating_count: 200, price_type: "free", verified: 1, trending: 1,
+    weekly_growth: "+20%", repo_url: "https://github.com/awslabs/mcp", license: "Apache-2.0",
+    tags: ["aws", "cloud", "infrastructure", "devops"] }),
+  S({ name: "Sentry MCP", slug: "sentry-mcp", author: "sentry", category: "infra",
+    description: "Official Sentry server. Pull issues and stack traces, triage errors, and get AI root-cause suggestions.",
+    long_description: "Sentry's official MCP surfaces production errors to your agent: fetch issues and events, read stack traces and breadcrumbs, and use Seer for AI-assisted root-cause analysis — debug straight from chat.",
+    installs: 38000, rating: 4.7, rating_count: 190, price_type: "free", verified: 1, trending: 0,
+    weekly_growth: "+16%", repo_url: "https://github.com/getsentry/sentry-mcp", license: "MIT",
+    tags: ["sentry", "errors", "monitoring", "observability"] }),
+  S({ name: "Grafana MCP", slug: "grafana-mcp", author: "grafana", category: "infra",
+    description: "Official Grafana server. Query dashboards, Prometheus/Loki data, and incidents from your agent.",
+    long_description: "Grafana's official MCP lets agents search dashboards, run Prometheus and Loki queries, inspect alerts, and work with incidents and on-call — observability you can converse with.",
+    installs: 21000, rating: 4.5, rating_count: 90, price_type: "free", verified: 1, trending: 0,
+    weekly_growth: "+12%", repo_url: "https://github.com/grafana/mcp-grafana", license: "Apache-2.0",
+    tags: ["grafana", "metrics", "observability", "monitoring"] }),
+  S({ name: "Kubernetes MCP", slug: "kubernetes-mcp", author: "flux159", category: "infra",
+    description: "Operate Kubernetes from chat. Inspect pods, apply manifests, scale deployments, and read logs safely.",
+    long_description: "A widely used community Kubernetes MCP: list and describe resources, apply and diff manifests, scale and roll out deployments, exec and tail logs — kubectl power with a conversational interface.",
+    installs: 26000, rating: 4.5, rating_count: 120, price_type: "free", verified: 0, trending: 0,
+    weekly_growth: "+14%", repo_url: "https://github.com/Flux159/mcp-server-kubernetes", license: "MIT",
+    tags: ["kubernetes", "k8s", "devops", "infrastructure"] }),
+  S({ name: "Time MCP", slug: "time-mcp", author: "modelcontextprotocol", category: "infra",
+    description: "Reference time and timezone server. Current time, conversions, and scheduling math for agents.",
+    long_description: "The Time reference server gives agents reliable time handling: current time in any IANA timezone, conversions between zones, and date math — small but essential for scheduling and reminders.",
+    installs: 30000, rating: 4.6, rating_count: 140, price_type: "free", verified: 1, trending: 0,
+    weekly_growth: "+8%", repo_url: "https://github.com/modelcontextprotocol/servers", license: "MIT",
+    tags: ["time", "timezone", "scheduling", "reference"] }),
+  S({ name: "Chess Analysis MCP", slug: "chess-analysis-mcp", author: "punkpeye", category: "creative",
+    description: "Analyze positions with Stockfish. Best moves, evaluations, and opening theory for chess tools and tutors.",
+    long_description: "Chess Analysis MCP integrates the Stockfish engine: analyze positions by FEN, get best moves at configurable depth, evaluate lines, and generate annotated PGN — great for tutors and analysis apps.",
+    installs: 8400, rating: 4.4, rating_count: 42, price_type: "free", verified: 0, trending: 0,
+    weekly_growth: "+15%", repo_url: "https://github.com/punkpeye/mcp-chess", license: "MIT",
+    tags: ["chess", "stockfish", "games", "strategy"] }),
+];
+
+// ─── Insert servers ───
+
+const GRADIENTS = [
+  "linear-gradient(135deg, #4DFFB4, #4D9FFF)",
+  "linear-gradient(135deg, #9B6DFF, #FF6DB4)",
+  "linear-gradient(135deg, #FF6DB4, #FFAA4D)",
+  "linear-gradient(135deg, #4D9FFF, #4DFFB4)",
+  "linear-gradient(135deg, #FFAA4D, #4D9FFF)",
+  "linear-gradient(135deg, #2563eb, #7c3aed)",
+  "linear-gradient(135deg, #00b4d8, #0077b6)",
+  "linear-gradient(135deg, #f59e0b, #ef4444)",
+  "linear-gradient(135deg, #10b981, #3b82f6)",
 ];
 
 const insertServer = db.prepare(`
@@ -322,35 +339,27 @@ const insertServer = db.prepare(`
     installs, rating, rating_count, price_type, price_amount, price_label,
     verified, trending, gradient, weekly_growth, monthly_revenue,
     repo_url, tags, license, created_at
-  ) VALUES (
-    ?, ?, ?, ?, ?, ?, ?,
-    ?, ?, ?, ?, ?, ?,
-    ?, ?, ?, ?, ?,
-    ?, ?, ?, ?
-  )
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `);
 
-// Common OSI licenses to assign realistically. Verified/established servers get
-// a clear license; newer community ones may be unlicensed (lower trust on purpose).
-const LICENSES = ["MIT", "Apache-2.0", "BSD-3-Clause", "MPL-2.0"];
-
+const slugToId = {};
 for (const [i, s] of servers.entries()) {
-  // Derive a believable age from adoption: more-installed servers are older.
-  // This gives the Trust Score's maturity + license factors real signal instead
-  // of every seed row scoring 0 on both.
-  const ageDays = Math.min(900, Math.round((s.installs || 0) / 60) + 20);
-  const createdAt = new Date(Date.now() - ageDays * 86400_000)
-    .toISOString().replace("T", " ").slice(0, 19);
-  // Verified servers always carry a license; unverified get one ~half the time.
-  const license = s.license
-    ?? (s.verified ? LICENSES[i % LICENSES.length]
-                   : (i % 2 === 0 ? LICENSES[i % LICENSES.length] : null));
+  const id = uuid();
+  slugToId[s.slug] = id;
+  const priceAmount = s.price_type === "paid" ? (s.price_amount || 900) : 0;
+  const priceLabel = s.price_type === "paid" ? `$${(priceAmount / 100).toFixed(0)}/mo` : "free";
+  // Derive a believable age from adoption so the Trust Score's maturity factor
+  // has real signal. Paid, verified tools accrue a little demo revenue.
+  const ageDays = Math.min(900, Math.round((s.installs || 0) / 90) + 25);
+  const createdAt = new Date(Date.now() - ageDays * 86400_000).toISOString().replace("T", " ").slice(0, 19);
+  const monthlyRevenue = s.price_type === "paid" ? Math.round((s.installs || 0) * 0.04) * priceAmount : 0;
+  const author = userByName(s.author);
 
   insertServer.run(
-    s.id, s.name, s.slug, s.author_id, s.category_id, s.description, s.long_description,
-    s.installs, s.rating, s.rating_count, s.price_type, s.price_amount, s.price_label,
-    s.verified, s.trending, s.gradient, s.weekly_growth, s.monthly_revenue,
-    s.repo_url, s.tags, license, createdAt
+    id, s.name, s.slug, author.id, s.category, s.description, s.long_description,
+    s.installs, s.rating, s.rating_count, s.price_type, priceAmount, priceLabel,
+    s.verified ? 1 : 0, s.trending ? 1 : 0, GRADIENTS[i % GRADIENTS.length], s.weekly_growth, monthlyRevenue,
+    s.repo_url, JSON.stringify(s.tags), s.license || null, createdAt
   );
 }
 
@@ -360,28 +369,24 @@ const insertReview = db.prepare(
   `INSERT INTO reviews (id, server_id, user_id, rating, comment) VALUES (?, ?, ?, ?, ?)`
 );
 
-const serverSlugs = servers.reduce((acc, s) => { acc[s.slug] = s.id; return acc; }, {});
-
 const sampleReviews = [
-  { server: "postgres-mcp", user: "marcuswei", rating: 5, comment: "Best database MCP out there. The natural language query translation is incredibly accurate." },
-  { server: "postgres-mcp", user: "emmadavis", rating: 5, comment: "Saved our team hundreds of hours. Schema introspection is a game-changer." },
-  { server: "postgres-mcp", user: "leozhang", rating: 4, comment: "Great tool, just wish it had better support for stored procedures." },
-  { server: "stripe-agent", user: "sarahchen", rating: 5, comment: "PCI compliance guardrails give us peace of mind. Excellent work." },
-  { server: "stripe-agent", user: "jordanlee", rating: 5, comment: "Handles subscription lifecycle flawlessly. Our billing automation is now 100% AI-driven." },
-  { server: "github-actions-plus", user: "marcuswei", rating: 5, comment: "Transformed our CI/CD workflow. The PR review automation alone is worth it." },
-  { server: "github-actions-plus", user: "ninakowalski", rating: 5, comment: "Incredibly well-built. We use it for automated release notes and changelog generation." },
-  { server: "aws-commander", user: "jordanlee", rating: 5, comment: "The cost estimation feature has saved us thousands. Essential for any AWS shop." },
-  { server: "aws-commander", user: "sarahchen", rating: 4, comment: "Comprehensive coverage of AWS services. Safety checks are well-designed." },
-  { server: "figma-bridge", user: "emmadavis", rating: 5, comment: "Design-to-code pipeline is seamless. React component generation is spot-on." },
-  { server: "figma-bridge", user: "leozhang", rating: 4, comment: "Fantastic for extracting design tokens. SVG export could be improved." },
+  { server: "github-mcp-server", user: "microsoft", rating: 5, comment: "Indispensable. Our agents open and review PRs end to end now." },
+  { server: "github-mcp-server", user: "supabase", rating: 5, comment: "The Actions integration is fantastic for release automation." },
+  { server: "playwright-mcp", user: "github", rating: 5, comment: "Accessibility-tree snapshots make automation way more reliable than pixel matching." },
+  { server: "context7", user: "notion", rating: 5, comment: "Stopped the model hallucinating outdated APIs overnight. Essential." },
+  { server: "blender-mcp", user: "figma", rating: 5, comment: "Genuinely magical — describing a scene and watching it build is wild." },
+  { server: "firecrawl-mcp", user: "exalabs", rating: 5, comment: "Best web-to-markdown pipeline. Handles the messy JS sites cleanly." },
+  { server: "supabase-mcp", user: "redis", rating: 5, comment: "Migrations and branches from chat. Our backend work got noticeably faster." },
+  { server: "notion-mcp", user: "stripe", rating: 4, comment: "Great for keeping docs in sync. Database writes are solid." },
+  { server: "memory-mcp", user: "anthropic", rating: 5, comment: "Durable memory across sessions changes what assistants can do." },
+  { server: "cloudflare-mcp", user: "awslabs", rating: 4, comment: "Deploying Workers conversationally is slick. D1 support is handy." },
+  { server: "stripe-mcp", user: "notion", rating: 5, comment: "Test-mode support made wiring up billing painless." },
 ];
 
 for (const r of sampleReviews) {
   const userId = userByName(r.user)?.id;
-  const serverId = serverSlugs[r.server];
-  if (userId && serverId) {
-    insertReview.run(uuid(), serverId, userId, r.rating, r.comment);
-  }
+  const serverId = slugToId[r.server];
+  if (userId && serverId) insertReview.run(uuid(), serverId, userId, r.rating, r.comment);
 }
 
 // ─── Verify counts ───
