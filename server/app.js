@@ -23,11 +23,14 @@ export function createApp() {
 
   app.use(cors({
     origin(origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
+      // Never pass an Error to this callback. A thrown CORS rejection becomes a
+      // 500 from Express's default error handler — and because the Vite build's
+      // <script>/<link> tags carry `crossorigin`, the browser sends an Origin
+      // header even on SAME-ORIGIN asset fetches. A 500 there means the module
+      // never executes and the whole SPA white-screens. Disallowed cross-origin
+      // requests simply receive no CORS headers (the browser blocks them, which
+      // is the intent); same-origin requests don't need the header and succeed.
+      callback(null, !origin || allowedOrigins.includes(origin));
     },
     credentials: true,
   }));
