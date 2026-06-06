@@ -139,6 +139,7 @@ export default function ToolDetail() {
   const [activeTab, setActiveTab] = useState("Overview");
   const [installMsg, setInstallMsg] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutErr, setCheckoutErr] = useState("");
 
   useEffect(() => {
     setLoading(true);
@@ -499,10 +500,15 @@ export default function ToolDetail() {
               onClick={async () => {
                 if (tool.price_type === "paid") {
                   setCheckoutLoading(true);
+                  setCheckoutErr("");
                   try {
                     await toolCheckout(tool.slug);
                   } catch (err) {
-                    alert(`Checkout error: ${err.message}`);
+                    setCheckoutErr(
+                      /onboard/i.test(err.message)
+                        ? "This publisher hasn't enabled payouts yet, so it can't be purchased right now."
+                        : err.message || "Checkout failed. Please try again."
+                    );
                   } finally {
                     setCheckoutLoading(false);
                   }
@@ -517,6 +523,12 @@ export default function ToolDetail() {
             >
               {checkoutLoading ? "Redirecting…" : tool.price_type === "free" ? "Install Tool" : `Subscribe — ${tool.price_label}`}
             </button>
+
+            {checkoutErr && (
+              <p role="alert" style={{ fontSize: "12px", color: "#f87171", textAlign: "center", lineHeight: 1.5, marginBottom: "8px" }}>
+                {checkoutErr}
+              </p>
+            )}
 
             {installMsg && tool.price_type === "free" && (
               <p style={{ fontSize: "12px", color: "#10b981", textAlign: "center", fontFamily: "var(--font-mono)", marginBottom: "8px" }}>
