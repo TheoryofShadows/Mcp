@@ -164,10 +164,10 @@ export default function Submit() {
           <CheckCircle size={28} color="#10b981" />
         </div>
         <h1 style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "26px", marginBottom: "12px" }}>
-          Tool Submitted!
+          Tool Published!
         </h1>
         <p style={{ color: "var(--text-secondary)", fontSize: "15px", lineHeight: 1.65, marginBottom: "32px" }}>
-          Your tool is pending review. Once approved it will appear in the marketplace within 24 hours.
+          Your tool is now live in the marketplace. Find it via search or your dashboard.
         </p>
         <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
           <Link
