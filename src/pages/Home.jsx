@@ -5,20 +5,55 @@ import ToolCard from "../components/ToolCard";
 import CategoryCard from "../components/CategoryCard";
 import { SEED_TOOLS, SEED_CATEGORIES, SEED_STATS } from "../data/seed";
 import { supabase } from "../lib/supabase";
+import { fetchServers, fetchStats, fetchCategories } from "../api/client";
+import RevenueSection from "../components/sections/RevenueSection";
+
+// Map an API server object onto the fields ToolCard/seed expect.
+function normalizeTool(s) {
+  return {
+    ...s,
+    author_name: s.author_display_name || s.author || s.author_name,
+    weekly_growth: s.weeklyGrowth ?? s.weekly_growth,
+    category_id: s.category ?? s.category_id,
+  };
+}
 
 async function loadHomeData() {
-  if (!supabase) return { tools: SEED_TOOLS, stats: SEED_STATS };
+  // Supabase backend (when configured)
+  if (supabase) {
+    try {
+      const { data: tools } = await supabase
+        .from("tools").select("*").eq("published", true)
+        .order("installs", { ascending: false }).limit(6);
+      return { tools: tools?.length ? tools : SEED_TOOLS, stats: SEED_STATS, catCounts: null };
+    } catch {
+      return { tools: SEED_TOOLS, stats: SEED_STATS, catCounts: null };
+    }
+  }
+  // Default deployment: pull live data from the Express API so the homepage
+  // reflects the real catalog (not the bundled seed). Falls back to seed if the
+  // API is unreachable.
   try {
-    const [{ data: tools }] = await Promise.all([
-      supabase.from("tools").select("*").eq("published", true).order("installs", { ascending: false }).limit(6),
-      supabase.from("tools").select("installs.sum(), price_amount.sum()"),
+    const [serversRes, stats, cats] = await Promise.all([
+      fetchServers({ sort: "installs", limit: 6 }),
+      fetchStats(),
+      fetchCategories(),
     ]);
+    const tools = (serversRes.servers || []).map(normalizeTool);
+    const catCounts = {};
+    for (const c of cats || []) catCounts[c.id] = c.count;
     return {
-      tools: tools?.length ? tools : SEED_TOOLS,
-      stats: SEED_STATS,
+      tools: tools.length ? tools : SEED_TOOLS,
+      stats: {
+        total_tools: stats.server_count ?? tools.length,
+        total_installs: stats.total_installs ?? 0,
+        total_revenue: Math.round((stats.total_monthly_revenue ?? 0) / 100), // ¢ → $
+        total_developers: stats.publisher_count ?? 0,
+      },
+      catCounts,
     };
   } catch {
-    return { tools: SEED_TOOLS, stats: SEED_STATS };
+    return { tools: SEED_TOOLS, stats: SEED_STATS, catCounts: null };
   }
 }
 
@@ -26,7 +61,7 @@ const DISPLAY_CATEGORIES = SEED_CATEGORIES.filter((c) => c.id !== "all");
 
 const STAT_ITEMS = [
   { icon: Package,   key: "total_tools",     label: "Tools Published",  format: (v) => v.toLocaleString() },
-  { icon: Download,  key: "total_installs",   label: "Total Installs",   format: (v) => `${(v / 1000).toFixed(0)}K+` },
+  { icon: Download,  key: "total_installs",   label: "Total Installs",   format: (v) => (v >= 1e6 ? `${(v / 1e6).toFixed(1)}M+` : `${(v / 1000).toFixed(0)}K+`) },
   { icon: DollarSign,key: "total_revenue",    label: "Creator Revenue",  format: (v) => `$${(v / 1000).toFixed(1)}K/mo` },
   { icon: Users,     key: "total_developers", label: "Developers",       format: (v) => `${v.toLocaleString()}+` },
 ];
@@ -34,11 +69,16 @@ const STAT_ITEMS = [
 export default function Home() {
   const [search, setSearch] = useState("");
   const [tools, setTools] = useState(SEED_TOOLS);
-  const [stats] = useState(SEED_STATS);
+  const [stats, setStats] = useState(SEED_STATS);
+  const [catCounts, setCatCounts] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    loadHomeData().then(({ tools: t }) => setTools(t));
+    loadHomeData().then(({ tools: t, stats: s, catCounts: cc }) => {
+      setTools(t);
+      if (s) setStats(s);
+      setCatCounts(cc);
+    });
   }, []);
 
   function handleSearch(e) {
@@ -48,7 +88,8 @@ export default function Home() {
   }
 
   const featured = tools.slice(0, 6);
-  const countByCategory = (catId) => SEED_TOOLS.filter((t) => t.category_id === catId).length;
+  const countByCategory = (catId) =>
+    catCounts ? (catCounts[catId] || 0) : SEED_TOOLS.filter((t) => t.category_id === catId).length;
 
   return (
     <main id="main-content">
@@ -108,7 +149,7 @@ export default function Home() {
                 letterSpacing: "0.06em",
               }}
             >
-              {SEED_TOOLS.length} MCP TOOLS &amp; GROWING
+              {stats.total_tools || SEED_TOOLS.length} MCP TOOLS &amp; GROWING
             </span>
           </div>
 
@@ -400,6 +441,9 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      {/* ─── Pricing / Revenue model ──────────────────────────────────────────── */}
+      <RevenueSection onAuthClick={() => navigate("/login")} />
 
       {/* ─── CTA Banner ───────────────────────────────────────────────────────── */}
       <section
