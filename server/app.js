@@ -35,6 +35,31 @@ export function createApp() {
     credentials: true,
   }));
 
+  // Security headers on EVERY response (previously only Express's error handler
+  // emitted any). Deliberately compatible with the app: same-origin scripts
+  // only, React inline styles ('unsafe-inline' for style), and the Google Fonts
+  // the stylesheet @imports. If you later enable Descope/Supabase/Stripe.js,
+  // add their origins to script-src/connect-src.
+  app.use((_req, res, next) => {
+    res.setHeader("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("X-Frame-Options", "DENY");
+    res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+    res.setHeader("Content-Security-Policy", [
+      "default-src 'self'",
+      "base-uri 'self'",
+      "object-src 'none'",
+      "frame-ancestors 'none'",
+      "form-action 'self'",
+      "img-src 'self' data: https:",
+      "script-src 'self'",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com data:",
+      "connect-src 'self' https:",
+    ].join("; "));
+    next();
+  });
+
   // Stripe webhook needs the raw body for signature verification — must be
   // registered BEFORE express.json() consumes and parses the body.
   app.use("/api/payments/stripe/webhook", express.raw({ type: "application/json" }));
