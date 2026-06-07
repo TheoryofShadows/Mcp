@@ -11,7 +11,7 @@ import InstallCommand from "../components/InstallCommand";
 import InstallButtons from "../components/InstallButtons";
 import CapabilitiesWarning from "../components/CapabilitiesWarning";
 import { SEED_TOOLS, SEED_REVIEWS } from "../data/seed";
-import { fetchServer, toolCheckout, recordInstall } from "../api/client";
+import { fetchServer, toolCheckout, recordInstall, reportServer } from "../api/client";
 
 // Normalize the API server shape to the fields this page/seed expect.
 function normalize(s) {
@@ -140,6 +140,27 @@ export default function ToolDetail() {
   const [installMsg, setInstallMsg] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutErr, setCheckoutErr] = useState("");
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportReason, setReportReason] = useState("security");
+  const [reportDetail, setReportDetail] = useState("");
+  const [reportMsg, setReportMsg] = useState("");
+  const [reportBusy, setReportBusy] = useState(false);
+
+  async function submitReport(e) {
+    e.preventDefault();
+    setReportBusy(true);
+    setReportMsg("");
+    try {
+      const res = await reportServer(tool.slug, reportReason, reportDetail);
+      setReportMsg(res.message || "Report received.");
+      setReportDetail("");
+      setReportOpen(false);
+    } catch (err) {
+      setReportMsg(err.message || "Could not submit report.");
+    } finally {
+      setReportBusy(false);
+    }
+  }
 
   useEffect(() => {
     setLoading(true);
@@ -575,6 +596,47 @@ export default function ToolDetail() {
             <InstallCommand command={tool.install_command} label="Quick Install" />
           </div>
         </aside>
+      </div>
+
+      {/* Report / flag — community trust signal */}
+      <div style={{ marginTop: "28px", paddingTop: "20px", borderTop: "1px solid #1a1a1a", textAlign: "center" }}>
+        {reportMsg && !reportOpen ? (
+          <p role="status" style={{ fontSize: "13px", color: "#10b981" }}>{reportMsg}</p>
+        ) : !reportOpen ? (
+          <button
+            onClick={() => { setReportOpen(true); setReportMsg(""); }}
+            style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: "12px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "5px" }}
+          >
+            <AlertCircle size={12} /> Report this server
+          </button>
+        ) : (
+          <form onSubmit={submitReport} style={{ maxWidth: "440px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "10px", textAlign: "left", background: "#111", border: "1px solid #1e1e1e", borderRadius: "12px", padding: "18px" }}>
+            <div style={{ fontSize: "13px", fontWeight: 600 }}>Report this server</div>
+            <select value={reportReason} onChange={(e) => setReportReason(e.target.value)}
+              style={{ padding: "9px 12px", background: "#0d0d0d", border: "1px solid #2a2a2a", borderRadius: "8px", color: "var(--text-primary)", fontSize: "13px" }}>
+              <option value="security">Security concern (e.g., tool poisoning)</option>
+              <option value="malware">Malware or abuse</option>
+              <option value="impersonation">Impersonation / fake publisher</option>
+              <option value="broken">Broken or doesn't work</option>
+              <option value="spam">Spam or low quality</option>
+              <option value="other">Other</option>
+            </select>
+            <textarea value={reportDetail} onChange={(e) => setReportDetail(e.target.value)} rows={3} maxLength={1000}
+              placeholder="Optional details (what's wrong, links, etc.)"
+              style={{ padding: "9px 12px", background: "#0d0d0d", border: "1px solid #2a2a2a", borderRadius: "8px", color: "var(--text-primary)", fontSize: "13px", resize: "vertical", fontFamily: "var(--font-body)" }} />
+            {reportMsg && <p style={{ fontSize: "12px", color: "#f87171" }}>{reportMsg}</p>}
+            <div style={{ display: "flex", gap: "8px" }}>
+              <button type="submit" disabled={reportBusy}
+                style={{ padding: "9px 16px", background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "8px", color: "#f87171", fontSize: "13px", fontWeight: 600, cursor: reportBusy ? "not-allowed" : "pointer" }}>
+                {reportBusy ? "Submitting…" : "Submit report"}
+              </button>
+              <button type="button" onClick={() => setReportOpen(false)}
+                style={{ padding: "9px 16px", background: "transparent", border: "1px solid #2a2a2a", borderRadius: "8px", color: "var(--text-muted)", fontSize: "13px", cursor: "pointer" }}>
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </main>
   );

@@ -345,25 +345,45 @@ export default function MarketplacePage() {
               marginBottom: "8px",
             }}
           >
-            No tools found
+            {hasActiveFilters ? "No tools found" : "No tools yet"}
           </h2>
           <p style={{ color: "var(--text-muted)", fontSize: "14px", marginBottom: "20px" }}>
-            Try adjusting your search or filters
+            {hasActiveFilters
+              ? "Try adjusting your search or filters"
+              : "Be the first to publish an MCP server to the marketplace."}
           </p>
-          <button
-            onClick={clearFilters}
-            style={{
-              padding: "10px 20px",
-              background: "rgba(99,102,241,0.12)",
-              border: "1px solid rgba(99,102,241,0.3)",
-              borderRadius: "8px",
-              color: "#a5b4fc",
-              cursor: "pointer",
-              fontSize: "13px",
-            }}
-          >
-            Clear filters
-          </button>
+          {hasActiveFilters ? (
+            <button
+              onClick={clearFilters}
+              style={{
+                padding: "10px 20px",
+                background: "rgba(99,102,241,0.12)",
+                border: "1px solid rgba(99,102,241,0.3)",
+                borderRadius: "8px",
+                color: "#a5b4fc",
+                cursor: "pointer",
+                fontSize: "13px",
+              }}
+            >
+              Clear filters
+            </button>
+          ) : (
+            <a
+              href="/submit"
+              style={{
+                display: "inline-block",
+                padding: "10px 20px",
+                background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                borderRadius: "8px",
+                color: "#fff",
+                textDecoration: "none",
+                fontSize: "13px",
+                fontWeight: 600,
+              }}
+            >
+              Be the first to publish →
+            </a>
+          )}
         </div>
       ) : (
         <div
