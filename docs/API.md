@@ -294,6 +294,43 @@ Platform-wide aggregates used by the homepage:
 
 ---
 
+## Discover (agent feed)
+
+### `GET /api/discover`
+
+A stable, agent-readable feed of recently published servers with their computed
+trust — built for agents and external tools to poll programmatically.
+
+Query params: `limit` (default 50, max 100), `since` (ISO timestamp, for
+incremental polls). Cached for 5 minutes.
+
+```json
+{
+  "feed": "mcpx-discover",
+  "generated_at": "2026-06-07T00:00:00.000Z",
+  "count": 50,
+  "servers": [
+    {
+      "name": "GitHub MCP Server",
+      "slug": "github-mcp-server",
+      "url": "https://www.mcpx.digital/tool/github-mcp-server",
+      "trust_url": "https://www.mcpx.digital/api/servers/github-mcp-server/trust",
+      "repo_url": "https://github.com/github/github-mcp-server",
+      "category": "dev",
+      "price_type": "free",
+      "installs": 142000,
+      "rating": 4.9,
+      "verified": true,
+      "tags": ["github", "git"],
+      "trust": { "score": 95, "tier": "official", "confidence": "high" },
+      "created_at": "…", "updated_at": "…"
+    }
+  ]
+}
+```
+
+---
+
 ## Tiers
 
 ### `GET /tiers`
