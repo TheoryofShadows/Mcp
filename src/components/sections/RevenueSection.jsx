@@ -2,12 +2,14 @@ import { useState } from "react";
 import { useTiers } from "../../hooks/useTiers";
 import { subscribeTier } from "../../api/client";
 import { useAuth } from "../../hooks/useAuth";
+import { AlertCircle, CheckCircle } from "lucide-react";
 
 export default function RevenueSection({ onAuthClick }) {
   const { user } = useAuth();
   const { tiers, revenue_projections, loading } = useTiers();
   const [subscribing, setSubscribing] = useState(null);
   const [subscribeMsg, setSubscribeMsg] = useState("");
+  const [subscribeError, setSubscribeError] = useState("");
 
   async function handleSubscribe(tierId) {
     if (!user) {
@@ -16,11 +18,19 @@ export default function RevenueSection({ onAuthClick }) {
     }
     setSubscribing(tierId);
     setSubscribeMsg("");
+    setSubscribeError("");
     try {
       const res = await subscribeTier(tierId);
-      setSubscribeMsg(res.message);
+      if (res?.message) setSubscribeMsg(res.message);
+      // null means we redirected to Stripe — do nothing
     } catch (err) {
-      setSubscribeMsg(err.message);
+      const msg = err.message || "Something went wrong";
+      // Surface Stripe activation errors clearly
+      if (msg.toLowerCase().includes("not activated") || msg.toLowerCase().includes("live")) {
+        setSubscribeError("Stripe account is not yet activated for live payments. Visit your Stripe dashboard to complete activation.");
+      } else {
+        setSubscribeError(msg);
+      }
     } finally {
       setSubscribing(null);
     }
@@ -154,20 +164,37 @@ export default function RevenueSection({ onAuthClick }) {
         </div>
       )}
 
-      {/* Subscribe confirmation */}
+      {/* Subscribe feedback */}
       {subscribeMsg && (
         <div style={{
-          textAlign: "center",
+          display: "flex", alignItems: "center", gap: "10px",
           padding: "var(--space-sm) var(--space-md)",
           marginBottom: "var(--space-md)",
-          background: "rgba(77, 255, 180, 0.08)",
-          border: "1px solid rgba(77, 255, 180, 0.2)",
+          background: "rgba(16, 185, 129, 0.08)",
+          border: "1px solid rgba(16, 185, 129, 0.2)",
           borderRadius: "var(--radius-lg)",
           fontFamily: "var(--font-mono)",
           fontSize: "var(--font-sm)",
-          color: "var(--accent-electric)",
+          color: "#10b981",
         }}>
+          <CheckCircle size={14} style={{ flexShrink: 0 }} />
           {subscribeMsg}
+        </div>
+      )}
+      {subscribeError && (
+        <div style={{
+          display: "flex", alignItems: "flex-start", gap: "10px",
+          padding: "var(--space-sm) var(--space-md)",
+          marginBottom: "var(--space-md)",
+          background: "rgba(239, 68, 68, 0.08)",
+          border: "1px solid rgba(239, 68, 68, 0.2)",
+          borderRadius: "var(--radius-lg)",
+          fontFamily: "var(--font-mono)",
+          fontSize: "var(--font-sm)",
+          color: "#f87171",
+        }}>
+          <AlertCircle size={14} style={{ flexShrink: 0, marginTop: "1px" }} />
+          {subscribeError}
         </div>
       )}
 
