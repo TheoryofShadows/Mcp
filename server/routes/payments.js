@@ -206,13 +206,10 @@ router.get("/stripe/connect", requireAuth, async (req, res) => {
     if (!accountId) {
       // Create an Express connected account per the SaaS quickstart:
       // https://docs.stripe.com/connect/saas/quickstart
+      // Stripe requirement: when requirement_collection is "application",
+      // dashboard must be "none" and fees/losses must also be platform-controlled.
       const account = await stripe.accounts.create({
-        controller: {
-          stripe_dashboard: { type: "express" },
-          fees:             { payer: "application" },     // platform pays Stripe fees
-          losses:           { payments: "application" },  // platform covers disputes
-          requirement_collection: "application",          // platform drives onboarding
-        },
+        type: "express",
         capabilities: {
           card_payments: { requested: true },
           transfers:     { requested: true },
