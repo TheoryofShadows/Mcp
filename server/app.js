@@ -9,6 +9,7 @@ import statsRoutes from "./routes/stats.js";
 import tierRoutes from "./routes/tiers.js";
 import paymentRoutes from "./routes/payments.js";
 import adminRoutes from "./routes/admin.js";
+import discoverRoutes from "./routes/discover.js";
 
 export function createApp() {
   const app = express();
@@ -70,6 +71,7 @@ export function createApp() {
 
   app.use("/api/auth", authRoutes);
   app.use("/api/servers", serverRoutes);
+  app.use("/api/discover", discoverRoutes);
   app.use("/api/categories", categoryRoutes);
   app.use("/api/stats", statsRoutes);
   app.use("/api/tiers", tierRoutes);
