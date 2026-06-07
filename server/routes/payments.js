@@ -243,7 +243,7 @@ router.get("/stripe/connect", requireAuth, async (req, res) => {
     res.json({ onboarding_url: accountLink.url, account_id: accountId });
   } catch (err) {
     console.error("[stripe] connect error:", err.message);
-    res.status(500).json({ error: "Failed to create Connect account" });
+    res.status(500).json({ error: "Failed to create Connect account", detail: err.message });
   }
 });
 
