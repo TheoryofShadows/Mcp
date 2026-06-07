@@ -164,7 +164,21 @@ export function computeTrust(server, now = Date.now()) {
     ? [{ key: "risk", label: "Risk review", points: penalty.points, reason: penalty.reason }]
     : [];
 
-  const raw = factors.reduce((sum, f) => sum + f.points, 0) + penalty.points;
+  // Community reports lower trust. Unreviewed ("open") flags only — an admin
+  // dismissing a flag removes its penalty. Capped so a couple of malicious
+  // reports can't zero out an otherwise-strong server (rate-limited too).
+  const openFlags = Number(server.open_flags) || 0;
+  const flagPenalty = openFlags > 0 ? Math.min(20, openFlags * 5) : 0;
+  if (flagPenalty > 0) {
+    penalties.push({
+      key: "flags",
+      label: "User reports",
+      points: -flagPenalty,
+      reason: `${openFlags} open user report${openFlags > 1 ? "s" : ""} pending review`,
+    });
+  }
+
+  const raw = factors.reduce((sum, f) => sum + f.points, 0) + penalty.points - flagPenalty;
   const score = Math.max(0, Math.min(100, Math.round(raw)));
 
   // Confidence reflects how many signals we actually had to work with.

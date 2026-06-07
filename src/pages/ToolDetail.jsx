@@ -344,6 +344,14 @@ export default function ToolDetail() {
             )}
           </div>
 
+          {/* Prominent capability / risk warning — surfaced before the tabs so it
+              can't be missed for tools that touch sensitive surfaces. */}
+          {(tool.risk_level === "high" || tool.risk_level === "medium") && (
+            <div style={{ marginBottom: "20px" }}>
+              <CapabilitiesWarning capabilities={tool.capabilities} riskLevel={tool.risk_level} />
+            </div>
+          )}
+
           {/* Tabs */}
           <div role="tablist" aria-label="Tool details" style={{ display: "flex", gap: "2px", marginBottom: "20px", background: "#0d0d0d", borderRadius: "10px", padding: "4px", border: "1px solid #1a1a1a" }}>
             {TABS.map((tab) => (
