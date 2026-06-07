@@ -1,125 +1,121 @@
-# MCPX — The Marketplace for AI Agent Tools (MCP Servers)
+# MCPX — The Marketplace for AI Agent Tools
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-6366f1.svg)](LICENSE)
-[![Node.js](https://img.shields.io/badge/Node.js-20%2B-green.svg)](https://nodejs.org)
-[![React](https://img.shields.io/badge/React-19-61dafb.svg)](https://react.dev)
-[![Vite](https://img.shields.io/badge/Vite-7-646cff.svg)](https://vitejs.dev)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/TheoryofShadows/Mcp/pulls)
+[![Live](https://img.shields.io/badge/Live-www.mcpx.digital-4DFFB4?style=flat-square&logo=globe&logoColor=black)](https://www.mcpx.digital)
+[![License: MIT](https://img.shields.io/badge/License-MIT-6366f1?style=flat-square)](LICENSE)
+[![Node.js](https://img.shields.io/badge/Node.js-20%2B-43853d?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org)
+[![React](https://img.shields.io/badge/React-19-61dafb?style=flat-square&logo=react&logoColor=black)](https://react.dev)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square)](https://github.com/TheoryofShadows/Mcp/pulls)
 
-> **npm + Product Hunt for Model Context Protocol servers** — discover, install,
-> publish, and monetize the MCP servers that supercharge Claude, Cursor, and
-> VS Code.
+> **Discover, install, publish, and get paid for Model Context Protocol servers** — the tools that give Claude, Cursor, and VS Code real-world capabilities.
 
-- 🌐 **Live app:** **[www.mcpx.digital](https://www.mcpx.digital)**
-- 🧪 **Demo (GitHub Pages):** **[theoryofshadows.github.io/Mcp](https://theoryofshadows.github.io/Mcp/)** — the real UI on sample data
-- 📚 **Docs:** **[docs/](docs/README.md)**
+**[www.mcpx.digital](https://www.mcpx.digital)** · [Demo (GitHub Pages)](https://theoryofshadows.github.io/Mcp/) · [Docs](docs/README.md)
 
 ---
 
-## 📖 Documentation — find your angle
+## What is this?
 
-Full docs live in **[`docs/`](docs/README.md)**. Jump straight to what you need:
+[Model Context Protocol (MCP)](https://modelcontextprotocol.io) is the open standard — backed by Anthropic, OpenAI, Google, Microsoft, and donated to the Linux Foundation — that lets AI agents connect to real tools: databases, APIs, browsers, file systems, cloud services.
 
-| You are… | Read |
-|----------|------|
-| 🧑‍💻 **A user** installing MCP tools | **[Users Guide](docs/USERS.md)** |
-| 🏪 **A publisher / seller** | **[Publishing & Monetization](docs/PUBLISHING.md)** |
-| 🔌 **A developer / integrator** | **[API Reference](docs/API.md)** |
-| 🛠️ **A contributor** | **[Architecture](docs/ARCHITECTURE.md)** · **[Contributing](CONTRIBUTING.md)** |
-| 🚀 **An operator** self-hosting | **[Deployment](docs/DEPLOYMENT.md)** |
-| 🔐 **Security-minded** | **[Trust & Security](docs/TRUST.md)** · **[Security Policy](SECURITY.md)** |
-| ❓ **Curious** | **[FAQ](docs/FAQ.md)** |
-
----
-
-## What is MCPX?
-
-[Model Context Protocol (MCP)](https://modelcontextprotocol.io) is the open
-standard that lets AI agents like Claude connect to real tools — databases,
-APIs, file systems, cloud services, and more. **MCPX is the central registry**
-where developers publish MCP servers and AI power-users find the best ones.
+There are thousands of MCP servers. Most people don't know they exist, can't tell which ones are safe, and have no easy way to install them. **MCPX fixes that.**
 
 ```
- Claude / Cursor / VS Code
+ Your AI (Claude / Cursor / VS Code)
           │
           ▼
-        MCPX  ──▶  GitHub MCP    ──▶  opens PRs for you
-          │   ──▶  Postgres MCP   ──▶  queries your database
-          │   ──▶  Playwright MCP ──▶  drives a browser
-          └ …and a growing catalog more
+        MCPX  ──▶  GitHub MCP     ──▶  opens pull requests for you
+          │   ──▶  Playwright MCP  ──▶  drives a real browser
+          │   ──▶  Postgres MCP    ──▶  queries your database
+          │   ──▶  Stripe MCP      ──▶  handles payments
+          └── …34 servers today and growing
 ```
 
-What sets it apart from a flat list:
+---
 
-- **Computed, transparent [Trust Score](docs/TRUST.md)** (0–100) on every
-  server — from real signals (source, license, adoption, reviews, maturity,
-  sensitive-capability risk), with a `/api/servers/:slug/trust` endpoint agents
-  can query *before* installing.
-- **One-click install** commands for Claude Desktop, Cursor, and VS Code.
-- **Built-in monetization** — charge for tools, get paid via Stripe Connect
-  (publishers keep 85%, platform fee 15%).
+## Why MCPX exists
+
+Three problems no one else is solving well:
+
+**1. Discovery is broken.** There are flat directories with 20,000+ servers, zero curation, and no way to know which ones actually work or are safe to run.
+
+**2. Trust is missing.** Real CVEs have hit MCP servers — tool poisoning, RCE, supply-chain backdoors, cross-tenant exposure. An "official" badge means nothing when it's manually toggled. MCPX computes a **Trust Score (0–100)** from verifiable signals: source provenance, license clarity, adoption, reviews, maturity, and sensitive-capability risk. You can query it via API before you install anything.
+
+**3. Builders can't make money.** If you build a great MCP server today, your monetization options are: nothing, or setting up your own Stripe account and hoping people find you. MCPX gives publishers a built-in payment rail — set a price, connect Stripe, start earning. The platform takes 15%; you keep 85%.
 
 ---
 
 ## Features
 
-- **Discover** — search and filter by category, rating, price, and verification.
-- **One-Click Install** — copy exact `claude mcp add`, Cursor, and VS Code config.
-- **Trust badges** — Official / Verified / Community / Caution, computed not guessed.
-- **Safety warnings** — capability and risk levels on every detail page.
-- **Live stats** — installs, ratings, weekly growth, creator revenue.
-- **Publish & monetize** — submit tools; Stripe Connect payouts for paid ones.
-- **Reviews** — authenticated star ratings that feed the Trust Score.
-- **Resilient & accessible** — degrades to seed data offline; screen-reader and
-  reduced-motion friendly; hardened for older mobile browsers.
+### For users
+- **Search and filter** by category, rating, price, and verified status
+- **One-click install commands** — copy exact config for Claude Desktop, Cursor, and VS Code
+- **Trust badges** — Official / Verified / Community / Caution, computed not guessed
+- **Capability warnings** — know what permissions a server needs before you install
+- **Live stats** — real install counts, ratings, and weekly growth
+
+### For publishers
+- **Submit any MCP server** — free to list, takes minutes
+- **Charge for your work** — set a price, Stripe handles checkout and payouts
+- **Publisher analytics** — installs, revenue, ratings in one dashboard
+- **Verification path** — get the Verified badge and surface higher in search
+
+### For the ecosystem
+- **Machine-readable Trust API** — `/api/servers/:slug/trust` returns a full breakdown agents can query before installing
+- **Open catalog API** — `/api/servers` is public; build integrations, CLIs, and tooling on top
 
 ---
 
-## Quick start — local dev
+## Pricing
+
+| Plan | Price | Who it's for |
+|------|-------|-------------|
+| **Starter** | Free | Individual devs getting started. 5 servers, 1,000 API calls/month, community support, basic analytics. |
+| **Pro Publisher** | $29/mo | Serious publishers building a business. Unlimited servers, priority listing, revenue analytics dashboard, custom branding, webhook integrations. |
+| **Enterprise** | $499/mo | Teams and organizations at scale. Private marketplace, team management, SSO/SAML, SLA (99.9% uptime), dedicated support engineer, custom contracts. |
+
+**Publisher payouts:** The platform takes **15%** on paid tool sales. You keep **85%**. Payouts go directly to your Stripe Connect account — no minimum, no delays.
+
+---
+
+## Quick start
 
 ```bash
 git clone https://github.com/TheoryofShadows/Mcp.git
 cd Mcp
 npm install
-cp .env.example .env       # set JWT_SECRET for anything non-trivial
-npm run seed               # sample catalog
-npm run dev                # Vite (5173) + Express (3001)
+cp .env.example .env        # fill in JWT_SECRET at minimum
+npm run dev                 # Vite on :5173 + Express API on :3001
 ```
 
-Open **http://localhost:5173**. Demo account: `dev@mcpx.dev` / `demo1234`.
-Requires **Node ≥ 20**. Full setup in [CONTRIBUTING.md](CONTRIBUTING.md).
+`npm run dev` auto-loads your `.env`. Requires **Node ≥ 20**. The database is SQLite — no external services needed. On first boot with an empty DB it seeds automatically (27 users, 7 categories, 34 servers).
+
+Demo account: `dev@mcpx.dev` / `demo1234`
+
+Full setup in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
 
 ## Deploy your own
 
-MCPX is a **React SPA + Express API + SQLite**, and Express can serve the SPA
-itself — so the simplest, recommended deployment is **one Railway service**
-hosting frontend, API, and database together (no second platform, no CORS).
+MCPX is a **React SPA + Express API + SQLite** — Express serves the SPA itself, so you deploy **one service** that handles everything.
 
 ```bash
-# any Node host
 npm run build
-NODE_ENV=production npm start    # Express serves dist/ AND /api on one port
+NODE_ENV=production DB_PATH=/data/mcpx.db JWT_SECRET=<secret> npm start
 ```
 
-Minimum production env: `NODE_ENV=production`, `DB_PATH=/data/mcpx.db` (with a
-mounted volume), `JWT_SECRET`. Step-by-step Railway setup, the advanced
-split-hosting alternative, and the full env-var table are in
-**[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
+**Recommended: Railway** (one-click, auto-deploys from `main`). Full instructions in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ```bash
-curl https://YOUR-APP.up.railway.app/api/health   # → {"status":"ok",...}
+curl https://your-app.railway.app/api/health   # → {"status":"ok","timestamp":"..."}
 ```
 
-> The live site deploys from **`main`** via Railway — a change isn't live until
-> it's merged to `main`.
+Minimum production env vars: `NODE_ENV=production`, `JWT_SECRET`, `DB_PATH` (with a mounted volume so data survives redeploys).
 
 ---
 
-## One-click install examples
+## Install command examples
 
-Every server page generates ready-to-run commands. A taste:
+Every tool page generates ready-to-run install commands. A sample:
 
 ```bash
 # Claude Desktop / Claude Code
@@ -135,85 +131,133 @@ claude mcp add github -- npx -y @modelcontextprotocol/server-github
 } } }
 ```
 
-More (incl. VS Code `.vscode/mcp.json`) in the [Users Guide](docs/USERS.md).
+More (including VS Code `.vscode/mcp.json`) in the [Users Guide](docs/USERS.md).
 
 ---
 
-## API at a glance
+## API
 
-Full reference: **[docs/API.md](docs/API.md)**.
+The catalog is public. No auth needed for read endpoints.
 
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
-| `GET` | `/api/servers` | — | List / search / filter / sort |
-| `GET` | `/api/servers/:slug` | — | Detail + reviews |
-| `GET` | `/api/servers/:slug/trust` | — | Machine-readable trust report |
+| `GET` | `/api/servers` | — | List, search, filter, sort, paginate |
+| `GET` | `/api/servers/:slug` | — | Full detail + reviews |
+| `GET` | `/api/servers/:slug/trust` | — | Machine-readable Trust Score breakdown |
 | `POST` | `/api/servers` | JWT | Publish a server |
-| `POST` | `/api/servers/:slug/reviews` | JWT | Add a review |
+| `POST` | `/api/servers/:slug/reviews` | JWT | Submit a review |
 | `POST` | `/api/servers/:slug/install` | — | Record an install |
+| `GET` | `/api/categories` | — | All categories with counts |
+| `GET` | `/api/stats` | — | Platform-level stats |
+| `GET` | `/api/tiers` | — | Pricing tiers |
 | `POST` | `/api/auth/register` · `/login` | — | Accounts + JWT |
-| `GET` | `/api/categories` · `/stats` · `/tiers` | — | Catalog metadata |
-| `POST` | `/api/payments/stripe/*` | JWT | Checkout & payouts |
-| `GET/PATCH/DELETE` | `/api/admin/*` | Admin | Moderation |
+| `POST` | `/api/payments/stripe/checkout` | JWT | Subscribe to Pro/Enterprise |
+| `POST` | `/api/payments/stripe/tool-checkout` | JWT | Purchase a paid tool |
+| `GET` | `/api/payments/stripe/connect` | JWT | Onboard as a paid publisher |
+
+Full reference: [docs/API.md](docs/API.md)
+
+---
+
+## The Trust Score
+
+Every server gets a computed score (0–100) built from real, verifiable signals — not a manually-toggled badge:
+
+| Signal | Max points |
+|--------|-----------|
+| Source provenance (public repo on a known host) | 25 |
+| License clarity (recognized OSI license) | 15 |
+| Publisher identity (verified by MCPX) | 20 |
+| Adoption (install count) | 15 |
+| User satisfaction (rating × review count) | 15 |
+| Maturity (days on marketplace) | 10 |
+
+Sensitive capabilities (filesystem, network, secrets) apply a risk flag. The score is exposed at `/api/servers/:slug/trust` so agents and tooling can query it programmatically.
+
+Full breakdown: [docs/TRUST.md](docs/TRUST.md)
+
+---
+
+## Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 19 + Vite 7 |
+| Backend | Express 5 (Node ≥ 20) |
+| Database | SQLite (`better-sqlite3`) — Postgres/Supabase schema also included |
+| Auth | JWT (email/password); GitHub OAuth (Supabase, optional); admin via Descope |
+| Payments | Stripe Connect — destination charges + platform subscriptions |
+| Hosting | Single Railway service (recommended) |
 
 ---
 
 ## Scripts
 
-| Command | Description |
+| Command | What it does |
 |---------|-------------|
-| `npm run dev` | Frontend (Vite) + backend (Express) together |
-| `npm run build` | Production build of the SPA |
-| `npm start` | Start the production server |
-| `npm run seed` | Reset and re-seed the SQLite database |
+| `npm run dev` | Vite + Express together, auto-loads `.env` |
+| `npm run build` | Production SPA build |
+| `npm start` | Production server (serves SPA + API) |
+| `npm run seed` | Reset and re-seed the database |
 | `npm run lint` | ESLint |
-| `npm test` | Vitest unit/integration tests |
+| `npm test` | Vitest tests |
 
 ---
 
-## Project structure
-
-A short map (full version in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)):
+## Project layout
 
 ```
-src/        React 19 SPA  — pages/, components/, hooks/, api/client.js, data/seed.js
-server/     Express 5 API — app.js, routes/, middleware/, lib/trustScore.js, db.js
-docs/       Documentation — users, publishing, API, architecture, deployment, trust
-schema.sql  Supabase/Postgres equivalent schema (RLS + triggers)
-.github/    GitHub Pages demo workflow
+src/          React 19 SPA — pages/, components/, hooks/, api/client.js
+server/       Express 5 API — app.js, routes/, middleware/, lib/trustScore.js, db.js
+docs/         Docs for every audience: users, publishers, API, deployment, trust
+schema.sql    Postgres/Supabase equivalent schema (RLS + triggers)
+.github/      GitHub Pages demo workflow
 ```
+
+Full architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 ---
 
 ## Roadmap
 
-- [x] JWT auth (register/login), listings, search, pagination
-- [x] Reviews & ratings, install tracking, categories
-- [x] Computed Trust Score + transparent breakdown + agent endpoint
-- [x] One-click install (Claude, Cursor, VS Code)
-- [x] Capability & risk warnings
-- [x] Stripe Connect payouts (destination charges) + platform subscriptions
-- [x] GitHub Pages demo + full documentation set
-- [ ] Solana Pay (crypto-native payments) — stubbed
-- [ ] GitHub OAuth login (Supabase) — optional/configurable
-- [ ] Server versioning & changelogs
-- [ ] CLI: `npx mcpx install <server-slug>`
-- [ ] Collections / "MCP stacks" sharing
+- [x] JWT auth, listings, search, pagination
+- [x] Reviews, ratings, install tracking, categories
+- [x] Computed Trust Score + transparent breakdown + agent API endpoint
+- [x] One-click install for Claude, Cursor, VS Code
+- [x] Capability and risk warnings
+- [x] Stripe Connect payouts + Pro/Enterprise platform subscriptions
+- [x] GitHub Pages demo + full documentation
+- [ ] `npx mcpx install <slug>` — CLI installer
+- [ ] Solana Pay — crypto-native payments (stubbed, coming soon)
+- [ ] GitHub OAuth login (Supabase — optional, configurable)
+- [ ] Server versioning and changelogs
+- [ ] MCP stacks — shareable collections of tools
+
+---
+
+## Docs
+
+| You are... | Read |
+|------------|------|
+| A user installing tools | [Users Guide](docs/USERS.md) |
+| A publisher or seller | [Publishing & Monetization](docs/PUBLISHING.md) |
+| A developer calling the API | [API Reference](docs/API.md) |
+| A contributor | [Architecture](docs/ARCHITECTURE.md) · [Contributing](CONTRIBUTING.md) |
+| An operator self-hosting | [Deployment](docs/DEPLOYMENT.md) |
+| Security-minded | [Trust & Security](docs/TRUST.md) · [Security Policy](SECURITY.md) |
 
 ---
 
 ## Contributing
 
-PRs welcome — please open an issue first for anything substantial, and keep
-`lint` + `test` + `build` green. See **[CONTRIBUTING.md](CONTRIBUTING.md)** and
-the **[Code of Conduct](CODE_OF_CONDUCT.md)**. Found a security issue? See
-**[SECURITY.md](SECURITY.md)**.
+Open an issue first for anything substantial. Keep `lint`, `test`, and `build` green. See [CONTRIBUTING.md](CONTRIBUTING.md) and the [Code of Conduct](CODE_OF_CONDUCT.md).
+
+Found a vulnerability? See [SECURITY.md](SECURITY.md).
 
 ---
 
 ## License
 
-MIT © 2026 [TheoryofShadows](https://github.com/TheoryofShadows). See [LICENSE](LICENSE).
+MIT © 2026 [TheoryofShadows](https://github.com/TheoryofShadows)
 
-*Built for the MCP ecosystem. Star the repo if you find it useful!*
-</content>
+*If this is useful, a star goes a long way.*

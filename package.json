@@ -25,9 +25,9 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev": "concurrently \"vite\" \"node server/index.js\"",
-    "dev:client": "vite",
-    "dev:server": "node server/index.js",
+    "dev": "dotenv -e .env -- concurrently \"vite\" \"node server/index.js\"",
+    "dev:client": "dotenv -e .env -- vite",
+    "dev:server": "dotenv -e .env -- node server/index.js",
     "build": "vite build",
     "seed": "node server/seed.js",
     "start": "node server/index.js",
@@ -59,6 +59,7 @@
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "concurrently": "^9.2.1",
+    "dotenv-cli": "^11.0.0",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
