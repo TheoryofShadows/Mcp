@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Zap, ArrowRight, Package, Download, DollarSign, Users } from "lucide-react";
+import { Search, Zap, ArrowRight, Package, Download, DollarSign, Users, ShieldCheck, Bot } from "lucide-react";
 import ToolCard from "../components/ToolCard";
 import CategoryCard from "../components/CategoryCard";
 import { SEED_TOOLS, SEED_CATEGORIES, SEED_STATS } from "../data/seed";
@@ -341,6 +341,46 @@ export default function Home() {
               >
                 {label}
               </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ─── Why MCPX (trust-first value prop) ─────────────────────────────────── */}
+      <section style={{ padding: "64px 24px", maxWidth: "1100px", margin: "0 auto" }}>
+        <div style={{ textAlign: "center", marginBottom: "36px" }}>
+          <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "30px", letterSpacing: "-0.5px", marginBottom: "10px" }}>
+            Why MCPX
+          </h2>
+          <p style={{ fontSize: "15px", color: "var(--text-muted)", maxWidth: "560px", margin: "0 auto", lineHeight: 1.6 }}>
+            The trust-first marketplace for MCP — where safety is <em>computed</em>, not claimed,
+            and builders actually get paid.
+          </p>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" }}>
+          {[
+            {
+              icon: ShieldCheck, color: "#10b981",
+              title: "Trust you can verify",
+              body: "Every server gets a transparent Trust Score (0–100) computed from real signals — source, license, adoption, reviews, and capability risk — with every point explained. Not a badge someone toggled.",
+            },
+            {
+              icon: DollarSign, color: "#6366f1",
+              title: "Builders get paid",
+              body: "List a paid tool and keep 85%. Real Stripe payouts to publishers, not just exposure — monetization is built in, not bolted on.",
+            },
+            {
+              icon: Bot, color: "#a78bfa",
+              title: "Built for agents",
+              body: "Machine-readable trust at /api/servers/:slug/trust and a live discovery feed, so an agent can vet a tool before it installs — plus one-click install for Claude, Cursor, and VS Code.",
+            },
+          ].map(({ icon: Icon, color, title, body }) => (
+            <div key={title} style={{ background: "#111", border: "1px solid #1e1e1e", borderRadius: "16px", padding: "24px" }}>
+              <div style={{ width: 40, height: 40, borderRadius: "10px", background: `${color}18`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "14px" }}>
+                <Icon size={20} color={color} />
+              </div>
+              <h3 style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "17px", marginBottom: "8px" }}>{title}</h3>
+              <p style={{ fontSize: "14px", color: "var(--text-secondary)", lineHeight: 1.6 }}>{body}</p>
             </div>
           ))}
         </div>
