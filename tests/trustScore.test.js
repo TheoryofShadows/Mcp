@@ -125,3 +125,22 @@ describe("trustTier", () => {
     expect(trustTier(20, false)).toBe("caution");
   });
 });
+
+describe("computeTrust — open flags", () => {
+  const base = {
+    repo_url: "https://github.com/acme/x", license: "MIT", verified: 1,
+    installs: 50000, rating: 4.8, rating_count: 120,
+    created_at: new Date("2025-04-01T00:00:00Z").toISOString(), tags: ["data"],
+  };
+  it("lowers the score when there are open user reports", () => {
+    const clean = computeTrust({ ...base, open_flags: 0 });
+    const flagged = computeTrust({ ...base, open_flags: 3 });
+    expect(flagged.score).toBeLessThan(clean.score);
+    expect(flagged.penalties.some((p) => p.key === "flags")).toBe(true);
+  });
+  it("caps the flag penalty at 20", () => {
+    const a = computeTrust({ ...base, open_flags: 4 });
+    const b = computeTrust({ ...base, open_flags: 50 });
+    expect(a.score).toBe(b.score); // both hit the -20 cap
+  });
+});

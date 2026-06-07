@@ -84,7 +84,8 @@ router.get("/", (req, res) => {
       s.*,
       u.username as author_username,
       u.display_name as author_display_name,
-      c.label as category_label
+      c.label as category_label,
+      (SELECT COUNT(*) FROM flags f WHERE f.server_id = s.id AND f.status = 'open') as open_flags
     FROM servers s
     JOIN users u ON s.author_id = u.id
     JOIN categories c ON s.category_id = c.id
@@ -113,7 +114,8 @@ router.get("/:slug", (req, res) => {
       s.*,
       u.username as author_username,
       u.display_name as author_display_name,
-      c.label as category_label
+      c.label as category_label,
+      (SELECT COUNT(*) FROM flags f WHERE f.server_id = s.id AND f.status = 'open') as open_flags
     FROM servers s
     JOIN users u ON s.author_id = u.id
     JOIN categories c ON s.category_id = c.id
@@ -143,6 +145,7 @@ router.get("/:slug/trust", (req, res) => {
   if (!row) {
     return res.status(404).json({ error: "Server not found" });
   }
+  const openFlags = db.prepare("SELECT COUNT(*) c FROM flags WHERE server_id = ? AND status = 'open'").get(row.id).c;
   res.json({
     slug: row.slug,
     name: row.name,
@@ -155,6 +158,7 @@ router.get("/:slug/trust", (req, res) => {
       rating_count: row.rating_count,
       created_at: row.created_at,
       tags: row.tags,
+      open_flags: openFlags,
     }),
   });
 });
@@ -361,7 +365,35 @@ router.post("/:slug/report", (req, res) => {
   res.status(201).json({ success: true, message: "Report received — our team will review it." });
 });
 
+// Map a server's tags onto the capability keys CapabilitiesWarning understands,
+// so the UI can show what powers a tool requests. Heuristic but conservative.
+const TAG_CAPABILITIES = {
+  filesystem: ["file_read", "file_write"], files: ["file_read"], file: ["file_read", "file_write"],
+  shell: ["remote_code_execution"], exec: ["remote_code_execution"], ssh: ["remote_code_execution", "file_transfer"],
+  docker: ["remote_code_execution"], containers: ["remote_code_execution"], kubernetes: ["remote_code_execution"], k8s: ["remote_code_execution"],
+  database: ["database_read", "database_write"], sql: ["database_read"], postgres: ["database_read"], postgresql: ["database_read"],
+  mongodb: ["database_read"], nosql: ["database_read"], redis: ["database_read", "database_write"],
+  payments: ["payment_access"], billing: ["payment_access"], stripe: ["payment_access"],
+  email: ["email_send"], calendar: ["calendar_access"], scheduling: ["calendar_access"], meetings: ["calendar_access"],
+  browser: ["browser_control", "js_execution"], playwright: ["browser_control", "js_execution"], puppeteer: ["browser_control", "js_execution"], chrome: ["browser_control"],
+  scraping: ["network_access", "browser_control"], crawl: ["network_access"], web: ["network_access"], api: ["network_access"], search: ["network_access"], hosting: ["network_access"],
+  credentials: ["file_read"],
+};
+const HIGH_POWER = new Set(["remote_code_execution", "file_write", "database_write", "payment_access", "email_send", "file_transfer"]);
+
+function deriveCapabilities(tags, verified) {
+  const caps = new Set();
+  for (const t of tags) for (const c of (TAG_CAPABILITIES[String(t).toLowerCase()] || [])) caps.add(c);
+  const capabilities = [...caps];
+  if (!capabilities.length) return { capabilities: [], risk_level: null };
+  const highPower = capabilities.some((c) => HIGH_POWER.has(c));
+  const risk_level = highPower ? (verified ? "medium" : "high") : (verified ? "low" : "medium");
+  return { capabilities, risk_level };
+}
+
 function formatServer(row) {
+  const tags = JSON.parse(row.tags || "[]");
+  const { capabilities, risk_level } = deriveCapabilities(tags, !!row.verified);
   return {
     id: row.id,
     name: row.name,
@@ -385,7 +417,10 @@ function formatServer(row) {
     revenue: row.monthly_revenue > 0 ? `$${(row.monthly_revenue / 100).toLocaleString()}/mo` : null,
     repo_url: row.repo_url,
     license: row.license || null,
-    tags: JSON.parse(row.tags || "[]"),
+    tags,
+    capabilities,
+    risk_level,
+    open_flags: row.open_flags || 0,
     status: row.status,
     created_at: row.created_at,
     updated_at: row.updated_at,
@@ -399,6 +434,7 @@ function formatServer(row) {
       rating_count: row.rating_count,
       created_at: row.created_at,
       tags: row.tags,
+      open_flags: row.open_flags || 0,
     }),
   };
 }
