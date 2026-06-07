@@ -214,3 +214,27 @@ describe("POST /api/servers/:slug/install", () => {
     expect(res.status).toBe(404);
   });
 });
+
+describe("POST /api/servers/:slug/report", () => {
+  it("accepts a valid report", async () => {
+    const res = await request(app)
+      .post(`/api/servers/${slug}/report`)
+      .send({ reason: "security", detail: "Looks like it requests broad filesystem access." });
+    expect(res.status).toBe(201);
+    expect(res.body.success).toBe(true);
+  });
+
+  it("rejects an invalid reason", async () => {
+    const res = await request(app)
+      .post(`/api/servers/${slug}/report`)
+      .send({ reason: "not-a-real-reason" });
+    expect(res.status).toBe(400);
+  });
+
+  it("returns 404 reporting an unknown server", async () => {
+    const res = await request(app)
+      .post("/api/servers/does-not-exist-xyz/report")
+      .send({ reason: "spam" });
+    expect(res.status).toBe(404);
+  });
+});

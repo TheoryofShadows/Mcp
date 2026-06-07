@@ -317,6 +317,50 @@ router.post("/:slug/install", (req, res) => {
   res.json({ success: true });
 });
 
+// ─── Reporting / flagging (community trust signal) ───────────────────────────
+const VALID_FLAG_REASONS = ["malware", "impersonation", "broken", "spam", "security", "other"];
+
+// Rate limit: max 8 reports per IP per 10 minutes (abuse guard on a public write)
+const reportRateLimit = new Map();
+const REPORT_WINDOW_MS = 10 * 60_000;
+const REPORT_MAX = 8;
+setInterval(() => {
+  const now = Date.now();
+  for (const [k, v] of reportRateLimit) if (now > v.resetAt) reportRateLimit.delete(k);
+}, 5 * 60_000);
+
+// POST /api/servers/:slug/report — let users flag a server (tool poisoning,
+// impersonation, rug pulls, etc.). Auth optional; attributed if present.
+router.post("/:slug/report", (req, res) => {
+  const ip = req.ip || req.socket?.remoteAddress || "unknown";
+  const now = Date.now();
+  let entry = reportRateLimit.get(ip);
+  if (!entry || now > entry.resetAt) { entry = { count: 0, resetAt: now + REPORT_WINDOW_MS }; reportRateLimit.set(ip, entry); }
+  if (++entry.count > REPORT_MAX) {
+    return res.status(429).json({ error: "Too many reports. Try again later." });
+  }
+
+  const { reason, detail } = req.body || {};
+  if (!reason || !VALID_FLAG_REASONS.includes(reason)) {
+    return res.status(400).json({ error: `reason must be one of: ${VALID_FLAG_REASONS.join(", ")}` });
+  }
+  if (detail && String(detail).length > 1000) {
+    return res.status(400).json({ error: "Detail must be under 1000 characters" });
+  }
+
+  const server = db.prepare("SELECT id, name FROM servers WHERE slug = ?").get(req.params.slug);
+  if (!server) return res.status(404).json({ error: "Server not found" });
+
+  db.prepare(
+    "INSERT INTO flags (id, server_id, user_id, reason, detail) VALUES (?, ?, ?, ?, ?)"
+  ).run(uuid(), server.id, req.user?.id || null, reason, detail ? String(detail).slice(0, 1000) : null);
+
+  // Audit log for a safety-sensitive action.
+  console.log(`[flag] server="${server.name}" reason="${reason}" by=${req.user?.username || "anon"} ip=${ip}`);
+
+  res.status(201).json({ success: true, message: "Report received — our team will review it." });
+});
+
 function formatServer(row) {
   return {
     id: row.id,

@@ -103,6 +103,13 @@ export async function recordInstall(slug) {
   });
 }
 
+export async function reportServer(slug, reason, detail) {
+  return request(`/servers/${encodeURIComponent(slug)}/report`, {
+    method: "POST",
+    body: JSON.stringify({ reason, detail }),
+  });
+}
+
 // ─── Categories ───
 
 export async function fetchCategories() {

@@ -101,12 +101,23 @@ db.exec(`
     expires_at TEXT
   );
 
+  CREATE TABLE IF NOT EXISTS flags (
+    id TEXT PRIMARY KEY,
+    server_id TEXT NOT NULL REFERENCES servers(id) ON DELETE CASCADE,
+    user_id TEXT REFERENCES users(id),
+    reason TEXT NOT NULL,
+    detail TEXT,
+    status TEXT DEFAULT 'open' CHECK(status IN ('open','reviewed','dismissed')),
+    created_at TEXT DEFAULT (datetime('now'))
+  );
+
   CREATE INDEX IF NOT EXISTS idx_servers_category ON servers(category_id);
   CREATE INDEX IF NOT EXISTS idx_servers_author ON servers(author_id);
   CREATE INDEX IF NOT EXISTS idx_servers_status ON servers(status);
   CREATE INDEX IF NOT EXISTS idx_servers_trending ON servers(trending);
   CREATE INDEX IF NOT EXISTS idx_reviews_server ON reviews(server_id);
   CREATE INDEX IF NOT EXISTS idx_installs_server ON installs(server_id);
+  CREATE INDEX IF NOT EXISTS idx_flags_server ON flags(server_id, status);
   CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
   CREATE INDEX IF NOT EXISTS idx_subscriptions_user_status ON subscriptions(user_id, status);
 `);
