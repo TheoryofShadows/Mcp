@@ -321,6 +321,18 @@ router.post("/:slug/install", (req, res) => {
   res.json({ success: true });
 });
 
+// DELETE /api/servers/:slug — a publisher removes their own server.
+// (Admins use the Descope-gated /api/admin route to remove anyone's.)
+router.delete("/:slug", requireAuth, (req, res) => {
+  const server = db.prepare("SELECT id, author_id FROM servers WHERE slug = ?").get(req.params.slug);
+  if (!server) return res.status(404).json({ error: "Server not found" });
+  if (server.author_id !== req.user.id) {
+    return res.status(403).json({ error: "You can only delete your own servers" });
+  }
+  db.prepare("DELETE FROM servers WHERE id = ?").run(server.id); // cascades reviews/installs/flags
+  res.json({ success: true });
+});
+
 // ─── Reporting / flagging (community trust signal) ───────────────────────────
 const VALID_FLAG_REASONS = ["malware", "impersonation", "broken", "spam", "security", "other"];
 

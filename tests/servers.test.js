@@ -215,6 +215,33 @@ describe("POST /api/servers/:slug/install", () => {
   });
 });
 
+describe("DELETE /api/servers/:slug", () => {
+  let delToken, delSlug;
+  beforeAll(async () => {
+    const reg = await request(app).post("/api/auth/register").send({
+      email: "deleter@example.com", username: "deleter", password: "deleterpass",
+    });
+    delToken = reg.body.token;
+    const s = await request(app).post("/api/servers").set("Authorization", `Bearer ${delToken}`)
+      .send({ name: "Deletable Server", category_id: "dev-tools", description: "A server to delete in tests." });
+    delSlug = s.body.slug;
+  });
+  it("rejects deletion by a non-author", async () => {
+    const res = await request(app).delete(`/api/servers/${delSlug}`).set("Authorization", `Bearer ${token}`);
+    expect(res.status).toBe(403);
+  });
+  it("rejects unauthenticated deletion", async () => {
+    const res = await request(app).delete(`/api/servers/${delSlug}`);
+    expect(res.status).toBe(401);
+  });
+  it("lets the author delete their own server", async () => {
+    const res = await request(app).delete(`/api/servers/${delSlug}`).set("Authorization", `Bearer ${delToken}`);
+    expect(res.status).toBe(200);
+    const gone = await request(app).get(`/api/servers/${delSlug}`);
+    expect(gone.status).toBe(404);
+  });
+});
+
 describe("POST /api/servers/:slug/report", () => {
   it("accepts a valid report", async () => {
     const res = await request(app)
