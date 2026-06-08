@@ -23,7 +23,7 @@ async function loadHomeData() {
   if (supabase) {
     try {
       const { data: tools } = await supabase
-        .from("tools").select("*").eq("published", true)
+        .from("servers").select("*").eq("published", true)
         .order("installs", { ascending: false }).limit(6);
       return { tools: tools?.length ? tools : SEED_TOOLS, stats: SEED_STATS, catCounts: null };
     } catch {

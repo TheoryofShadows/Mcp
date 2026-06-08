@@ -54,7 +54,7 @@ async function loadDashboard(user) {
   if (supabase) {
     try {
       const { data: tools } = await supabase
-        .from("tools")
+        .from("servers")
         .select("*")
         .eq("author_id", user.id)
         .order("created_at", { ascending: false });
@@ -66,7 +66,8 @@ async function loadDashboard(user) {
         .filter((t) => t.price_type === "paid")
         .reduce((s, t) => s + (t.revenue_monthly || 0), 0);
 
-      const avgRating = tools.filter((t) => t.rating).reduce((s, t, _, a) => s + t.rating / a.length, 0) || null;
+      const ratedTools = tools.filter((t) => t.rating);
+      const avgRating = ratedTools.length ? ratedTools.reduce((s, t) => s + t.rating, 0) / ratedTools.length : null;
       return {
         tools,
         stats: {
@@ -90,15 +91,16 @@ async function loadDashboard(user) {
 
     const apiTools = (serversData.servers || []).map((s) => ({
       ...s,
-      // Normalize fields to match what the table expects
       author_name: s.author_display_name || s.author,
       category_id: s.category,
-      revenue_monthly: s.price_type === "paid" ? (s.price_amount || 0) : 0,
+      // Parse revenue string like "$500/mo" → 500; null if free
+      revenue_monthly: s.revenue ? Number(s.revenue.replace(/[^0-9.]/g, "")) || 0 : 0,
     }));
 
     const totalMonthlyRevenue = apiTools.reduce((sum, t) => sum + (t.revenue_monthly || 0), 0);
 
-    const avgRating = apiTools.filter((t) => t.rating).reduce((s, t, _, a) => s + t.rating / a.length, 0) || null;
+    const ratedApiTools = apiTools.filter((t) => t.rating);
+    const avgRating = ratedApiTools.length ? ratedApiTools.reduce((s, t) => s + t.rating, 0) / ratedApiTools.length : null;
     return {
       tools: apiTools,
       stats: {

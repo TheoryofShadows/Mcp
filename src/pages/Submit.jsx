@@ -104,7 +104,7 @@ export default function Submit() {
       if (supabase) {
         // Supabase backend (when configured)
         const slug = form.name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-        const { error } = await supabase.from("tools").insert({
+        const { error } = await supabase.from("servers").insert({
           slug,
           name: form.name,
           description: form.description,
@@ -115,7 +115,7 @@ export default function Submit() {
           price_type: form.price_type,
           price_amount: form.price_type === "paid" ? Number(form.price_amount) : null,
           price_label: form.price_type === "paid" ? parsePriceLabel(form.price_amount) : "Free",
-          github_url: githubUrl,
+          repo_url: githubUrl,
           install_command: form.install_command,
           tags,
           gradient: "linear-gradient(135deg, #6366f1, #8b5cf6)",

@@ -17,7 +17,7 @@ function normalize(s) {
 }
 
 // API sort keys differ from the UI's labels.
-const SORT_TO_API = { popular: "installs", newest: "newest", rating: "rating", trending: "trending" };
+const SORT_TO_API = { popular: "installs", newest: "newest", rating: "rating", trending: "installs" };
 
 const SORT_OPTIONS = [
   { value: "popular",  label: "Most Popular" },

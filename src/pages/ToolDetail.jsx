@@ -289,7 +289,7 @@ export default function ToolDetail() {
               <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                 <StarRating rating={tool.rating} size={13} />
                 <span style={{ fontFamily: "var(--font-mono)", fontSize: "13px", color: "var(--text-secondary)" }}>
-                  {tool.rating} ({tool.review_count} reviews)
+                  {tool.rating} ({tool.rating_count} reviews)
                 </span>
               </div>
               {tool.weekly_growth && (
@@ -320,10 +320,10 @@ export default function ToolDetail() {
             </div>
 
             {/* GitHub link */}
-            {tool.github_url && (
+            {tool.repo_url && (
               <div style={{ marginTop: "16px" }}>
                 <a
-                  href={tool.github_url}
+                  href={tool.repo_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
@@ -550,7 +550,7 @@ export default function ToolDetail() {
               onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 0 28px rgba(99,102,241,0.4)")}
               onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "0 0 20px rgba(99,102,241,0.25)")}
             >
-              {checkoutLoading ? "Redirecting…" : tool.price_type === "free" ? "Install Tool" : `Subscribe — ${tool.price_label}`}
+              {checkoutLoading ? "Redirecting…" : tool.price_type === "free" ? "Install Tool" : `Subscribe — ${tool.price_label || tool.price}`}
             </button>
 
             {checkoutErr && (

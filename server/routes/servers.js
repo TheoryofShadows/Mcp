@@ -274,7 +274,7 @@ router.post("/:slug/reviews", requireAuth, (req, res) => {
 
   // Recalculate average rating
   const stats = db.prepare("SELECT AVG(rating) as avg, COUNT(*) as cnt FROM reviews WHERE server_id = ?").get(server.id);
-  db.prepare("UPDATE servers SET rating = ROUND(?, 1), rating_count = ? WHERE id = ?").run(stats.avg, stats.cnt, server.id);
+  db.prepare("UPDATE servers SET rating = COALESCE(ROUND(?, 1), 0), rating_count = ? WHERE id = ?").run(stats.avg, stats.cnt, server.id);
 
   const review = db.prepare(`
     SELECT r.*, u.username, u.display_name
