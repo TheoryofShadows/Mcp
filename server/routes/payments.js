@@ -39,7 +39,7 @@ const stripe = process.env.STRIPE_SECRET_KEY
 // emit) and fall back to the legacy top-level field, since webhook payload shape
 // follows the *endpoint's* API version — which may lag the SDK. Either way we
 // never throw: a missing value yields null ("no expiry"), not new Date(NaN).
-function periodEndISO(subscription) {
+export function periodEndISO(subscription) {
   const end =
     subscription?.items?.data?.[0]?.current_period_end ??
     subscription?.current_period_end;
