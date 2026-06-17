@@ -35,9 +35,14 @@ const stripe = process.env.STRIPE_SECRET_KEY
   : null;
 
 // Current billing period end moved from the Subscription to its items in Basil.
-// Read it off the first item, guarding against an empty items array.
+// Prefer the item-level field (Basil+, what our SDK and recent webhook endpoints
+// emit) and fall back to the legacy top-level field, since webhook payload shape
+// follows the *endpoint's* API version — which may lag the SDK. Either way we
+// never throw: a missing value yields null ("no expiry"), not new Date(NaN).
 function periodEndISO(subscription) {
-  const end = subscription?.items?.data?.[0]?.current_period_end;
+  const end =
+    subscription?.items?.data?.[0]?.current_period_end ??
+    subscription?.current_period_end;
   return end ? new Date(end * 1000).toISOString() : null;
 }
 
