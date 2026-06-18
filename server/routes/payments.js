@@ -26,10 +26,25 @@ const router = Router();
 const APP_URL = process.env.APP_URL || "http://localhost:5173";
 const PLATFORM_FEE_PCT = 0.15; // 15% — publishers keep 85%
 
-// Initialise Stripe client — null when key not configured
+// Initialise Stripe client — null when key not configured.
+// Pin the API version so object shapes can't drift under us on an SDK bump.
+// As of Basil (2025-03-31) and later — which this SDK defaults to — the billing
+// period fields live on the subscription *item*, not the subscription.
 const stripe = process.env.STRIPE_SECRET_KEY
-  ? new Stripe(process.env.STRIPE_SECRET_KEY)
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2026-02-25.clover" })
   : null;
+
+// Current billing period end moved from the Subscription to its items in Basil.
+// Prefer the item-level field (Basil+, what our SDK and recent webhook endpoints
+// emit) and fall back to the legacy top-level field, since webhook payload shape
+// follows the *endpoint's* API version — which may lag the SDK. Either way we
+// never throw: a missing value yields null ("no expiry"), not new Date(NaN).
+export function periodEndISO(subscription) {
+  const end =
+    subscription?.items?.data?.[0]?.current_period_end ??
+    subscription?.current_period_end;
+  return end ? new Date(end * 1000).toISOString() : null;
+}
 
 function requireStripe(res) {
   if (!stripe) {
@@ -324,7 +339,7 @@ router.post("/stripe/webhook", async (req, res) => {
               .run(session.customer, tier, userId);
             db.prepare("UPDATE subscriptions SET status = 'cancelled' WHERE user_id = ? AND status = 'active'")
               .run(userId);
-            const expiresAt = new Date(stripeSub.current_period_end * 1000).toISOString();
+            const expiresAt = periodEndISO(stripeSub);
             db.prepare(
               "INSERT INTO subscriptions (id, user_id, tier, status, stripe_subscription_id, expires_at) VALUES (?, ?, ?, 'active', ?, ?)"
             ).run(uuid(), userId, tier, session.subscription, expiresAt);
@@ -345,7 +360,7 @@ router.post("/stripe/webhook", async (req, res) => {
       // ── Subscription renewed / upgraded / downgrade-pending ───────────────
       case "customer.subscription.updated": {
         const sub = event.data.object;
-        const expiresAt = new Date(sub.current_period_end * 1000).toISOString();
+        const expiresAt = periodEndISO(sub);
         db.prepare("UPDATE subscriptions SET expires_at = ? WHERE stripe_subscription_id = ?")
           .run(expiresAt, sub.id);
         break;
