@@ -140,9 +140,7 @@ router.post("/stripe/checkout", requireAuth, async (req, res) => {
     res.json({ checkout_url: session.url });
   } catch (err) {
     console.error("[stripe] checkout error:", err.message);
-    // Surface Stripe's actual reason (e.g. account not activated for live
-    // charges) so failures are diagnosable instead of an opaque 500.
-    res.status(500).json({ error: "Failed to create checkout session", detail: err.message });
+    res.status(500).json({ error: "Failed to create checkout session" });
   }
 });
 
@@ -255,7 +253,7 @@ router.get("/stripe/connect", requireAuth, async (req, res) => {
     res.json({ onboarding_url: accountLink.url, account_id: accountId });
   } catch (err) {
     console.error("[stripe] connect error:", err.message);
-    res.status(500).json({ error: "Failed to create Connect account", detail: err.message });
+    res.status(500).json({ error: "Failed to create Connect account" });
   }
 });
 
@@ -307,6 +305,12 @@ router.post("/stripe/webhook", async (req, res) => {
   } catch (err) {
     return res.status(400).json({ error: `Webhook signature invalid: ${err.message}` });
   }
+
+  const alreadyProcessed = db.prepare("SELECT event_id FROM processed_events WHERE event_id = ?").get(event.id);
+  if (alreadyProcessed) {
+    return res.json({ received: true, duplicate: true });
+  }
+  db.prepare("INSERT INTO processed_events (event_id, event_type) VALUES (?, ?)").run(event.id, event.type);
 
   try {
     switch (event.type) {

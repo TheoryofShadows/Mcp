@@ -113,6 +113,16 @@ const FACTORS = [
   },
 ];
 
+function stalenessPenalty(s, now) {
+  const updated = new Date(s.updated_at || s.created_at).getTime();
+  if (Number.isNaN(updated)) return { points: 0, reason: null };
+  const daysSinceUpdate = (now - updated) / (1000 * 60 * 60 * 24);
+  if (daysSinceUpdate < 180) return { points: 0, reason: null };
+  const penalty = Math.min(5, Math.floor((daysSinceUpdate - 180) / 90));
+  if (penalty <= 0) return { points: 0, reason: null };
+  return { points: -penalty, reason: `Not updated in ${Math.round(daysSinceUpdate)} days` };
+}
+
 /**
  * Risk penalties — sensitive capabilities reduce trust *until* the publisher is
  * verified, mirroring real MCP attack classes (tool poisoning, over-broad
@@ -164,11 +174,16 @@ export function computeTrust(server, now = Date.now()) {
     ? [{ key: "risk", label: "Risk review", points: penalty.points, reason: penalty.reason }]
     : [];
 
+  const staleness = stalenessPenalty(server, now);
+  if (staleness.reason) {
+    penalties.push({ key: "staleness", label: "Freshness", points: staleness.points, reason: staleness.reason });
+  }
+
   // Community reports lower trust. Unreviewed ("open") flags only — an admin
   // dismissing a flag removes its penalty. Capped so a couple of malicious
   // reports can't zero out an otherwise-strong server (rate-limited too).
   const openFlags = Number(server.open_flags) || 0;
-  const flagPenalty = openFlags > 0 ? Math.min(20, openFlags * 5) : 0;
+  const flagPenalty = openFlags > 0 ? Math.min(10, openFlags * 5) : 0;
   if (flagPenalty > 0) {
     penalties.push({
       key: "flags",
@@ -178,7 +193,7 @@ export function computeTrust(server, now = Date.now()) {
     });
   }
 
-  const raw = factors.reduce((sum, f) => sum + f.points, 0) + penalty.points - flagPenalty;
+  const raw = factors.reduce((sum, f) => sum + f.points, 0) + penalty.points + staleness.points - flagPenalty;
   const score = Math.max(0, Math.min(100, Math.round(raw)));
 
   // Confidence reflects how many signals we actually had to work with.

@@ -111,6 +111,12 @@ db.exec(`
     created_at TEXT DEFAULT (datetime('now'))
   );
 
+  CREATE TABLE IF NOT EXISTS processed_events (
+    event_id TEXT PRIMARY KEY,
+    event_type TEXT NOT NULL,
+    processed_at TEXT DEFAULT (datetime('now'))
+  );
+
   CREATE INDEX IF NOT EXISTS idx_servers_category ON servers(category_id);
   CREATE INDEX IF NOT EXISTS idx_servers_author ON servers(author_id);
   CREATE INDEX IF NOT EXISTS idx_servers_status ON servers(status);

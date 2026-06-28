@@ -1,8 +1,7 @@
 import DescopeClient from "@descope/node-sdk";
 
 const DESCOPE_PROJECT_ID = process.env.DESCOPE_PROJECT_ID;
-const ADMIN_PERMISSION =
-  process.env.DESCOPE_ADMIN_PERMISSION ?? "PERM3AginJK2YlsHu6UrjhQcz7wf2iR";
+const ADMIN_PERMISSION = process.env.DESCOPE_ADMIN_PERMISSION;
 
 let descopeClient = null;
 if (DESCOPE_PROJECT_ID) {
@@ -41,6 +40,10 @@ export async function authenticateDescopeToken(req, res, next) {
  * Middleware: requires a valid Descope session with the Admin permission.
  */
 export function requireAdmin(req, res, next) {
+  if (!ADMIN_PERMISSION) {
+    return res.status(503).json({ error: "Admin access is not configured" });
+  }
+
   if (!req.descopeUser) {
     return res.status(401).json({ error: "Descope authentication required" });
   }

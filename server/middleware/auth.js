@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { randomBytes } from "crypto";
+import { randomBytes } from "node:crypto";
 
 if (!process.env.JWT_SECRET) {
   if (process.env.NODE_ENV === "production") {
@@ -37,5 +37,5 @@ export function requireAuth(req, res, next) {
 }
 
 export function signToken(payload) {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
+  return jwt.sign({ ...payload, jti: randomBytes(8).toString("hex") }, JWT_SECRET, { expiresIn: "24h" });
 }

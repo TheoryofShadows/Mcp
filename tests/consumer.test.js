@@ -17,7 +17,7 @@
 
 import { describe, it, expect, afterAll } from "vitest";
 import request from "supertest";
-import { cleanup } from "./setup.js";
+import { cleanup, backdateUser } from "./setup.js";
 import { createApp } from "../server/app.js";
 
 const app = createApp();
@@ -103,6 +103,7 @@ describe("Chapter 2 – Registration & Authentication", () => {
     });
     expect(res.body.user).not.toHaveProperty("password_hash");
     publisherToken = res.body.token;
+    backdateUser("publisher@consumer.test");
   });
 
   it("registers the consumer account", async () => {
@@ -114,6 +115,7 @@ describe("Chapter 2 – Registration & Authentication", () => {
     expect(res.status).toBe(201);
     expect(res.body).toHaveProperty("token");
     consumerToken = res.body.token;
+    backdateUser("buyer@consumer.test");
   });
 
   it("rejects duplicate registration", async () => {
@@ -405,14 +407,18 @@ describe("Chapter 5 – Reviews", () => {
 // ─── Chapter 6: Installs ──────────────────────────────────────────────────────
 
 describe("Chapter 6 – Installs", () => {
-  it("records an install (no auth required)", async () => {
-    const res = await request(app).post(`/api/servers/${toolSlug}/install`);
+  it("records an authenticated install (increments counter)", async () => {
+    const res = await request(app)
+      .post(`/api/servers/${toolSlug}/install`)
+      .set("Authorization", `Bearer ${consumerToken}`);
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
   });
 
   it("rate-limits a second install from the same IP", async () => {
-    const res = await request(app).post(`/api/servers/${toolSlug}/install`);
+    const res = await request(app)
+      .post(`/api/servers/${toolSlug}/install`)
+      .set("Authorization", `Bearer ${consumerToken}`);
     expect(res.status).toBe(429);
   });
 

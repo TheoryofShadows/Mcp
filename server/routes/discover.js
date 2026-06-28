@@ -19,7 +19,7 @@ router.get("/", (req, res) => {
 
   const rows = db.prepare(`
     SELECT s.*, u.username AS author_username, c.label AS category_label,
-      (SELECT COUNT(*) FROM flags f WHERE f.server_id = s.id AND f.status = 'open') AS open_flags
+      (SELECT COUNT(*) FROM flags f WHERE f.server_id = s.id AND f.status = 'open' AND f.user_id IS NOT NULL) AS open_flags
     FROM servers s
     JOIN users u ON s.author_id = u.id
     JOIN categories c ON s.category_id = c.id
