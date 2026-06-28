@@ -72,6 +72,7 @@ create table if not exists servers (
   -- Meta
   verified         boolean default false,
   repo_verified    boolean default false,   -- proven repo ownership → full provenance
+  verify_token     text,                    -- per-server .mcpx-verify challenge token
   install_command  text,                    -- verifiable install spec (CLI + web)
   trending         boolean default false,
   tags             text[]  default '{}',

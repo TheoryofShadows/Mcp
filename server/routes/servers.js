@@ -1,10 +1,12 @@
 import { Router } from "express";
 import { v4 as uuid } from "uuid";
+import { randomBytes } from "node:crypto";
 import db from "../db.js";
 import { requireAuth } from "../middleware/auth.js";
 import { computeTrust } from "../lib/trustScore.js";
 import { auditLog } from "../lib/audit.js";
 import { scheduleScan, latestScanTier } from "../lib/scanService.js";
+import { readProofToken, VERIFY_FILENAME } from "../lib/provenance.js";
 
 const router = Router();
 
@@ -181,6 +183,75 @@ router.get("/:slug/trust", (req, res) => {
       open_flags: openFlags,
       scan_tier: latestScanTier(row.id),
     }),
+  });
+});
+
+// ─── Repository ownership verification (.mcpx-verify) ────────────────────────
+// Proves the publisher controls the linked repo, which unlocks full provenance
+// points in the Trust Score. Verification clones the repo, so it's author-only
+// and lightly cooldown-limited to curb clone abuse.
+const verifyCooldown = new Map(); // server_id -> last attempt ts
+const VERIFY_COOLDOWN_MS = 30_000;
+setInterval(() => {
+  const now = Date.now();
+  for (const [k, ts] of verifyCooldown) if (now - ts > VERIFY_COOLDOWN_MS) verifyCooldown.delete(k);
+}, 300_000).unref();
+
+// GET /api/servers/:slug/verify — issue (or return) the challenge token.
+router.get("/:slug/verify", requireAuth, (req, res) => {
+  const server = db.prepare(
+    "SELECT id, author_id, repo_url, repo_verified, verify_token FROM servers WHERE slug = ?"
+  ).get(req.params.slug);
+  if (!server) return res.status(404).json({ error: "Server not found" });
+  if (server.author_id !== req.user.id) return res.status(403).json({ error: "You can only verify your own servers" });
+  if (!server.repo_url) return res.status(400).json({ error: "Add a repository URL before verifying ownership." });
+
+  let token = server.verify_token;
+  if (!token) {
+    token = randomBytes(16).toString("hex");
+    db.prepare("UPDATE servers SET verify_token = ? WHERE id = ?").run(token, server.id);
+  }
+  res.json({
+    repo_verified: !!server.repo_verified,
+    filename: VERIFY_FILENAME,
+    token,
+    instructions: `Add a file named ${VERIFY_FILENAME} to the root of ${server.repo_url} (default branch) containing exactly this token, commit and push, then POST to this same URL to complete verification.`,
+  });
+});
+
+// POST /api/servers/:slug/verify — check the repo for the challenge token.
+router.post("/:slug/verify", requireAuth, async (req, res) => {
+  const server = db.prepare(
+    "SELECT id, author_id, repo_url, verify_token FROM servers WHERE slug = ?"
+  ).get(req.params.slug);
+  if (!server) return res.status(404).json({ error: "Server not found" });
+  if (server.author_id !== req.user.id) return res.status(403).json({ error: "You can only verify your own servers" });
+  if (!server.repo_url) return res.status(400).json({ error: "Add a repository URL before verifying ownership." });
+  if (!server.verify_token) {
+    return res.status(400).json({ error: `Request a token first (GET this endpoint), then add it as ${VERIFY_FILENAME}.` });
+  }
+
+  const last = verifyCooldown.get(server.id);
+  if (last && Date.now() - last < VERIFY_COOLDOWN_MS) {
+    return res.status(429).json({ error: "Verification was just attempted. Wait a moment and try again." });
+  }
+  verifyCooldown.set(server.id, Date.now());
+
+  let found;
+  try {
+    found = await readProofToken(server.repo_url);
+  } catch {
+    return res.status(502).json({ repo_verified: false, message: "Could not read the repository. Ensure it is public and reachable." });
+  }
+
+  if (found && found === server.verify_token) {
+    db.prepare("UPDATE servers SET repo_verified = 1 WHERE id = ?").run(server.id);
+    auditLog("server.repo_verified", req.user.id, { server_id: server.id, repo_url: server.repo_url });
+    return res.json({ repo_verified: true, message: "Repository ownership verified." });
+  }
+  return res.status(422).json({
+    repo_verified: false,
+    message: `Verification token not found. Ensure ${VERIFY_FILENAME} is at the repo root on the default branch and contains the exact token.`,
   });
 });
 
