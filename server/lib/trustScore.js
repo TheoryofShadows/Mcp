@@ -70,6 +70,10 @@ const FACTORS = [
     label: "Adoption",
     max: 15,
     score(s) {
+      // `installs` is the count of *distinct authenticated* installers — the
+      // install route only increments it once per (server, real account), and a
+      // partial UNIQUE index enforces that. Anonymous installs are analytics-only
+      // and never reach this signal, so adoption can't be inflated by a botnet.
       const n = Number(s.installs) || 0;
       // Logarithmic: rewards real traction without letting whales max out trust.
       // 0 installs → 0; ~10 → 5; ~1k → ~10; ~100k → 15.

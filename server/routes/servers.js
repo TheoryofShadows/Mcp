@@ -3,6 +3,7 @@ import { v4 as uuid } from "uuid";
 import db from "../db.js";
 import { requireAuth } from "../middleware/auth.js";
 import { computeTrust } from "../lib/trustScore.js";
+import { auditLog } from "../lib/audit.js";
 
 const router = Router();
 
@@ -398,14 +399,21 @@ router.post("/:slug/install", (req, res) => {
   const id = uuid();
   const userId = req.user?.id || null;
 
-  const alreadyInstalled = userId
-    ? db.prepare("SELECT id FROM installs WHERE server_id = ? AND user_id = ?").get(server.id, userId)
-    : null;
-
-  db.prepare("INSERT INTO installs (id, server_id, user_id) VALUES (?, ?, ?)").run(id, server.id, userId);
-
-  if (userId && !alreadyInstalled) {
-    db.prepare("UPDATE servers SET installs = installs + 1 WHERE id = ?").run(server.id);
+  if (userId) {
+    // Counted install: one per (server, authenticated user). The partial UNIQUE
+    // index (server/db.js) makes INSERT OR IGNORE a no-op on repeats, so the
+    // adoption counter — which feeds the Trust Score — only ever reflects
+    // *distinct* authenticated accounts, even under concurrent requests.
+    const result = db.prepare(
+      "INSERT OR IGNORE INTO installs (id, server_id, user_id) VALUES (?, ?, ?)"
+    ).run(id, server.id, userId);
+    if (result.changes > 0) {
+      db.prepare("UPDATE servers SET installs = installs + 1 WHERE id = ?").run(server.id);
+    }
+  } else {
+    // Anonymous install: recorded for analytics only. It never increments the
+    // trust-bearing counter, so an unauthenticated booster can't game adoption.
+    db.prepare("INSERT INTO installs (id, server_id, user_id) VALUES (?, ?, NULL)").run(id, server.id);
   }
 
   res.json({ success: true });
@@ -470,8 +478,10 @@ router.post("/:slug/report", (req, res) => {
     "INSERT INTO flags (id, server_id, user_id, reason, detail) VALUES (?, ?, ?, ?, ?)"
   ).run(uuid(), server.id, req.user?.id || null, reason, detail ? String(detail).slice(0, 1000) : null);
 
-  // Audit log for a safety-sensitive action.
-  console.log(`[flag] server="${server.name}" reason="${reason}" by=${req.user?.username || "anon"} ip=${ip}`);
+  // Persist an audit record for this safety-sensitive action.
+  auditLog("server.flag", req.user?.username || "anon", {
+    server_id: server.id, server_name: server.name, reason, ip,
+  });
 
   res.status(201).json({ success: true, message: "Report received — our team will review it." });
 });

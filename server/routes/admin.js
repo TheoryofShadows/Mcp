@@ -1,15 +1,9 @@
 import { Router } from "express";
 import { requireAdmin } from "../middleware/descopeAuth.js";
 import db from "../db.js";
+import { auditLog } from "../lib/audit.js";
 
 const router = Router();
-
-function auditLog(action, actor, details) {
-  console.log(JSON.stringify({
-    type: "audit", action, actor, ...details,
-    timestamp: new Date().toISOString(),
-  }));
-}
 
 // All routes in this file require a valid Descope session with Admin permission.
 // authenticateDescopeToken is applied globally in app.js before these routes.

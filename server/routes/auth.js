@@ -2,7 +2,8 @@ import { Router } from "express";
 import bcrypt from "bcryptjs";
 import { v4 as uuid } from "uuid";
 import db from "../db.js";
-import { signToken, requireAuth } from "../middleware/auth.js";
+import { signToken, requireAuth, revokeToken } from "../middleware/auth.js";
+import { auditLog } from "../lib/audit.js";
 
 const router = Router();
 
@@ -95,13 +96,16 @@ router.post("/login", async (req, res) => {
     return res.status(400).json({ error: "Email and password are required" });
   }
 
+  const ip = req.ip || req.socket?.remoteAddress || "unknown";
   const user = db.prepare("SELECT * FROM users WHERE email = ?").get(email);
   if (!user) {
+    auditLog("auth.login.failed", String(email).slice(0, 120), { ip, reason: "no_such_user" });
     return res.status(401).json({ error: "Invalid credentials" });
   }
 
   const valid = await bcrypt.compare(password, user.password_hash);
   if (!valid) {
+    auditLog("auth.login.failed", user.id, { ip, reason: "bad_password" });
     return res.status(401).json({ error: "Invalid credentials" });
   }
 
@@ -136,6 +140,15 @@ router.get("/me", requireAuth, (req, res) => {
   ).get(user.id).c;
 
   res.json({ ...user, server_count: serverCount, total_installs: totalInstalls });
+});
+
+// POST /api/auth/logout — revoke the presented token so it can no longer be used.
+// Stateless JWTs can't be "deleted", so we record their jti in revoked_tokens and
+// authenticateToken rejects anything listed there until it would have expired.
+router.post("/logout", requireAuth, (req, res) => {
+  revokeToken(req.user);
+  auditLog("auth.logout", req.user.id, { jti: req.user.jti });
+  res.json({ success: true });
 });
 
 export default router;
