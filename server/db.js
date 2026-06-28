@@ -117,6 +117,18 @@ db.exec(`
     processed_at TEXT DEFAULT (datetime('now'))
   );
 
+  -- Completed paid-tool sales, recorded from the Stripe webhook. Powers the
+  -- publisher revenue dashboard with *real* earned amounts (gross, platform fee,
+  -- and net = gross - fee, the 85% the publisher keeps).
+  CREATE TABLE IF NOT EXISTS sales (
+    id          TEXT PRIMARY KEY,
+    server_id   TEXT NOT NULL REFERENCES servers(id) ON DELETE CASCADE,
+    buyer_id    TEXT REFERENCES users(id),
+    gross_cents INTEGER NOT NULL,
+    fee_cents   INTEGER NOT NULL,
+    created_at  TEXT DEFAULT (datetime('now'))
+  );
+
   -- Latest source-code scan per server (see server/lib/repoScan.js). One row per
   -- server, upserted on each scan. Bound into the Trust Score so a repository
   -- that scans "high" risk is penalized, and re-scanned on update so a server
@@ -161,6 +173,7 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_subscriptions_user_status ON subscriptions(user_id, status);
   CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_events(created_at);
   CREATE INDEX IF NOT EXISTS idx_revoked_expires ON revoked_tokens(expires_at);
+  CREATE INDEX IF NOT EXISTS idx_sales_server ON sales(server_id);
 `);
 
 // Adoption integrity: enforce one *counted* install per (server, authenticated

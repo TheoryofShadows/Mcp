@@ -160,6 +160,17 @@ create table if not exists server_scans (
   scanned_at    timestamptz default now()
 );
 
+-- ─── Sales (completed paid-tool purchases; powers publisher revenue) ─────────
+create table if not exists sales (
+  id          uuid primary key default gen_random_uuid(),
+  server_id   uuid references servers(id) on delete cascade,
+  buyer_id    uuid references users(id) on delete set null,
+  gross_cents integer not null,
+  fee_cents   integer not null,
+  created_at  timestamptz default now()
+);
+create index if not exists idx_sales_server on sales(server_id);
+
 -- ─── Audit events (server-managed; no client RLS access) ─────────────────────
 -- Persistent trail of admin actions, auth failures and safety-sensitive writes.
 create table if not exists audit_events (

@@ -126,6 +126,13 @@ export async function verifyRepo(slug) {
   return request(`/servers/${encodeURIComponent(slug)}/verify`, { method: "POST" });
 }
 
+// ─── Earnings ───
+
+/** Real earned revenue for the signed-in publisher (cents), aggregated from sales. */
+export async function fetchEarnings() {
+  return request("/earnings");
+}
+
 // ─── Categories ───
 
 export async function fetchCategories() {
