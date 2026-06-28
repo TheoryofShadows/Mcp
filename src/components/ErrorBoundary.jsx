@@ -22,7 +22,7 @@ export default class ErrorBoundary extends Component {
             padding: "48px 24px",
             minHeight: "100vh",
             boxSizing: "border-box",
-            background: "#0a0a0a",
+            background: "#08080d",
             textAlign: "center",
             display: "flex",
             flexDirection: "column",

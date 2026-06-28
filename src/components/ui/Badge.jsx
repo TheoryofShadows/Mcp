@@ -2,29 +2,29 @@ import { memo } from "react";
 
 const BADGE_STYLES = {
   default: {
-    background: "rgba(77, 255, 180, 0.1)",
-    color: "var(--accent-electric)",
-    border: "1px solid rgba(77, 255, 180, 0.2)",
+    background: "rgba(124, 108, 255, 0.12)",
+    color: "var(--accent-light)",
+    border: "1px solid rgba(124, 108, 255, 0.25)",
   },
   trending: {
-    background: "rgba(255, 109, 180, 0.1)",
+    background: "rgba(236, 72, 153, 0.12)",
     color: "var(--accent-pink)",
-    border: "1px solid rgba(255, 109, 180, 0.2)",
+    border: "1px solid rgba(236, 72, 153, 0.25)",
   },
   paid: {
-    background: "rgba(155, 109, 255, 0.1)",
+    background: "rgba(168, 85, 247, 0.12)",
     color: "var(--accent-purple)",
-    border: "1px solid rgba(155, 109, 255, 0.2)",
+    border: "1px solid rgba(168, 85, 247, 0.25)",
   },
   free: {
-    background: "rgba(77, 159, 255, 0.1)",
+    background: "rgba(56, 189, 248, 0.12)",
     color: "var(--accent-blue)",
-    border: "1px solid rgba(77, 159, 255, 0.2)",
+    border: "1px solid rgba(56, 189, 248, 0.25)",
   },
   verified: {
-    background: "rgba(77, 255, 180, 0.08)",
-    color: "var(--accent-electric)",
-    border: "1px solid rgba(77, 255, 180, 0.15)",
+    background: "rgba(34, 211, 238, 0.1)",
+    color: "var(--accent-cyan)",
+    border: "1px solid rgba(34, 211, 238, 0.22)",
   },
 };
 

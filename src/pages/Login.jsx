@@ -14,8 +14,8 @@ const PERKS = [
 const inputStyle = {
   width: "100%",
   padding: "11px 14px",
-  background: "#0d0d0d",
-  border: "1px solid #2a2a2a",
+  background: "#0d0d15",
+  border: "1px solid #2e2e44",
   borderRadius: "10px",
   color: "#fff",
   fontSize: "14px",
@@ -123,7 +123,7 @@ export default function Login() {
           transform: "translateX(-50%)",
           width: "500px",
           height: "500px",
-          background: "radial-gradient(ellipse, rgba(99,102,241,0.08) 0%, transparent 70%)",
+          background: "radial-gradient(ellipse, rgba(124, 108, 255,0.08) 0%, transparent 70%)",
           pointerEvents: "none",
         }}
       />
@@ -141,13 +141,13 @@ export default function Login() {
             style={{
               width: 56,
               height: 56,
-              background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+              background: "linear-gradient(135deg, #7c6cff, #a855f7)",
               borderRadius: "16px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               margin: "0 auto 16px",
-              boxShadow: "0 0 32px rgba(99,102,241,0.3)",
+              boxShadow: "0 0 32px rgba(124, 108, 255,0.3)",
             }}
           >
             <Zap size={26} color="#fff" />
@@ -171,8 +171,8 @@ export default function Login() {
         {/* Card */}
         <div
           style={{
-            background: "#111",
-            border: "1px solid #1e1e1e",
+            background: "#12121c",
+            border: "1px solid #1d1d2b",
             borderRadius: "18px",
             padding: "32px",
             marginBottom: "20px",
@@ -187,10 +187,10 @@ export default function Login() {
                 style={{
                   width: "100%",
                   padding: "14px",
-                  background: loading ? "#1e1e1e" : "#f0f0f0",
+                  background: loading ? "#1d1d2b" : "#f0f0f0",
                   border: "none",
                   borderRadius: "12px",
-                  color: "#0a0a0a",
+                  color: "#08080d",
                   fontSize: "15px",
                   fontWeight: 700,
                   cursor: loading ? "not-allowed" : "pointer",
@@ -209,7 +209,7 @@ export default function Login() {
                   }
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = loading ? "#1e1e1e" : "#f0f0f0";
+                  e.currentTarget.style.background = loading ? "#1d1d2b" : "#f0f0f0";
                   e.currentTarget.style.transform = "translateY(0)";
                 }}
               >
@@ -234,7 +234,7 @@ export default function Login() {
                       color: "var(--text-secondary)",
                     }}
                   >
-                    <CheckCircle size={14} color="#6366f1" style={{ flexShrink: 0 }} />
+                    <CheckCircle size={14} color="#7c6cff" style={{ flexShrink: 0 }} />
                     {perk}
                   </div>
                 ))}
@@ -255,8 +255,8 @@ export default function Login() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="dev@mcpx.dev"
                     style={inputStyle}
-                    onFocus={(e) => (e.target.style.borderColor = "#6366f1")}
-                    onBlur={(e) => (e.target.style.borderColor = "#2a2a2a")}
+                    onFocus={(e) => (e.target.style.borderColor = "#7c6cff")}
+                    onBlur={(e) => (e.target.style.borderColor = "#2e2e44")}
                   />
                 </div>
 
@@ -272,8 +272,8 @@ export default function Login() {
                       onChange={(e) => setUsername(e.target.value)}
                       placeholder="cooldev42"
                       style={inputStyle}
-                      onFocus={(e) => (e.target.style.borderColor = "#6366f1")}
-                      onBlur={(e) => (e.target.style.borderColor = "#2a2a2a")}
+                      onFocus={(e) => (e.target.style.borderColor = "#7c6cff")}
+                      onBlur={(e) => (e.target.style.borderColor = "#2e2e44")}
                     />
                   </div>
                 )}
@@ -290,8 +290,8 @@ export default function Login() {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Min 6 characters"
                     style={inputStyle}
-                    onFocus={(e) => (e.target.style.borderColor = "#6366f1")}
-                    onBlur={(e) => (e.target.style.borderColor = "#2a2a2a")}
+                    onFocus={(e) => (e.target.style.borderColor = "#7c6cff")}
+                    onBlur={(e) => (e.target.style.borderColor = "#2e2e44")}
                   />
                 </div>
 
@@ -301,7 +301,7 @@ export default function Login() {
                   style={{
                     width: "100%",
                     padding: "13px",
-                    background: loading ? "#1e1e1e" : "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                    background: loading ? "#1d1d2b" : "linear-gradient(135deg, #7c6cff, #a855f7)",
                     border: "none",
                     borderRadius: "12px",
                     color: "#fff",
@@ -323,7 +323,7 @@ export default function Login() {
                     style={{
                       background: "none",
                       border: "none",
-                      color: "#818cf8",
+                      color: "#a594ff",
                       cursor: "pointer",
                       fontSize: "13px",
                       fontWeight: 600,
@@ -340,8 +340,8 @@ export default function Login() {
                   <div
                     style={{
                       padding: "10px 14px",
-                      background: "rgba(99,102,241,0.07)",
-                      border: "1px solid rgba(99,102,241,0.15)",
+                      background: "rgba(124, 108, 255,0.07)",
+                      border: "1px solid rgba(124, 108, 255,0.15)",
                       borderRadius: "10px",
                       fontSize: "12px",
                       color: "var(--text-muted)",
@@ -349,7 +349,7 @@ export default function Login() {
                       textAlign: "center",
                     }}
                   >
-                    Dev only — Demo: <strong style={{ color: "#a5b4fc" }}>dev@mcpx.dev</strong> / <strong style={{ color: "#a5b4fc" }}>demo1234</strong>
+                    Dev only — Demo: <strong style={{ color: "#b9adff" }}>dev@mcpx.dev</strong> / <strong style={{ color: "#b9adff" }}>demo1234</strong>
                   </div>
                 )}
               </form>
@@ -394,13 +394,13 @@ export default function Login() {
           )}
           <p style={{ fontSize: "12px", color: "var(--text-muted)" }}>
             By signing in you agree to our{" "}
-            <Link to="/" style={{ color: "#818cf8", textDecoration: "none" }}>Terms</Link>
+            <Link to="/" style={{ color: "#a594ff", textDecoration: "none" }}>Terms</Link>
             {" "}and{" "}
-            <Link to="/" style={{ color: "#818cf8", textDecoration: "none" }}>Privacy Policy</Link>
+            <Link to="/" style={{ color: "#a594ff", textDecoration: "none" }}>Privacy Policy</Link>
           </p>
           <p style={{ fontSize: "12px", color: "var(--text-muted)" }}>
             Just browsing?{" "}
-            <Link to="/marketplace" style={{ color: "#818cf8", textDecoration: "none" }}>
+            <Link to="/marketplace" style={{ color: "#a594ff", textDecoration: "none" }}>
               Explore marketplace →
             </Link>
           </p>

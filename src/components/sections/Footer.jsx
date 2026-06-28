@@ -38,7 +38,7 @@ export default function Footer() {
       style={{
         borderTop: "1px solid var(--border-subtle)",
         padding: "56px var(--section-px) 32px",
-        background: "#0a0a0a",
+        background: "#08080d",
       }}
     >
       <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
@@ -55,10 +55,10 @@ export default function Footer() {
           {/* Brand column */}
           <div>
             <Link to="/" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
-              <div style={{ width: 32, height: 32, background: "linear-gradient(135deg, #6366f1, #8b5cf6)", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: 32, height: 32, background: "linear-gradient(135deg, #7c6cff, #a855f7)", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Zap size={16} color="#fff" strokeWidth={2.5} />
               </div>
-              <span style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "20px", background: "linear-gradient(135deg, #a5b4fc, #6366f1)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: "-0.5px" }}>
+              <span style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "20px", background: "linear-gradient(135deg, #b9adff, #7c6cff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: "-0.5px" }}>
                 MCPX
               </span>
             </Link>
@@ -70,9 +70,9 @@ export default function Footer() {
                 href="https://github.com/TheoryofShadows/Mcp"
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 34, height: 34, background: "#1a1a1a", border: "1px solid #2a2a2a", borderRadius: "8px", color: "var(--text-muted)", textDecoration: "none", transition: "all 0.15s" }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#6366f1"; e.currentTarget.style.color = "#a5b4fc"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#2a2a2a"; e.currentTarget.style.color = "var(--text-muted)"; }}
+                style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 34, height: 34, background: "#1d1d2b", border: "1px solid #2e2e44", borderRadius: "8px", color: "var(--text-muted)", textDecoration: "none", transition: "all 0.15s" }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#7c6cff"; e.currentTarget.style.color = "#b9adff"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#2e2e44"; e.currentTarget.style.color = "var(--text-muted)"; }}
                 aria-label="GitHub"
               >
                 <Github size={15} />
@@ -97,7 +97,7 @@ export default function Footer() {
                       key={label}
                       to={to}
                       style={linkStyle}
-                      onMouseEnter={(e) => (e.currentTarget.style.color = "#a5b4fc")}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = "#b9adff")}
                       onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
                     >
                       {label}
@@ -109,7 +109,7 @@ export default function Footer() {
                       target="_blank"
                       rel="noopener noreferrer"
                       style={linkStyle}
-                      onMouseEnter={(e) => (e.currentTarget.style.color = "#a5b4fc")}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = "#b9adff")}
                       onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
                     >
                       {label}
@@ -125,8 +125,8 @@ export default function Footer() {
         <div
           style={{
             padding: "20px 24px",
-            background: "#111",
-            border: "1px solid #1a1a1a",
+            background: "#12121c",
+            border: "1px solid #1d1d2b",
             borderRadius: "12px",
             display: "flex",
             gap: "32px",
@@ -155,9 +155,9 @@ export default function Footer() {
           </p>
           <p style={{ fontSize: "12px", fontFamily: "var(--font-mono)", color: "var(--text-muted)" }}>
             Payments by{" "}
-            <a href="https://stripe.com" target="_blank" rel="noopener noreferrer" style={{ color: "#818cf8", textDecoration: "none" }}>Stripe Connect</a>
+            <a href="https://stripe.com" target="_blank" rel="noopener noreferrer" style={{ color: "#a594ff", textDecoration: "none" }}>Stripe Connect</a>
             {" "}· MCP by{" "}
-            <a href="https://modelcontextprotocol.io" target="_blank" rel="noopener noreferrer" style={{ color: "#818cf8", textDecoration: "none" }}>Anthropic + Linux Foundation</a>
+            <a href="https://modelcontextprotocol.io" target="_blank" rel="noopener noreferrer" style={{ color: "#a594ff", textDecoration: "none" }}>Anthropic + Linux Foundation</a>
           </p>
         </div>
       </div>

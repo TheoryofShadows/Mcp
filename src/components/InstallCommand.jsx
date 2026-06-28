@@ -47,8 +47,8 @@ export default function InstallCommand({ command, label = "Install Command" }) {
           display: "flex",
           alignItems: "center",
           gap: "0",
-          background: "#0d0d0d",
-          border: "1px solid #222",
+          background: "#0d0d15",
+          border: "1px solid #1d1d2b",
           borderRadius: "10px",
           overflow: "hidden",
         }}
@@ -56,7 +56,7 @@ export default function InstallCommand({ command, label = "Install Command" }) {
         <div
           style={{
             padding: "12px 8px 12px 16px",
-            color: "#a5b4fc",
+            color: "#b9adff",
             fontFamily: "var(--font-mono)",
             fontSize: "12px",
             flexShrink: 0,
@@ -87,10 +87,10 @@ export default function InstallCommand({ command, label = "Install Command" }) {
             alignItems: "center",
             gap: "6px",
             padding: "12px 16px",
-            background: copied ? "rgba(16,185,129,0.12)" : "rgba(99,102,241,0.08)",
+            background: copied ? "rgba(16,185,129,0.12)" : "rgba(124, 108, 255,0.08)",
             border: "none",
-            borderLeft: "1px solid #222",
-            color: copied ? "#10b981" : "#818cf8",
+            borderLeft: "1px solid #1d1d2b",
+            color: copied ? "#10b981" : "#a594ff",
             cursor: "pointer",
             fontFamily: "var(--font-mono)",
             fontSize: "12px",
@@ -98,10 +98,10 @@ export default function InstallCommand({ command, label = "Install Command" }) {
             whiteSpace: "nowrap",
           }}
           onMouseEnter={(e) => {
-            if (!copied) e.currentTarget.style.background = "rgba(99,102,241,0.15)";
+            if (!copied) e.currentTarget.style.background = "rgba(124, 108, 255,0.15)";
           }}
           onMouseLeave={(e) => {
-            if (!copied) e.currentTarget.style.background = "rgba(99,102,241,0.08)";
+            if (!copied) e.currentTarget.style.background = "rgba(124, 108, 255,0.08)";
           }}
         >
           {copied ? <Check size={14} /> : <Copy size={14} />}

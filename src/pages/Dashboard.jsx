@@ -117,12 +117,12 @@ async function loadDashboard(user) {
   }
 }
 
-function StatCard({ icon: Icon, label, value, sub, color = "#6366f1" }) {
+function StatCard({ icon: Icon, label, value, sub, color = "#7c6cff" }) {
   return (
     <div
       style={{
-        background: "#111",
-        border: "1px solid #1e1e1e",
+        background: "#12121c",
+        border: "1px solid #1d1d2b",
         borderRadius: "14px",
         padding: "22px",
       }}
@@ -215,13 +215,13 @@ export default function Dashboard() {
             alignItems: "center",
             gap: "7px",
             padding: "10px 20px",
-            background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+            background: "linear-gradient(135deg, #7c6cff, #a855f7)",
             borderRadius: "10px",
             color: "#fff",
             textDecoration: "none",
             fontSize: "13px",
             fontWeight: 600,
-            boxShadow: "0 0 20px rgba(99,102,241,0.25)",
+            boxShadow: "0 0 20px rgba(124, 108, 255,0.25)",
           }}
         >
           <Plus size={14} />
@@ -236,16 +236,16 @@ export default function Dashboard() {
             gap: "12px",
             alignItems: "center",
             padding: "14px 18px",
-            background: "rgba(245,158,11,0.07)",
-            border: "1px solid rgba(245,158,11,0.18)",
+            background: "rgba(251, 191, 36,0.07)",
+            border: "1px solid rgba(251, 191, 36,0.18)",
             borderRadius: "12px",
             marginBottom: "28px",
           }}
         >
-          <AlertCircle size={16} color="#f59e0b" style={{ flexShrink: 0 }} />
+          <AlertCircle size={16} color="#fbbf24" style={{ flexShrink: 0 }} />
           <p style={{ fontSize: "13px", color: "var(--text-secondary)" }}>
             Showing demo data.{" "}
-            <Link to="/login" style={{ color: "#818cf8", textDecoration: "none", fontWeight: 600 }}>
+            <Link to="/login" style={{ color: "#a594ff", textDecoration: "none", fontWeight: 600 }}>
               Sign in
             </Link>{" "}
             to see your own tools and revenue.
@@ -263,7 +263,7 @@ export default function Dashboard() {
         }}
         className="stats-grid"
       >
-        <StatCard icon={Package}    label="Tools Listed"       value={stats.tools_count}                                               sub="published & pending"              color="#6366f1" />
+        <StatCard icon={Package}    label="Tools Listed"       value={stats.tools_count}                                               sub="published & pending"              color="#7c6cff" />
         <StatCard icon={DollarSign} label="Monthly Revenue"    value={`$${stats.monthly_revenue.toLocaleString()}`}                    sub={`$${(stats.monthly_revenue * 0.85).toLocaleString()} after 15% fee`} color="#10b981" />
         <StatCard icon={Download}   label="Total Installs"     value={stats.total_installs >= 1000 ? `${(stats.total_installs / 1000).toFixed(1)}K` : stats.total_installs} sub="all time" color="#3b82f6" />
         <StatCard icon={Star}       label="Avg Rating"         value={stats.avg_rating ? stats.avg_rating.toFixed(1) : "—"}            sub="across all tools"                 color="#a78bfa" />
@@ -272,8 +272,8 @@ export default function Dashboard() {
       {/* Revenue placeholder chart */}
       <div
         style={{
-          background: "#111",
-          border: "1px solid #1e1e1e",
+          background: "#12121c",
+          border: "1px solid #1d1d2b",
           borderRadius: "14px",
           padding: "24px",
           marginBottom: "20px",
@@ -297,10 +297,10 @@ export default function Dashboard() {
                   width: "100%",
                   height: `${pct}%`,
                   background: i === 5
-                    ? "linear-gradient(180deg, #6366f1, #8b5cf6)"
-                    : "rgba(99,102,241,0.2)",
+                    ? "linear-gradient(180deg, #7c6cff, #a855f7)"
+                    : "rgba(124, 108, 255,0.2)",
                   borderRadius: "5px 5px 0 0",
-                  border: i === 5 ? "1px solid rgba(99,102,241,0.5)" : "1px solid #222",
+                  border: i === 5 ? "1px solid rgba(124, 108, 255,0.5)" : "1px solid #1d1d2b",
                   transition: "background 0.15s",
                 }}
               />
@@ -317,14 +317,14 @@ export default function Dashboard() {
       {/* Tools table */}
       <div
         style={{
-          background: "#111",
-          border: "1px solid #1e1e1e",
+          background: "#12121c",
+          border: "1px solid #1d1d2b",
           borderRadius: "14px",
           overflow: "hidden",
           marginBottom: "20px",
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 24px", borderBottom: "1px solid #1a1a1a" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 24px", borderBottom: "1px solid #1d1d2b" }}>
           <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "16px" }}>Your Tools</h2>
           <span style={{ fontSize: "12px", fontFamily: "var(--font-mono)", color: "var(--text-muted)" }}>{tools.length} total</span>
         </div>
@@ -334,7 +334,7 @@ export default function Dashboard() {
             <p style={{ color: "var(--text-muted)", fontSize: "14px", marginBottom: "16px" }}>No tools published yet.</p>
             <Link
               to="/submit"
-              style={{ color: "#818cf8", fontSize: "13px", textDecoration: "none" }}
+              style={{ color: "#a594ff", fontSize: "13px", textDecoration: "none" }}
             >
               Submit your first tool →
             </Link>
@@ -343,7 +343,7 @@ export default function Dashboard() {
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
-                <tr style={{ borderBottom: "1px solid #1a1a1a" }}>
+                <tr style={{ borderBottom: "1px solid #1d1d2b" }}>
                   {["Tool", "Category", "Installs", "Rating", "Revenue", "Price", "Source", ""].map((h) => (
                     <th key={h} style={{ padding: "12px 20px", textAlign: "left", fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--text-muted)", fontWeight: 600, whiteSpace: "nowrap", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                       {h}
@@ -353,7 +353,7 @@ export default function Dashboard() {
               </thead>
               <tbody>
                 {tools.map((tool) => (
-                  <tr key={tool.id} style={{ borderBottom: "1px solid #1a1a1a" }}>
+                  <tr key={tool.id} style={{ borderBottom: "1px solid #1d1d2b" }}>
                     <td style={{ padding: "16px 20px" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                         <div style={{ width: 36, height: 36, borderRadius: "9px", background: tool.gradient, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: 800, color: "#fff", fontFamily: "var(--font-mono)", flexShrink: 0 }}>
@@ -376,7 +376,7 @@ export default function Dashboard() {
                     </td>
                     <td style={{ padding: "16px 20px" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "4px", fontFamily: "var(--font-mono)", fontSize: "13px" }}>
-                        <Star size={11} fill="#f59e0b" color="#f59e0b" />
+                        <Star size={11} fill="#fbbf24" color="#fbbf24" />
                         {tool.rating ? tool.rating.toFixed(1) : "—"}
                       </div>
                     </td>
@@ -398,7 +398,7 @@ export default function Dashboard() {
                       ) : tool.repo_url ? (
                         <button
                           onClick={() => setVerifyTool(tool)}
-                          style={{ display: "inline-flex", alignItems: "center", gap: "5px", fontSize: "12px", fontFamily: "var(--font-mono)", color: "#fbbf24", background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.25)", borderRadius: "6px", padding: "5px 10px", cursor: "pointer" }}
+                          style={{ display: "inline-flex", alignItems: "center", gap: "5px", fontSize: "12px", fontFamily: "var(--font-mono)", color: "#fbbf24", background: "rgba(251, 191, 36,0.1)", border: "1px solid rgba(251, 191, 36,0.25)", borderRadius: "6px", padding: "5px 10px", cursor: "pointer" }}
                         >
                           <ShieldAlert size={13} /> Verify
                         </button>
@@ -411,7 +411,7 @@ export default function Dashboard() {
                     <td style={{ padding: "16px 20px" }}>
                       <Link
                         to={`/tool/${tool.slug}`}
-                        style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "12px", color: "#818cf8", textDecoration: "none" }}
+                        style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "12px", color: "#a594ff", textDecoration: "none" }}
                       >
                         View <ExternalLink size={11} />
                       </Link>
@@ -427,8 +427,8 @@ export default function Dashboard() {
       {/* Stripe payout section */}
       <div
         style={{
-          background: "#111",
-          border: "1px solid #1e1e1e",
+          background: "#12121c",
+          border: "1px solid #1d1d2b",
           borderRadius: "14px",
           padding: "24px",
         }}
@@ -438,13 +438,13 @@ export default function Dashboard() {
             <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "16px", marginBottom: "4px" }}>Payouts</h2>
             <p style={{ fontSize: "12px", color: "var(--text-muted)" }}>Receive monthly payouts via Stripe Connect</p>
           </div>
-          <div style={{ width: 36, height: 36, background: "rgba(99,102,241,0.1)", borderRadius: "9px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <CreditCard size={16} color="#818cf8" />
+          <div style={{ width: 36, height: 36, background: "rgba(124, 108, 255,0.1)", borderRadius: "9px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <CreditCard size={16} color="#a594ff" />
           </div>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "20px" }} className="payout-grid">
-          <div style={{ padding: "16px", background: "#0d0d0d", borderRadius: "10px", border: "1px solid #1a1a1a" }}>
+          <div style={{ padding: "16px", background: "#0d0d15", borderRadius: "10px", border: "1px solid #1d1d2b" }}>
             <div style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--text-muted)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
               {hasEarnings ? "Net Earned (all-time)" : "Available Balance"}
             </div>
@@ -455,7 +455,7 @@ export default function Dashboard() {
               {hasEarnings ? `from ${earnings.sales_count} sale${earnings.sales_count === 1 ? "" : "s"}, after 15% fee` : "after 15% platform fee"}
             </div>
           </div>
-          <div style={{ padding: "16px", background: "#0d0d0d", borderRadius: "10px", border: "1px solid #1a1a1a" }}>
+          <div style={{ padding: "16px", background: "#0d0d15", borderRadius: "10px", border: "1px solid #1d1d2b" }}>
             <div style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--text-muted)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Next Payout</div>
             <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "22px" }}>{nextPayout}</div>
             <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px", fontFamily: "var(--font-mono)" }}>monthly automatic</div>
@@ -466,10 +466,10 @@ export default function Dashboard() {
           style={{
             width: "100%",
             padding: "12px",
-            background: "rgba(99,102,241,0.08)",
-            border: "1px solid rgba(99,102,241,0.2)",
+            background: "rgba(124, 108, 255,0.08)",
+            border: "1px solid rgba(124, 108, 255,0.2)",
             borderRadius: "10px",
-            color: "#a5b4fc",
+            color: "#b9adff",
             fontSize: "13px",
             fontWeight: 600,
             cursor: stripeLoading ? "not-allowed" : "pointer",
@@ -494,8 +494,8 @@ export default function Dashboard() {
               setStripeLoading(false);
             }
           }}
-          onMouseEnter={(e) => { if (!stripeLoading) e.currentTarget.style.background = "rgba(99,102,241,0.14)"; }}
-          onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(99,102,241,0.08)")}
+          onMouseEnter={(e) => { if (!stripeLoading) e.currentTarget.style.background = "rgba(124, 108, 255,0.14)"; }}
+          onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(124, 108, 255,0.08)")}
         >
           <CreditCard size={14} />
           {stripeLoading ? "Connecting…" : "Connect Stripe for Payouts"}

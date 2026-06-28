@@ -65,8 +65,8 @@ export default function Pricing() {
 
       {/* Header */}
       <div style={{ textAlign: "center", marginBottom: "64px" }}>
-        <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "5px 14px", background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.2)", borderRadius: "100px", marginBottom: "24px" }}>
-          <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "#818cf8", letterSpacing: "0.06em" }}>PRICING</span>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "5px 14px", background: "rgba(124, 108, 255,0.08)", border: "1px solid rgba(124, 108, 255,0.2)", borderRadius: "100px", marginBottom: "24px" }}>
+          <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "#a594ff", letterSpacing: "0.06em" }}>PRICING</span>
         </div>
         <h1 style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "clamp(36px, 5vw, 58px)", letterSpacing: "-1.5px", marginBottom: "16px", lineHeight: 1.1 }}>
           Simple, transparent pricing
@@ -102,8 +102,8 @@ export default function Pricing() {
               <div
                 key={tier.id}
                 style={{
-                  background: tier.popular ? "linear-gradient(135deg, rgba(77,255,180,0.04), rgba(77,159,255,0.04))" : "#111",
-                  border: tier.popular ? `1px solid ${tier.accent}` : "1px solid #1e1e1e",
+                  background: tier.popular ? "linear-gradient(135deg, rgba(124,108,255,0.08), rgba(56,189,248,0.05))" : "var(--bg-card)",
+                  border: tier.popular ? `1px solid ${tier.accent}` : "1px solid var(--border-subtle)",
                   borderRadius: "18px",
                   padding: "32px",
                   position: "relative",
@@ -179,7 +179,7 @@ export default function Pricing() {
       )}
 
       {/* Publisher split callout */}
-      <div style={{ background: "#111", border: "1px solid #1e1e1e", borderRadius: "18px", padding: "40px", marginBottom: "80px", display: "flex", gap: "40px", alignItems: "center", flexWrap: "wrap" }}>
+      <div style={{ background: "#12121c", border: "1px solid #1d1d2b", borderRadius: "18px", padding: "40px", marginBottom: "80px", display: "flex", gap: "40px", alignItems: "center", flexWrap: "wrap" }}>
         <div style={{ flex: 1, minWidth: "240px" }}>
           <div style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--text-muted)", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: "12px" }}>Publisher Revenue Split</div>
           <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "32px", letterSpacing: "-1px", marginBottom: "12px" }}>
@@ -192,11 +192,11 @@ export default function Pricing() {
         <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
           {[
             { label: "Publisher gets", value: "85%", color: "#10b981" },
-            { label: "MCPX fee", value: "15%", color: "#6366f1" },
+            { label: "MCPX fee", value: "15%", color: "#7c6cff" },
             { label: "Payout", value: "Monthly", color: "#a78bfa" },
-            { label: "Minimum", value: "$0", color: "#f59e0b" },
+            { label: "Minimum", value: "$0", color: "#fbbf24" },
           ].map(({ label, value, color }) => (
-            <div key={label} style={{ textAlign: "center", padding: "16px 20px", background: "#0d0d0d", borderRadius: "12px", border: "1px solid #1a1a1a", minWidth: "90px" }}>
+            <div key={label} style={{ textAlign: "center", padding: "16px 20px", background: "#0d0d15", borderRadius: "12px", border: "1px solid #1d1d2b", minWidth: "90px" }}>
               <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "22px", color, marginBottom: "4px" }}>{value}</div>
               <div style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--text-muted)" }}>{label}</div>
             </div>
@@ -213,7 +213,7 @@ export default function Pricing() {
           {FAQ.map((item, i) => (
             <div
               key={i}
-              style={{ background: "#111", border: "1px solid #1e1e1e", borderRadius: "12px", overflow: "hidden", marginBottom: "4px" }}
+              style={{ background: "#12121c", border: "1px solid #1d1d2b", borderRadius: "12px", overflow: "hidden", marginBottom: "4px" }}
             >
               <button
                 onClick={() => setOpenFaq(openFaq === i ? null : i)}
@@ -236,12 +236,12 @@ export default function Pricing() {
       <div style={{ textAlign: "center", marginTop: "80px" }}>
         <p style={{ fontSize: "14px", color: "var(--text-muted)", marginBottom: "16px" }}>
           Questions? Open an issue on{" "}
-          <a href="https://github.com/TheoryofShadows/Mcp" target="_blank" rel="noopener noreferrer" style={{ color: "#818cf8", textDecoration: "none" }}>GitHub</a>
+          <a href="https://github.com/TheoryofShadows/Mcp" target="_blank" rel="noopener noreferrer" style={{ color: "#a594ff", textDecoration: "none" }}>GitHub</a>
           {" "}or explore the marketplace first.
         </p>
         <a
           href="/marketplace"
-          style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "12px 24px", background: "transparent", border: "1px solid rgba(99,102,241,0.3)", borderRadius: "10px", color: "#a5b4fc", fontSize: "14px", fontWeight: 600, textDecoration: "none" }}
+          style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "12px 24px", background: "transparent", border: "1px solid rgba(124, 108, 255,0.3)", borderRadius: "10px", color: "#b9adff", fontSize: "14px", fontWeight: 600, textDecoration: "none" }}
         >
           Browse the marketplace <ArrowRight size={14} />
         </a>

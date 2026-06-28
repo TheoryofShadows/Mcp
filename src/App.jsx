@@ -35,7 +35,7 @@ function PageLoader() {
 
 export default function App() {
   return (
-    <div style={{ minHeight: "100vh", background: "#0a0a0a", color: "var(--text-primary)" }}>
+    <div style={{ minHeight: "100vh", background: "transparent", color: "var(--text-primary)" }}>
       <a
         href="#main-content"
         className="skip-to-content"

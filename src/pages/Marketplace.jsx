@@ -174,8 +174,8 @@ export default function MarketplacePage() {
             style={{
               width: "100%",
               padding: "10px 14px 10px 40px",
-              background: "#111",
-              border: "1px solid #2a2a2a",
+              background: "#12121c",
+              border: "1px solid #2e2e44",
               borderRadius: "10px",
               color: "var(--text-primary)",
               fontSize: "14px",
@@ -183,8 +183,8 @@ export default function MarketplacePage() {
               outline: "none",
               transition: "border-color 0.15s",
             }}
-            onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(99,102,241,0.4)")}
-            onBlur={(e) => (e.currentTarget.style.borderColor = "#2a2a2a")}
+            onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(124, 108, 255,0.4)")}
+            onBlur={(e) => (e.currentTarget.style.borderColor = "#2e2e44")}
             aria-label="Search MCP tools"
           />
         </div>
@@ -199,9 +199,9 @@ export default function MarketplacePage() {
                 padding: "8px 14px",
                 borderRadius: "8px",
                 border: "1px solid",
-                borderColor: priceFilter === p ? "rgba(99,102,241,0.5)" : "#2a2a2a",
-                background: priceFilter === p ? "rgba(99,102,241,0.12)" : "#111",
-                color: priceFilter === p ? "#a5b4fc" : "var(--text-secondary)",
+                borderColor: priceFilter === p ? "rgba(124, 108, 255,0.5)" : "#2e2e44",
+                background: priceFilter === p ? "rgba(124, 108, 255,0.12)" : "#12121c",
+                color: priceFilter === p ? "#b9adff" : "var(--text-secondary)",
                 fontSize: "12px",
                 fontFamily: "var(--font-mono)",
                 cursor: "pointer",
@@ -220,8 +220,8 @@ export default function MarketplacePage() {
           onChange={(e) => setSort(e.target.value)}
           style={{
             padding: "8px 12px",
-            background: "#111",
-            border: "1px solid #2a2a2a",
+            background: "#12121c",
+            border: "1px solid #2e2e44",
             borderRadius: "8px",
             color: "var(--text-secondary)",
             fontSize: "13px",
@@ -285,9 +285,9 @@ export default function MarketplacePage() {
               padding: "7px 14px",
               borderRadius: "100px",
               border: "1px solid",
-              borderColor: category === cat.id ? "rgba(99,102,241,0.5)" : "#2a2a2a",
-              background: category === cat.id ? "rgba(99,102,241,0.12)" : "#111",
-              color: category === cat.id ? "#a5b4fc" : "var(--text-secondary)",
+              borderColor: category === cat.id ? "rgba(124, 108, 255,0.5)" : "#2e2e44",
+              background: category === cat.id ? "rgba(124, 108, 255,0.12)" : "#12121c",
+              color: category === cat.id ? "#b9adff" : "var(--text-secondary)",
               fontSize: "12px",
               fontFamily: "var(--font-mono)",
               cursor: "pointer",
@@ -317,8 +317,8 @@ export default function MarketplacePage() {
               key={i}
               style={{
                 height: "240px",
-                background: "#111",
-                border: "1px solid #1e1e1e",
+                background: "#12121c",
+                border: "1px solid #1d1d2b",
                 borderRadius: "14px",
                 animation: "pulse-skeleton 1.5s ease-in-out infinite",
                 animationDelay: `${i * 0.1}s`,
@@ -357,10 +357,10 @@ export default function MarketplacePage() {
               onClick={clearFilters}
               style={{
                 padding: "10px 20px",
-                background: "rgba(99,102,241,0.12)",
-                border: "1px solid rgba(99,102,241,0.3)",
+                background: "rgba(124, 108, 255,0.12)",
+                border: "1px solid rgba(124, 108, 255,0.3)",
                 borderRadius: "8px",
-                color: "#a5b4fc",
+                color: "#b9adff",
                 cursor: "pointer",
                 fontSize: "13px",
               }}
@@ -373,7 +373,7 @@ export default function MarketplacePage() {
               style={{
                 display: "inline-block",
                 padding: "10px 20px",
-                background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                background: "linear-gradient(135deg, #7c6cff, #a855f7)",
                 borderRadius: "8px",
                 color: "#fff",
                 textDecoration: "none",

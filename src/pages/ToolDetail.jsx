@@ -53,8 +53,8 @@ function renderMarkdown(text) {
           <pre
             key={key++}
             style={{
-              background: "#0d0d0d",
-              border: "1px solid #222",
+              background: "#0d0d15",
+              border: "1px solid #1d1d2b",
               borderRadius: "10px",
               padding: "16px",
               overflowX: "auto",
@@ -81,7 +81,7 @@ function renderMarkdown(text) {
     if (line.startsWith("# ")) {
       elements.push(<h1 key={key++} style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "24px", margin: "32px 0 12px", letterSpacing: "-0.5px" }}>{line.slice(2)}</h1>);
     } else if (line.startsWith("## ")) {
-      elements.push(<h2 key={key++} style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "18px", margin: "28px 0 10px", color: "#a5b4fc" }}>{line.slice(3)}</h2>);
+      elements.push(<h2 key={key++} style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "18px", margin: "28px 0 10px", color: "#b9adff" }}>{line.slice(3)}</h2>);
     } else if (line.startsWith("### ")) {
       elements.push(<h3 key={key++} style={{ fontFamily: "var(--font-heading)", fontWeight: 600, fontSize: "15px", margin: "20px 0 8px" }}>{line.slice(4)}</h3>);
     } else if (line.startsWith("- ") || line.startsWith("* ")) {
@@ -92,8 +92,8 @@ function renderMarkdown(text) {
       );
     } else if (line.startsWith("⚠️") || line.startsWith("> ")) {
       elements.push(
-        <div key={key++} style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: "8px", padding: "12px 16px", margin: "12px 0", display: "flex", gap: "10px", alignItems: "flex-start" }}>
-          <AlertCircle size={14} style={{ color: "#f59e0b", marginTop: "2px", flexShrink: 0 }} />
+        <div key={key++} style={{ background: "rgba(251, 191, 36,0.08)", border: "1px solid rgba(251, 191, 36,0.2)", borderRadius: "8px", padding: "12px 16px", margin: "12px 0", display: "flex", gap: "10px", alignItems: "flex-start" }}>
+          <AlertCircle size={14} style={{ color: "#fbbf24", marginTop: "2px", flexShrink: 0 }} />
           <span style={{ fontSize: "13px", color: "var(--text-secondary)" }}>{line.replace(/^⚠️\s*|^>\s*/, "")}</span>
         </div>
       );
@@ -121,8 +121,8 @@ function StarRating({ rating, size = 14 }) {
         <Star
           key={s}
           size={size}
-          fill={s <= Math.round(rating) ? "#f59e0b" : "transparent"}
-          color={s <= Math.round(rating) ? "#f59e0b" : "#3a3a3a"}
+          fill={s <= Math.round(rating) ? "#fbbf24" : "transparent"}
+          color={s <= Math.round(rating) ? "#fbbf24" : "#2e2e44"}
         />
       ))}
     </div>
@@ -183,7 +183,7 @@ export default function ToolDetail() {
     return (
       <div role="alert" style={{ maxWidth: "900px", margin: "80px auto", padding: "0 24px", textAlign: "center" }}>
         <h1 style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "24px", marginBottom: "12px" }}>Tool not found</h1>
-        <Link to="/marketplace" style={{ color: "#818cf8", fontSize: "14px" }}>← Back to Marketplace</Link>
+        <Link to="/marketplace" style={{ color: "#a594ff", fontSize: "14px" }}>← Back to Marketplace</Link>
       </div>
     );
   }
@@ -215,8 +215,8 @@ export default function ToolDetail() {
           {/* Tool header */}
           <div
             style={{
-              background: "#111",
-              border: "1px solid #1e1e1e",
+              background: "#12121c",
+              border: "1px solid #1d1d2b",
               borderRadius: "16px",
               padding: "28px",
               marginBottom: "20px",
@@ -264,7 +264,7 @@ export default function ToolDetail() {
                     : tool.verified && <VerifiedBadge verified={tool.verified} size="md" />}
                   <PriceTag tool={tool} size="md" />
                   {tool.trending && (
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "11px", fontFamily: "var(--font-mono)", color: "#f59e0b", background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: "5px", padding: "2px 8px" }}>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "11px", fontFamily: "var(--font-mono)", color: "#fbbf24", background: "rgba(251, 191, 36,0.1)", border: "1px solid rgba(251, 191, 36,0.2)", borderRadius: "5px", padding: "2px 8px" }}>
                       <TrendingUp size={10} /> Trending
                     </span>
                   )}
@@ -308,8 +308,8 @@ export default function ToolDetail() {
                     fontSize: "11px",
                     fontFamily: "var(--font-mono)",
                     color: "var(--text-muted)",
-                    background: "#1a1a1a",
-                    border: "1px solid #2a2a2a",
+                    background: "#1d1d2b",
+                    border: "1px solid #2e2e44",
                     borderRadius: "5px",
                     padding: "3px 9px",
                   }}
@@ -353,7 +353,7 @@ export default function ToolDetail() {
           )}
 
           {/* Tabs */}
-          <div role="tablist" aria-label="Tool details" style={{ display: "flex", gap: "2px", marginBottom: "20px", background: "#0d0d0d", borderRadius: "10px", padding: "4px", border: "1px solid #1a1a1a" }}>
+          <div role="tablist" aria-label="Tool details" style={{ display: "flex", gap: "2px", marginBottom: "20px", background: "#0d0d15", borderRadius: "10px", padding: "4px", border: "1px solid #1d1d2b" }}>
             {TABS.map((tab) => (
               <button
                 key={tab}
@@ -367,7 +367,7 @@ export default function ToolDetail() {
                   padding: "8px",
                   borderRadius: "7px",
                   border: "none",
-                  background: activeTab === tab ? "#1a1a1a" : "transparent",
+                  background: activeTab === tab ? "#1d1d2b" : "transparent",
                   color: activeTab === tab ? "var(--text-primary)" : "var(--text-muted)",
                   fontSize: "13px",
                   fontWeight: activeTab === tab ? 600 : 400,
@@ -393,8 +393,8 @@ export default function ToolDetail() {
               id="panel-Overview"
               aria-labelledby="tab-Overview"
               style={{
-                background: "#111",
-                border: "1px solid #1e1e1e",
+                background: "#12121c",
+                border: "1px solid #1d1d2b",
                 borderRadius: "14px",
                 padding: "28px",
               }}
@@ -412,8 +412,8 @@ export default function ToolDetail() {
               )}
               <div
                 style={{
-                  background: "#111",
-                  border: "1px solid #1e1e1e",
+                  background: "#12121c",
+                  border: "1px solid #1d1d2b",
                   borderRadius: "14px",
                   padding: "20px",
                 }}
@@ -427,7 +427,7 @@ export default function ToolDetail() {
           )}
 
           {activeTab === "Reviews" && (
-            <div role="tabpanel" id="panel-Reviews" aria-labelledby="tab-Reviews" style={{ background: "#111", border: "1px solid #1e1e1e", borderRadius: "14px", padding: "28px" }}>
+            <div role="tabpanel" id="panel-Reviews" aria-labelledby="tab-Reviews" style={{ background: "#12121c", border: "1px solid #1d1d2b", borderRadius: "14px", padding: "28px" }}>
               <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "18px", marginBottom: "20px" }}>
                 Reviews
               </h2>
@@ -440,9 +440,9 @@ export default function ToolDetail() {
                       key={review.id}
                       style={{
                         padding: "16px",
-                        background: "#0d0d0d",
+                        background: "#0d0d15",
                         borderRadius: "10px",
-                        border: "1px solid #1a1a1a",
+                        border: "1px solid #1d1d2b",
                       }}
                     >
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "10px" }}>
@@ -452,7 +452,7 @@ export default function ToolDetail() {
                               width: 32,
                               height: 32,
                               borderRadius: "50%",
-                              background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                              background: "linear-gradient(135deg, #7c6cff, #a855f7)",
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
@@ -492,8 +492,8 @@ export default function ToolDetail() {
           {/* Pricing card */}
           <div
             style={{
-              background: "#111",
-              border: "1px solid #1e1e1e",
+              background: "#12121c",
+              border: "1px solid #1d1d2b",
               borderRadius: "14px",
               padding: "24px",
               marginBottom: "16px",
@@ -514,7 +514,7 @@ export default function ToolDetail() {
               style={{
                 width: "100%",
                 padding: "13px",
-                background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                background: "linear-gradient(135deg, #7c6cff, #a855f7)",
                 border: "none",
                 borderRadius: "10px",
                 color: "#fff",
@@ -523,7 +523,7 @@ export default function ToolDetail() {
                 cursor: checkoutLoading ? "not-allowed" : "pointer",
                 opacity: checkoutLoading ? 0.7 : 1,
                 marginBottom: "10px",
-                boxShadow: "0 0 20px rgba(99,102,241,0.25)",
+                boxShadow: "0 0 20px rgba(124, 108, 255,0.25)",
                 transition: "all 0.15s",
               }}
               onClick={async () => {
@@ -547,8 +547,8 @@ export default function ToolDetail() {
                   setActiveTab("Install");
                 }
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 0 28px rgba(99,102,241,0.4)")}
-              onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "0 0 20px rgba(99,102,241,0.25)")}
+              onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 0 28px rgba(124, 108, 255,0.4)")}
+              onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "0 0 20px rgba(124, 108, 255,0.25)")}
             >
               {checkoutLoading ? "Redirecting…" : tool.price_type === "free" ? "Install Tool" : `Subscribe — ${tool.price_label || tool.price}`}
             </button>
@@ -570,7 +570,7 @@ export default function ToolDetail() {
               </p>
             )}
 
-            <div style={{ borderTop: "1px solid #1a1a1a", paddingTop: "16px", marginTop: "16px", display: "flex", flexDirection: "column", gap: "10px" }}>
+            <div style={{ borderTop: "1px solid #1d1d2b", paddingTop: "16px", marginTop: "16px", display: "flex", flexDirection: "column", gap: "10px" }}>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>Installs</span>
                 <span style={{ fontSize: "12px", fontFamily: "var(--font-mono)", color: "var(--text-secondary)" }}>{tool.installs.toLocaleString()}</span>
@@ -595,8 +595,8 @@ export default function ToolDetail() {
           {/* Quick install */}
           <div
             style={{
-              background: "#111",
-              border: "1px solid #1e1e1e",
+              background: "#12121c",
+              border: "1px solid #1d1d2b",
               borderRadius: "14px",
               padding: "20px",
             }}
@@ -607,7 +607,7 @@ export default function ToolDetail() {
       </div>
 
       {/* Report / flag — community trust signal */}
-      <div style={{ marginTop: "28px", paddingTop: "20px", borderTop: "1px solid #1a1a1a", textAlign: "center" }}>
+      <div style={{ marginTop: "28px", paddingTop: "20px", borderTop: "1px solid #1d1d2b", textAlign: "center" }}>
         {reportMsg && !reportOpen ? (
           <p role="status" style={{ fontSize: "13px", color: "#10b981" }}>{reportMsg}</p>
         ) : !reportOpen ? (
@@ -618,10 +618,10 @@ export default function ToolDetail() {
             <AlertCircle size={12} /> Report this server
           </button>
         ) : (
-          <form onSubmit={submitReport} style={{ maxWidth: "440px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "10px", textAlign: "left", background: "#111", border: "1px solid #1e1e1e", borderRadius: "12px", padding: "18px" }}>
+          <form onSubmit={submitReport} style={{ maxWidth: "440px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "10px", textAlign: "left", background: "#12121c", border: "1px solid #1d1d2b", borderRadius: "12px", padding: "18px" }}>
             <div style={{ fontSize: "13px", fontWeight: 600 }}>Report this server</div>
             <select value={reportReason} onChange={(e) => setReportReason(e.target.value)}
-              style={{ padding: "9px 12px", background: "#0d0d0d", border: "1px solid #2a2a2a", borderRadius: "8px", color: "var(--text-primary)", fontSize: "13px" }}>
+              style={{ padding: "9px 12px", background: "#0d0d15", border: "1px solid #2e2e44", borderRadius: "8px", color: "var(--text-primary)", fontSize: "13px" }}>
               <option value="security">Security concern (e.g., tool poisoning)</option>
               <option value="malware">Malware or abuse</option>
               <option value="impersonation">Impersonation / fake publisher</option>
@@ -631,7 +631,7 @@ export default function ToolDetail() {
             </select>
             <textarea value={reportDetail} onChange={(e) => setReportDetail(e.target.value)} rows={3} maxLength={1000}
               placeholder="Optional details (what's wrong, links, etc.)"
-              style={{ padding: "9px 12px", background: "#0d0d0d", border: "1px solid #2a2a2a", borderRadius: "8px", color: "var(--text-primary)", fontSize: "13px", resize: "vertical", fontFamily: "var(--font-body)" }} />
+              style={{ padding: "9px 12px", background: "#0d0d15", border: "1px solid #2e2e44", borderRadius: "8px", color: "var(--text-primary)", fontSize: "13px", resize: "vertical", fontFamily: "var(--font-body)" }} />
             {reportMsg && <p style={{ fontSize: "12px", color: "#f87171" }}>{reportMsg}</p>}
             <div style={{ display: "flex", gap: "8px" }}>
               <button type="submit" disabled={reportBusy}
@@ -639,7 +639,7 @@ export default function ToolDetail() {
                 {reportBusy ? "Submitting…" : "Submit report"}
               </button>
               <button type="button" onClick={() => setReportOpen(false)}
-                style={{ padding: "9px 16px", background: "transparent", border: "1px solid #2a2a2a", borderRadius: "8px", color: "var(--text-muted)", fontSize: "13px", cursor: "pointer" }}>
+                style={{ padding: "9px 16px", background: "transparent", border: "1px solid #2e2e44", borderRadius: "8px", color: "var(--text-muted)", fontSize: "13px", cursor: "pointer" }}>
                 Cancel
               </button>
             </div>

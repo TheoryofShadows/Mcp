@@ -112,7 +112,7 @@ export default function Home() {
             transform: "translateX(-50%)",
             width: "600px",
             height: "400px",
-            background: "radial-gradient(ellipse at center, rgba(99,102,241,0.12) 0%, transparent 70%)",
+            background: "radial-gradient(ellipse at center, rgba(124, 108, 255,0.12) 0%, transparent 70%)",
             pointerEvents: "none",
           }}
         />
@@ -125,8 +125,8 @@ export default function Home() {
               alignItems: "center",
               gap: "8px",
               padding: "6px 16px",
-              background: "rgba(99,102,241,0.08)",
-              border: "1px solid rgba(99,102,241,0.2)",
+              background: "rgba(124, 108, 255,0.08)",
+              border: "1px solid rgba(124, 108, 255,0.2)",
               borderRadius: "100px",
               marginBottom: "32px",
             }}
@@ -145,7 +145,7 @@ export default function Home() {
               style={{
                 fontFamily: "var(--font-mono)",
                 fontSize: "12px",
-                color: "#818cf8",
+                color: "#a594ff",
                 letterSpacing: "0.06em",
               }}
             >
@@ -168,7 +168,7 @@ export default function Home() {
             The App Store for{" "}
             <span
               style={{
-                background: "linear-gradient(135deg, #a5b4fc 0%, #6366f1 50%, #8b5cf6 100%)",
+                background: "linear-gradient(135deg, #b9adff 0%, #7c6cff 50%, #a855f7 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
               }}
@@ -189,7 +189,7 @@ export default function Home() {
           >
             Discover, install, and monetize MCP tools. Build integrations for Claude and
             earn revenue — we handle the marketplace.{" "}
-            <span style={{ color: "#818cf8" }}>15% fee model.</span>
+            <span style={{ color: "#a594ff" }}>15% fee model.</span>
           </p>
 
           {/* Search */}
@@ -214,8 +214,8 @@ export default function Home() {
                 style={{
                   width: "100%",
                   padding: "14px 16px 14px 44px",
-                  background: "#111",
-                  border: "1px solid #2a2a2a",
+                  background: "#12121c",
+                  border: "1px solid #2e2e44",
                   borderRight: "none",
                   borderRadius: "12px 0 0 12px",
                   color: "var(--text-primary)",
@@ -223,8 +223,8 @@ export default function Home() {
                   fontFamily: "var(--font-body)",
                   outline: "none",
                 }}
-                onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(99,102,241,0.4)")}
-                onBlur={(e) => (e.currentTarget.style.borderColor = "#2a2a2a")}
+                onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(124, 108, 255,0.4)")}
+                onBlur={(e) => (e.currentTarget.style.borderColor = "#2e2e44")}
                 aria-label="Search MCP tools"
               />
             </div>
@@ -232,7 +232,7 @@ export default function Home() {
               type="submit"
               style={{
                 padding: "14px 22px",
-                background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                background: "linear-gradient(135deg, #7c6cff, #a855f7)",
                 border: "none",
                 borderRadius: "0 12px 12px 0",
                 color: "#fff",
@@ -257,8 +257,8 @@ export default function Home() {
                 onClick={() => navigate(`/marketplace?q=${encodeURIComponent(name)}`)}
                 style={{
                   padding: "5px 12px",
-                  background: "#111",
-                  border: "1px solid #222",
+                  background: "#12121c",
+                  border: "1px solid #1d1d2b",
                   borderRadius: "100px",
                   color: "var(--text-muted)",
                   fontSize: "12px",
@@ -267,11 +267,11 @@ export default function Home() {
                   transition: "all 0.15s",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = "rgba(99,102,241,0.3)";
-                  e.currentTarget.style.color = "#a5b4fc";
+                  e.currentTarget.style.borderColor = "rgba(124, 108, 255,0.3)";
+                  e.currentTarget.style.color = "#b9adff";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = "#222";
+                  e.currentTarget.style.borderColor = "#1d1d2b";
                   e.currentTarget.style.color = "var(--text-muted)";
                 }}
               >
@@ -285,10 +285,10 @@ export default function Home() {
       {/* ─── Stats Bar ────────────────────────────────────────────────────────── */}
       <section
         style={{
-          borderTop: "1px solid #1a1a1a",
-          borderBottom: "1px solid #1a1a1a",
+          borderTop: "1px solid #1d1d2b",
+          borderBottom: "1px solid #1d1d2b",
           padding: "32px 24px",
-          background: "#0d0d0d",
+          background: "#0d0d15",
         }}
       >
         <div
@@ -307,7 +307,7 @@ export default function Home() {
               style={{
                 textAlign: "center",
                 padding: "8px 16px",
-                borderRight: i < STAT_ITEMS.length - 1 ? "1px solid #1a1a1a" : "none",
+                borderRight: i < STAT_ITEMS.length - 1 ? "1px solid #1d1d2b" : "none",
               }}
             >
               <div
@@ -319,7 +319,7 @@ export default function Home() {
                   marginBottom: "4px",
                 }}
               >
-                <Icon size={14} color="#6366f1" />
+                <Icon size={14} color="#7c6cff" />
                 <span
                   style={{
                     fontFamily: "var(--font-heading)",
@@ -365,7 +365,7 @@ export default function Home() {
               body: "Every server gets a transparent Trust Score (0–100) computed from real signals — source, license, adoption, reviews, and capability risk — with every point explained. Not a badge someone toggled.",
             },
             {
-              icon: DollarSign, color: "#6366f1",
+              icon: DollarSign, color: "#7c6cff",
               title: "Builders get paid",
               body: "List a paid tool and keep 85%. Real Stripe payouts to publishers, not just exposure — monetization is built in, not bolted on.",
             },
@@ -375,7 +375,7 @@ export default function Home() {
               body: "Machine-readable trust at /api/servers/:slug/trust and a live discovery feed, so an agent can vet a tool before it installs — plus one-click install for Claude, Cursor, and VS Code.",
             },
           ].map(({ icon: Icon, color, title, body }) => (
-            <div key={title} style={{ background: "#111", border: "1px solid #1e1e1e", borderRadius: "16px", padding: "24px" }}>
+            <div key={title} style={{ background: "#12121c", border: "1px solid #1d1d2b", borderRadius: "16px", padding: "24px" }}>
               <div style={{ width: 40, height: 40, borderRadius: "10px", background: `${color}18`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "14px" }}>
                 <Icon size={20} color={color} />
               </div>
@@ -461,7 +461,7 @@ export default function Home() {
               alignItems: "center",
               gap: "5px",
               fontSize: "13px",
-              color: "#818cf8",
+              color: "#a594ff",
               textDecoration: "none",
               fontWeight: 500,
             }}
@@ -492,8 +492,8 @@ export default function Home() {
           maxWidth: "1100px",
           marginLeft: "auto",
           marginRight: "auto",
-          background: "linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(139,92,246,0.1) 100%)",
-          border: "1px solid rgba(99,102,241,0.25)",
+          background: "linear-gradient(135deg, rgba(124, 108, 255,0.15) 0%, rgba(139,92,246,0.1) 100%)",
+          border: "1px solid rgba(124, 108, 255,0.25)",
           borderRadius: "20px",
           padding: "52px 40px",
           textAlign: "center",
@@ -503,7 +503,7 @@ export default function Home() {
           style={{
             width: 52,
             height: 52,
-            background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+            background: "linear-gradient(135deg, #7c6cff, #a855f7)",
             borderRadius: "14px",
             display: "flex",
             alignItems: "center",
@@ -544,13 +544,13 @@ export default function Home() {
               alignItems: "center",
               gap: "8px",
               padding: "12px 24px",
-              background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+              background: "linear-gradient(135deg, #7c6cff, #a855f7)",
               borderRadius: "10px",
               color: "#fff",
               fontSize: "14px",
               fontWeight: 600,
               textDecoration: "none",
-              boxShadow: "0 0 24px rgba(99,102,241,0.3)",
+              boxShadow: "0 0 24px rgba(124, 108, 255,0.3)",
             }}
           >
             Submit a Tool <ArrowRight size={14} />
@@ -563,9 +563,9 @@ export default function Home() {
               gap: "8px",
               padding: "12px 24px",
               background: "transparent",
-              border: "1px solid rgba(99,102,241,0.3)",
+              border: "1px solid rgba(124, 108, 255,0.3)",
               borderRadius: "10px",
-              color: "#a5b4fc",
+              color: "#b9adff",
               fontSize: "14px",
               fontWeight: 500,
               textDecoration: "none",

@@ -14,8 +14,8 @@ const ToolCard = memo(function ToolCard({ tool, index = 0 }) {
       <article
         className="tool-card"
         style={{
-          background: "#111",
-          border: "1px solid #1e1e1e",
+          background: "#12121c",
+          border: "1px solid #1d1d2b",
           borderRadius: "14px",
           padding: "20px",
           cursor: "pointer",
@@ -28,12 +28,12 @@ const ToolCard = memo(function ToolCard({ tool, index = 0 }) {
           flexDirection: "column",
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.borderColor = "rgba(99,102,241,0.3)";
+          e.currentTarget.style.borderColor = "rgba(124, 108, 255,0.3)";
           e.currentTarget.style.transform = "translateY(-2px)";
-          e.currentTarget.style.boxShadow = "0 8px 32px rgba(99,102,241,0.1)";
+          e.currentTarget.style.boxShadow = "0 8px 32px rgba(124, 108, 255,0.1)";
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.borderColor = "#1e1e1e";
+          e.currentTarget.style.borderColor = "#1d1d2b";
           e.currentTarget.style.transform = "translateY(0)";
           e.currentTarget.style.boxShadow = "none";
         }}
@@ -129,9 +129,9 @@ const ToolCard = memo(function ToolCard({ tool, index = 0 }) {
                   gap: "3px",
                   fontSize: "10px",
                   fontFamily: "var(--font-mono)",
-                  color: "#f59e0b",
-                  background: "rgba(245,158,11,0.1)",
-                  border: "1px solid rgba(245,158,11,0.2)",
+                  color: "#fbbf24",
+                  background: "rgba(251, 191, 36,0.1)",
+                  border: "1px solid rgba(251, 191, 36,0.2)",
                   borderRadius: "5px",
                   padding: "2px 6px",
                 }}
@@ -176,8 +176,8 @@ const ToolCard = memo(function ToolCard({ tool, index = 0 }) {
                 fontSize: "11px",
                 fontFamily: "var(--font-mono)",
                 color: "var(--text-muted)",
-                background: "#1a1a1a",
-                border: "1px solid #2a2a2a",
+                background: "#1d1d2b",
+                border: "1px solid #2e2e44",
                 borderRadius: "5px",
                 padding: "2px 7px",
               }}
@@ -194,7 +194,7 @@ const ToolCard = memo(function ToolCard({ tool, index = 0 }) {
             justifyContent: "space-between",
             alignItems: "center",
             paddingTop: "12px",
-            borderTop: "1px solid #1a1a1a",
+            borderTop: "1px solid #1d1d2b",
           }}
         >
           <div style={{ display: "flex", gap: "14px" }}>

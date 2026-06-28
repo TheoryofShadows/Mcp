@@ -78,10 +78,10 @@ export default function VerifyRepoModal({ server, onClose, onVerified }) {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        style={{ background: "#111118", border: "1px solid #1e1e2e", borderRadius: "14px", width: "100%", maxWidth: "520px", maxHeight: "90vh", overflowY: "auto" }}
+        style={{ background: "#12121c", border: "1px solid #1a1a28", borderRadius: "14px", width: "100%", maxWidth: "520px", maxHeight: "90vh", overflowY: "auto" }}
       >
         {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 20px", borderBottom: "1px solid #1e1e2e" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 20px", borderBottom: "1px solid #1a1a28" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <ShieldCheck size={18} color="#10b981" />
             <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "16px" }}>Verify repository ownership</h2>
@@ -112,16 +112,16 @@ export default function VerifyRepoModal({ server, onClose, onVerified }) {
           ) : (
             <>
               <ol style={{ fontSize: "13px", color: "var(--text-secondary, #9ca3af)", lineHeight: 1.9, paddingLeft: "18px", margin: "0 0 16px" }}>
-                <li>Create a file named <code style={{ background: "#1e1e2e", padding: "1px 6px", borderRadius: "4px" }}>{info.filename}</code> in your repo root.</li>
+                <li>Create a file named <code style={{ background: "#1a1a28", padding: "1px 6px", borderRadius: "4px" }}>{info.filename}</code> in your repo root.</li>
                 <li>Paste the token below as its only contents.</li>
                 <li>Commit and push to the default branch, then click <strong>Check now</strong>.</li>
               </ol>
 
-              <div style={{ background: "#0a0a0f", border: "1px solid #1e1e2e", borderRadius: "8px", padding: "12px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px", marginBottom: "16px" }}>
+              <div style={{ background: "#0a0a0f", border: "1px solid #1a1a28", borderRadius: "8px", padding: "12px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px", marginBottom: "16px" }}>
                 <code style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "#c4c9d4", wordBreak: "break-all" }}>{info.token}</code>
                 <button
                   onClick={copyToken}
-                  style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "6px 12px", borderRadius: "6px", border: "none", background: copied ? "rgba(16,185,129,0.12)" : "rgba(99,102,241,0.12)", color: copied ? "#10b981" : "#818cf8", cursor: "pointer", fontSize: "12px", fontFamily: "var(--font-mono)", flexShrink: 0 }}
+                  style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "6px 12px", borderRadius: "6px", border: "none", background: copied ? "rgba(16,185,129,0.12)" : "rgba(124, 108, 255,0.12)", color: copied ? "#10b981" : "#a594ff", cursor: "pointer", fontSize: "12px", fontFamily: "var(--font-mono)", flexShrink: 0 }}
                 >
                   {copied ? <Check size={12} /> : <Copy size={12} />}
                   {copied ? "Copied" : "Copy"}
@@ -132,8 +132,8 @@ export default function VerifyRepoModal({ server, onClose, onVerified }) {
                 <div
                   style={{
                     fontSize: "13px", padding: "10px 14px", borderRadius: "8px", marginBottom: "14px",
-                    background: status.kind === "error" ? "rgba(239,68,68,0.08)" : "rgba(245,158,11,0.08)",
-                    border: `1px solid ${status.kind === "error" ? "rgba(239,68,68,0.25)" : "rgba(245,158,11,0.25)"}`,
+                    background: status.kind === "error" ? "rgba(239,68,68,0.08)" : "rgba(251, 191, 36,0.08)",
+                    border: `1px solid ${status.kind === "error" ? "rgba(239,68,68,0.25)" : "rgba(251, 191, 36,0.25)"}`,
                     color: status.kind === "error" ? "#f87171" : "#fbbf24",
                   }}
                 >

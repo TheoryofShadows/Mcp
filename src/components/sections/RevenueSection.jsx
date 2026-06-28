@@ -119,7 +119,7 @@ export default function RevenueSection({ onAuthClick }) {
                   background: "var(--bg-secondary)",
                   borderRadius: "var(--radius-lg)",
                   border: item.highlight
-                    ? "1px solid rgba(77, 255, 180, 0.3)"
+                    ? "1px solid rgba(124, 108, 255, 0.35)"
                     : "1px solid var(--border-subtle)",
                 }}
               >
