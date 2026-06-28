@@ -33,7 +33,7 @@
     "start": "node server/index.js",
     "lint": "eslint .",
     "preview": "vite preview",
-    "sync:cli": "node scripts/sync-shared.js",
+    "sync:vendored": "node scripts/sync-shared.js",
     "test": "vitest run",
     "test:watch": "vitest"
   },

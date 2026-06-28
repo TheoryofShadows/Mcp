@@ -15,7 +15,8 @@
   "files": [
     "index.js",
     "lib.js",
-    "installConfig.js"
+    "installConfig.js",
+    "README.md"
   ],
   "keywords": ["mcp", "mcpx", "model-context-protocol", "cli"],
   "license": "MIT"

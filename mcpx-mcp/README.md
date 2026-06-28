@@ -32,10 +32,11 @@ high-risk, or unverified-artifact server.
 Env: `MCPX_API` (default `https://www.mcpx.digital`), `MCPX_TOKEN` (optional — counts
 installs to your account).
 
-> **Packaging note:** for in-repo development this server imports the CLI's shared
-> gate from `../cli/lib.js`. Before publishing standalone, either depend on the
-> published `mcpx` package or vendor those helpers (the same single-source pattern
-> used by `scripts/sync-shared.js`).
+> **Packaging:** self-contained. The CLI's shared trust gate is vendored in as
+> `cliShared.js` (and `installConfig.js`) from `cli/lib.js` / `shared/installConfig.js`
+> via `scripts/sync-shared.js`, kept current by the package's `prepack` and guarded
+> by `tests/sharedSync.test.js`. Source of truth stays single; the published tarball
+> ships everything it needs.
 
 ## License
 

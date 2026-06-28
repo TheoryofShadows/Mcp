@@ -9,9 +9,14 @@
   "engines": {
     "node": ">=20"
   },
+  "scripts": {
+    "prepack": "node ../scripts/sync-shared.js"
+  },
   "files": [
     "index.js",
     "lib.js",
+    "cliShared.js",
+    "installConfig.js",
     "README.md"
   ],
   "dependencies": {
