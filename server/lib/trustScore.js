@@ -30,8 +30,16 @@ const FACTORS = [
         return { points: 0, reason: "No public source repository linked" };
       }
       const isGit = /github\.com|gitlab\.com|bitbucket\.org/i.test(s.repo_url);
+      // Full provenance requires *proven* control of the repo (verified ownership
+      // or an admin-reviewed publisher). Simply pasting a link to a famous repo
+      // you don't own no longer earns the top score — it's treated like any other
+      // unproven source URL until verified.
+      const proven = !!(s.repo_verified || s.verified);
+      if (isGit && proven) {
+        return { points: 25, reason: "Verified public source repository on a known host" };
+      }
       if (isGit) {
-        return { points: 25, reason: "Public source repository on a known host" };
+        return { points: 12, reason: "Source repo linked but ownership not yet verified" };
       }
       return { points: 12, reason: "Source URL present but not a recognized host" };
     },
@@ -70,6 +78,10 @@ const FACTORS = [
     label: "Adoption",
     max: 15,
     score(s) {
+      // `installs` is the count of *distinct authenticated* installers — the
+      // install route only increments it once per (server, real account), and a
+      // partial UNIQUE index enforces that. Anonymous installs are analytics-only
+      // and never reach this signal, so adoption can't be inflated by a botnet.
       const n = Number(s.installs) || 0;
       // Logarithmic: rewards real traction without letting whales max out trust.
       // 0 installs → 0; ~10 → 5; ~1k → ~10; ~100k → 15.
@@ -121,6 +133,18 @@ function stalenessPenalty(s, now) {
   const penalty = Math.min(5, Math.floor((daysSinceUpdate - 180) / 90));
   if (penalty <= 0) return { points: 0, reason: null };
   return { points: -penalty, reason: `Not updated in ${Math.round(daysSinceUpdate)} days` };
+}
+
+/**
+ * Source-scan penalty — couples the Trust Score to the actual code scan
+ * (server/lib/repoScan.js, persisted in server_scans). A repository whose source
+ * scans as risky drags the listing's trust down, regardless of installs/ratings.
+ */
+function scanPenalty(s) {
+  const tier = s.scan_tier;
+  if (tier === "high") return { points: -15, reason: "Source scan flagged high-risk findings" };
+  if (tier === "moderate") return { points: -5, reason: "Source scan flagged moderate findings" };
+  return { points: 0, reason: null };
 }
 
 /**
@@ -179,6 +203,11 @@ export function computeTrust(server, now = Date.now()) {
     penalties.push({ key: "staleness", label: "Freshness", points: staleness.points, reason: staleness.reason });
   }
 
+  const scan = scanPenalty(server);
+  if (scan.reason) {
+    penalties.push({ key: "scan", label: "Source scan", points: scan.points, reason: scan.reason });
+  }
+
   // Community reports lower trust. Unreviewed ("open") flags only — an admin
   // dismissing a flag removes its penalty. Capped so a couple of malicious
   // reports can't zero out an otherwise-strong server (rate-limited too).
@@ -193,7 +222,7 @@ export function computeTrust(server, now = Date.now()) {
     });
   }
 
-  const raw = factors.reduce((sum, f) => sum + f.points, 0) + penalty.points + staleness.points - flagPenalty;
+  const raw = factors.reduce((sum, f) => sum + f.points, 0) + penalty.points + staleness.points + scan.points - flagPenalty;
   const score = Math.max(0, Math.min(100, Math.round(raw)));
 
   // Confidence reflects how many signals we actually had to work with.

@@ -1,48 +1,8 @@
 import { useState } from "react";
 import { Copy, Check, Terminal, Code2, Cpu } from "lucide-react";
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function buildClaudeCommand(server) {
-  const slug = server.slug || server.name?.toLowerCase().replace(/\s+/g, "-");
-  const cmd = server.install_command || `npx -y @modelcontextprotocol/server-${slug}`;
-  return `claude mcp add ${slug} -- ${cmd}`;
-}
-
-function buildCursorConfig(server) {
-  const slug = server.slug || server.name?.toLowerCase().replace(/\s+/g, "-");
-  const cmd = server.install_command || `npx -y @modelcontextprotocol/server-${slug}`;
-  const parts = cmd.trim().split(/\s+/);
-  const command = parts[0];
-  const args = parts.slice(1);
-  const config = {
-    mcpServers: {
-      [slug]: {
-        command,
-        args,
-      },
-    },
-  };
-  return JSON.stringify(config, null, 2);
-}
-
-function buildVSCodeConfig(server) {
-  const slug = server.slug || server.name?.toLowerCase().replace(/\s+/g, "-");
-  const cmd = server.install_command || `npx -y @modelcontextprotocol/server-${slug}`;
-  const parts = cmd.trim().split(/\s+/);
-  const command = parts[0];
-  const args = parts.slice(1);
-  const config = {
-    servers: {
-      [slug]: {
-        type: "stdio",
-        command,
-        args,
-      },
-    },
-  };
-  return JSON.stringify(config, null, 2);
-}
+// Install-command logic lives in a shared module so the web UI and the
+// `npx mcpx install` CLI always produce identical config (see shared/installConfig.js).
+import { buildClaudeCommand, buildCursorConfig, buildVSCodeConfig } from "../../shared/installConfig.js";
 
 // ─── Copy button ──────────────────────────────────────────────────────────────
 

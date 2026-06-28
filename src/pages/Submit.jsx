@@ -133,6 +133,7 @@ export default function Submit() {
           price_type: form.price_type,
           price_amount: form.price_type === "paid" ? Math.round(Number(form.price_amount) * 100) : 0,
           repo_url: githubUrl || "",
+          install_command: form.install_command || "",
           tags,
         });
       }
@@ -339,6 +340,10 @@ export default function Submit() {
               onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(99,102,241,0.4)")}
               onBlur={(e) => (e.currentTarget.style.borderColor = "#2a2a2a")}
             />
+            <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "7px", lineHeight: 1.5 }}>
+              The exact command to launch your server. Used by the install buttons and <code style={{ fontFamily: "var(--font-mono)" }}>npx mcpx install</code>.
+              Without it, the installer falls back to a guessed package name.
+            </p>
           </div>
 
           <div>

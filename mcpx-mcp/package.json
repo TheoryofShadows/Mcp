@@ -1,0 +1,22 @@
+{
+  "name": "@mcpx/mcp",
+  "version": "0.1.0",
+  "description": "MCP server for the MCPX marketplace — let agents discover, inspect trust, scan, and install other MCP servers in-conversation.",
+  "type": "module",
+  "bin": {
+    "mcpx-mcp": "./index.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "index.js",
+    "lib.js",
+    "README.md"
+  ],
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "keywords": ["mcp", "model-context-protocol", "mcpx", "marketplace", "agent"],
+  "license": "MIT"
+}

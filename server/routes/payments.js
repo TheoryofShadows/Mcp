@@ -34,6 +34,19 @@ const stripe = process.env.STRIPE_SECRET_KEY
   ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2026-02-25.clover" })
   : null;
 
+// `processed_events` is the webhook idempotency ledger — it grows by one row per
+// Stripe event forever. Stripe never replays an event older than a few days, so
+// rows past the retention window are dead weight. Prune them periodically to keep
+// the table bounded. Exported so it can be unit-tested directly.
+const PROCESSED_EVENT_RETENTION_DAYS = 90;
+export function cleanupProcessedEvents() {
+  return db.prepare(
+    `DELETE FROM processed_events WHERE processed_at < datetime('now', ?)`
+  ).run(`-${PROCESSED_EVENT_RETENTION_DAYS} days`).changes;
+}
+// .unref() so this never keeps the process (or a test runner) alive.
+setInterval(cleanupProcessedEvents, 24 * 60 * 60 * 1000).unref();
+
 // Current billing period end moved from the Subscription to its items in Basil.
 // Prefer the item-level field (Basil+, what our SDK and recent webhook endpoints
 // emit) and fall back to the legacy top-level field, since webhook payload shape

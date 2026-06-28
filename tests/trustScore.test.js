@@ -138,9 +138,85 @@ describe("computeTrust — open flags", () => {
     expect(flagged.score).toBeLessThan(clean.score);
     expect(flagged.penalties.some((p) => p.key === "flags")).toBe(true);
   });
-  it("caps the flag penalty at 20", () => {
-    const a = computeTrust({ ...base, open_flags: 4 });
-    const b = computeTrust({ ...base, open_flags: 50 });
-    expect(a.score).toBe(b.score); // both hit the -20 cap
+  it("scales the penalty with flag count below the cap", () => {
+    const oneFlag = computeTrust({ ...base, open_flags: 1 });   // -5
+    const threeFlags = computeTrust({ ...base, open_flags: 3 }); // -10 (capped)
+    expect(oneFlag.score).toBeGreaterThan(threeFlags.score);
+  });
+  it("caps the flag penalty at 10", () => {
+    const a = computeTrust({ ...base, open_flags: 2 });  // 2*5 = 10, at cap
+    const b = computeTrust({ ...base, open_flags: 50 }); // 50*5 capped to 10
+    expect(a.score).toBe(b.score); // both hit the -10 cap
+  });
+});
+
+describe("computeTrust — provenance verification gate", () => {
+  const base = {
+    repo_url: "https://github.com/acme/x", license: "MIT", verified: 0,
+    installs: 100, rating: 4, rating_count: 10, created_at: daysAgo(90), tags: [],
+  };
+  it("awards full provenance only when ownership is proven", () => {
+    const unproven = computeTrust({ ...base, repo_verified: 0 }, NOW);
+    const proven = computeTrust({ ...base, repo_verified: 1 }, NOW);
+    const f = (t) => t.factors.find((x) => x.key === "provenance").points;
+    expect(f(unproven)).toBe(12);
+    expect(f(proven)).toBe(25);
+    expect(proven.score).toBeGreaterThan(unproven.score);
+  });
+  it("treats an admin-verified publisher as proven provenance", () => {
+    const t = computeTrust({ ...base, verified: 1, repo_verified: 0 }, NOW);
+    expect(t.factors.find((x) => x.key === "provenance").points).toBe(25);
+  });
+});
+
+describe("computeTrust — source-scan penalty", () => {
+  const base = {
+    repo_url: "https://github.com/acme/x", license: "MIT", verified: 1, repo_verified: 1,
+    installs: 50000, rating: 4.8, rating_count: 120, created_at: daysAgo(300), tags: ["data"],
+  };
+  it("penalizes a high-risk source scan", () => {
+    const clean = computeTrust({ ...base }, NOW);
+    const high = computeTrust({ ...base, scan_tier: "high" }, NOW);
+    expect(high.score).toBe(clean.score - 15);
+    expect(high.penalties.find((p) => p.key === "scan").points).toBe(-15);
+  });
+  it("penalizes a moderate scan less than a high one", () => {
+    const moderate = computeTrust({ ...base, scan_tier: "moderate" }, NOW);
+    const high = computeTrust({ ...base, scan_tier: "high" }, NOW);
+    expect(moderate.score).toBeGreaterThan(high.score);
+  });
+  it("does not penalize a safe/low scan", () => {
+    const safe = computeTrust({ ...base, scan_tier: "safe" }, NOW);
+    expect(safe.penalties.some((p) => p.key === "scan")).toBe(false);
+  });
+});
+
+describe("computeTrust — staleness", () => {
+  const FIXED_NOW = new Date("2026-06-01T00:00:00Z").getTime();
+  const daysBefore = (n) => new Date(FIXED_NOW - n * 86400_000).toISOString();
+  const base = {
+    repo_url: "https://github.com/acme/x", license: "MIT", verified: 1,
+    installs: 50000, rating: 4.8, rating_count: 120, tags: ["data"],
+    created_at: daysBefore(800),
+  };
+
+  it("does not penalize a recently-updated server", () => {
+    const fresh = computeTrust({ ...base, updated_at: daysBefore(30) }, FIXED_NOW);
+    expect(fresh.penalties.some((p) => p.key === "staleness")).toBe(false);
+  });
+
+  it("penalizes a server not updated in over 180 days", () => {
+    const fresh = computeTrust({ ...base, updated_at: daysBefore(30) }, FIXED_NOW);
+    const stale = computeTrust({ ...base, updated_at: daysBefore(400) }, FIXED_NOW);
+    const stalePenalty = stale.penalties.find((p) => p.key === "staleness");
+    expect(stalePenalty).toBeTruthy();
+    expect(stalePenalty.points).toBeLessThan(0);
+    expect(stale.score).toBeLessThan(fresh.score);
+  });
+
+  it("caps the staleness penalty at -5", () => {
+    const veryStale = computeTrust({ ...base, updated_at: daysBefore(5000) }, FIXED_NOW);
+    const stalePenalty = veryStale.penalties.find((p) => p.key === "staleness");
+    expect(stalePenalty.points).toBe(-5);
   });
 });

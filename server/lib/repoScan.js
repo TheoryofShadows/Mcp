@@ -238,23 +238,50 @@ async function collectFiles(root) {
  * @param {string} repoUrl
  * @returns {Promise<object>} scoreFiles report + { repo_url, file_count, scanned_at }
  */
+async function cloneShallow(url, dir) {
+  await execFileAsync(
+    "git",
+    ["clone", "--depth", "1", "--single-branch", "--quiet", url, dir],
+    {
+      timeout: CLONE_TIMEOUT_MS,
+      // Never let git block on an interactive auth prompt — fail fast instead.
+      env: { ...process.env, GIT_TERMINAL_PROMPT: "0" },
+      maxBuffer: 10 * 1024 * 1024,
+    },
+  );
+}
+
 export async function scanRepo(repoUrl) {
   const url = normalizeRepoUrl(repoUrl);
   const dir = await mkdtemp(path.join(tmpdir(), "mcpx-scan-"));
   try {
-    await execFileAsync(
-      "git",
-      ["clone", "--depth", "1", "--single-branch", "--quiet", url, dir],
-      {
-        timeout: CLONE_TIMEOUT_MS,
-        // Never let git block on an interactive auth prompt — fail fast instead.
-        env: { ...process.env, GIT_TERMINAL_PROMPT: "0" },
-        maxBuffer: 10 * 1024 * 1024,
-      },
-    );
+    await cloneShallow(url, dir);
     const files = await collectFiles(dir);
     const report = scoreFiles(files);
     return { ...report, repo_url: url, file_count: files.length, scanned_at: new Date().toISOString() };
+  } finally {
+    await rm(dir, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
+/**
+ * Shallow-clone a public repo and return the contents of a single root-relative
+ * file (or null if absent). Used for ownership verification (.mcpx-verify).
+ * Path traversal is stripped; content is capped. Throws { code:"BAD_URL" } on a
+ * bad/unsupported URL and surfaces clone errors (caught by the caller).
+ */
+export async function readRepoFile(repoUrl, relPath) {
+  const url = normalizeRepoUrl(repoUrl);
+  const safe = path.normalize(String(relPath)).replace(/^(\.\.(\/|\\|$))+/, "").replace(/^[/\\]+/, "");
+  const dir = await mkdtemp(path.join(tmpdir(), "mcpx-verify-"));
+  try {
+    await cloneShallow(url, dir);
+    try {
+      const text = await readFile(path.join(dir, safe), "utf8");
+      return text.length > 4096 ? text.slice(0, 4096) : text;
+    } catch {
+      return null; // file not present
+    }
   } finally {
     await rm(dir, { recursive: true, force: true }).catch(() => {});
   }

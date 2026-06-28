@@ -71,6 +71,9 @@ create table if not exists servers (
   price_label      text default 'free',
   -- Meta
   verified         boolean default false,
+  repo_verified    boolean default false,   -- proven repo ownership → full provenance
+  verify_token     text,                    -- per-server .mcpx-verify challenge token
+  install_command  text,                    -- verifiable install spec (CLI + web)
   trending         boolean default false,
   tags             text[]  default '{}',
   gradient         text not null default 'linear-gradient(135deg,#4DFFB4,#4D9FFF)',
@@ -131,6 +134,12 @@ create table if not exists installs (
   installed_at timestamptz default now()
 );
 
+-- Adoption integrity: at most one *counted* install per (server, authenticated
+-- user). Anonymous installs (NULL user_id) are excluded and analytics-only, so
+-- the install counter that feeds the Trust Score can't be inflated.
+create unique index if not exists installs_unique_user
+  on installs(server_id, user_id) where user_id is not null;
+
 -- ─── Subscriptions ────────────────────────────────────────────────────────────
 create table if not exists subscriptions (
   id                     uuid primary key default gen_random_uuid(),
@@ -141,6 +150,35 @@ create table if not exists subscriptions (
   created_at             timestamptz default now(),
   expires_at             timestamptz  -- NULL = no expiry (free tier)
 );
+
+-- ─── Source scans (latest per server; bound into the Trust Score) ────────────
+create table if not exists server_scans (
+  server_id     uuid primary key references servers(id) on delete cascade,
+  score         integer not null,
+  tier          text not null,
+  finding_count integer not null default 0,
+  scanned_at    timestamptz default now()
+);
+
+-- ─── Audit events (server-managed; no client RLS access) ─────────────────────
+-- Persistent trail of admin actions, auth failures and safety-sensitive writes.
+create table if not exists audit_events (
+  id         bigserial primary key,
+  action     text not null,
+  actor      text,
+  details    jsonb,
+  created_at timestamptz default now()
+);
+create index if not exists idx_audit_created on audit_events(created_at);
+
+-- ─── Revoked tokens (logout / JWT revocation) ────────────────────────────────
+create table if not exists revoked_tokens (
+  jti        text primary key,
+  user_id    uuid,
+  revoked_at timestamptz default now(),
+  expires_at timestamptz
+);
+create index if not exists idx_revoked_expires on revoked_tokens(expires_at);
 
 -- ─── Row Level Security ───────────────────────────────────────────────────────
 alter table servers       enable row level security;

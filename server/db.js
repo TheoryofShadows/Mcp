@@ -117,6 +117,39 @@ db.exec(`
     processed_at TEXT DEFAULT (datetime('now'))
   );
 
+  -- Latest source-code scan per server (see server/lib/repoScan.js). One row per
+  -- server, upserted on each scan. Bound into the Trust Score so a repository
+  -- that scans "high" risk is penalized, and re-scanned on update so a server
+  -- can't pass review and then push malicious code.
+  CREATE TABLE IF NOT EXISTS server_scans (
+    server_id     TEXT PRIMARY KEY REFERENCES servers(id) ON DELETE CASCADE,
+    score         INTEGER NOT NULL,
+    tier          TEXT NOT NULL,
+    finding_count INTEGER NOT NULL DEFAULT 0,
+    scanned_at    TEXT DEFAULT (datetime('now'))
+  );
+
+  -- Persistent audit trail. Admin actions, auth failures and safety-sensitive
+  -- writes are recorded here (in addition to structured stdout) so they survive
+  -- a process restart and can be reconstructed for forensics/compliance.
+  CREATE TABLE IF NOT EXISTS audit_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    action TEXT NOT NULL,
+    actor TEXT,
+    details TEXT,
+    created_at TEXT DEFAULT (datetime('now'))
+  );
+
+  -- Revoked JWTs (by jti). authenticateToken rejects any token whose jti is here,
+  -- giving us real logout / token revocation despite stateless JWTs. Rows are
+  -- pruned past their original expiry, so the table stays bounded.
+  CREATE TABLE IF NOT EXISTS revoked_tokens (
+    jti TEXT PRIMARY KEY,
+    user_id TEXT,
+    revoked_at TEXT DEFAULT (datetime('now')),
+    expires_at TEXT
+  );
+
   CREATE INDEX IF NOT EXISTS idx_servers_category ON servers(category_id);
   CREATE INDEX IF NOT EXISTS idx_servers_author ON servers(author_id);
   CREATE INDEX IF NOT EXISTS idx_servers_status ON servers(status);
@@ -126,7 +159,23 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_flags_server ON flags(server_id, status);
   CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
   CREATE INDEX IF NOT EXISTS idx_subscriptions_user_status ON subscriptions(user_id, status);
+  CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_events(created_at);
+  CREATE INDEX IF NOT EXISTS idx_revoked_expires ON revoked_tokens(expires_at);
 `);
+
+// Adoption integrity: enforce one *counted* install per (server, authenticated
+// user) at the database level, so the install counter that feeds the Trust Score
+// can't be inflated by repeat or concurrent calls (anonymous installs have a NULL
+// user_id and are excluded by the partial index — they're analytics-only).
+// Wrapped because a pre-existing database could contain legacy duplicate rows
+// that would block creating a UNIQUE index; if so we keep the old behavior.
+try {
+  db.exec(
+    "CREATE UNIQUE INDEX IF NOT EXISTS idx_installs_unique_user ON installs(server_id, user_id) WHERE user_id IS NOT NULL"
+  );
+} catch (err) {
+  console.warn("[db] could not create unique install index (legacy duplicates?):", err.message);
+}
 
 // ─── Idempotent column migrations ─────────────────────────────────────────────
 for (const sql of [
@@ -135,6 +184,9 @@ for (const sql of [
   "ALTER TABLE users ADD COLUMN stripe_onboarding_done INTEGER DEFAULT 0",
   "ALTER TABLE subscriptions ADD COLUMN stripe_subscription_id TEXT",
   "ALTER TABLE servers ADD COLUMN license TEXT",                // Trust Score: license-clarity signal
+  "ALTER TABLE servers ADD COLUMN install_command TEXT",        // Verifiable install spec (CLI + web)
+  "ALTER TABLE servers ADD COLUMN repo_verified INTEGER DEFAULT 0", // Proven repo ownership → full provenance
+  "ALTER TABLE servers ADD COLUMN verify_token TEXT",           // Per-server .mcpx-verify challenge token
 ]) {
   try { db.prepare(sql).run(); } catch { /* column already exists */ }
 }

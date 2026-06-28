@@ -110,6 +110,22 @@ export async function reportServer(slug, reason, detail) {
   });
 }
 
+// ─── Repository ownership verification (.mcpx-verify) ───
+
+/** Fetch (or issue) the challenge token + instructions for a server you own. */
+export async function getVerification(slug) {
+  return request(`/servers/${encodeURIComponent(slug)}/verify`);
+}
+
+/**
+ * Ask the server to check the repo for the .mcpx-verify token. Resolves to
+ * { repo_verified, message }; throws with err.status 422 (not found yet),
+ * 429 (cooldown) or 502 (repo unreachable) so the UI can react precisely.
+ */
+export async function verifyRepo(slug) {
+  return request(`/servers/${encodeURIComponent(slug)}/verify`, { method: "POST" });
+}
+
 // ─── Categories ───
 
 export async function fetchCategories() {
