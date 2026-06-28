@@ -21,8 +21,9 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { TOOL_DEFS } from "./lib.js";
-// Reuse the CLI's trust gate + non-clobbering config merge — one source of truth.
-import { clientConfigPath, mergeMcpConfig, installBlockReason, trustSummary } from "../cli/lib.js";
+// Vendored copy of the CLI's trust gate + non-clobbering config merge (kept in
+// sync from cli/lib.js by scripts/sync-shared.js) so this package is self-contained.
+import { clientConfigPath, mergeMcpConfig, installBlockReason, trustSummary } from "./cliShared.js";
 
 const API = (process.env.MCPX_API || "https://www.mcpx.digital").replace(/\/$/, "");
 const TOKEN = process.env.MCPX_TOKEN || "";
