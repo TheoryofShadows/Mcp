@@ -9,9 +9,13 @@
   "engines": {
     "node": ">=20"
   },
+  "scripts": {
+    "prepack": "node ../scripts/sync-shared.js"
+  },
   "files": [
     "index.js",
-    "lib.js"
+    "lib.js",
+    "installConfig.js"
   ],
   "keywords": ["mcp", "mcpx", "model-context-protocol", "cli"],
   "license": "MIT"

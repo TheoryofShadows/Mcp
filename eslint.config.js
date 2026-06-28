@@ -28,7 +28,7 @@ export default defineConfig([
     },
   },
   {
-    files: ['server/**/*.js', 'tests/**/*.js', 'cli/**/*.js', 'shared/**/*.js'],
+    files: ['server/**/*.js', 'tests/**/*.js', 'cli/**/*.js', 'shared/**/*.js', 'railway-mcp/**/*.js', 'scripts/**/*.js'],
     languageOptions: {
       globals: globals.node,
     },

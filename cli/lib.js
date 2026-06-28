@@ -5,7 +5,9 @@
  * The thin orchestration in index.js wires these to fetch + the filesystem.
  */
 import path from "node:path";
-import { buildServerEntry, hasDeclaredInstall, slugFor } from "../shared/installConfig.js";
+// Local generated copy of shared/installConfig.js (kept in sync by
+// scripts/sync-shared.js) so the published CLI package is self-contained.
+import { buildServerEntry, hasDeclaredInstall, slugFor } from "./installConfig.js";
 
 export const CLIENTS = ["claude", "cursor", "vscode"];
 

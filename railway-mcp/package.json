@@ -1,0 +1,22 @@
+{
+  "name": "@mcpx/railway",
+  "version": "0.1.0",
+  "description": "Model Context Protocol server for Railway — manage projects, services, deployments, logs, and variables from any MCP client.",
+  "type": "module",
+  "bin": {
+    "mcpx-railway": "./index.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "index.js",
+    "lib.js",
+    "README.md"
+  ],
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "keywords": ["mcp", "model-context-protocol", "railway", "deployment", "infrastructure"],
+  "license": "MIT"
+}

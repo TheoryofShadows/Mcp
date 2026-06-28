@@ -32,7 +32,8 @@ displays and validates:
 | **Category** | ✅ | One of: `dev`, `data`, `ai`, `business`, `creative`, `infra`. |
 | **Description** | ✅ | 10–500 characters — the one-liner shown on cards. |
 | **Long description** | — | Up to 5,000 characters — full detail / README-style body. |
-| **Repository URL** | — | Strongly recommended; it's the biggest single Trust Score factor. |
+| **Repository URL** | — | Strongly recommended; the biggest Trust Score factor — and verifying ownership (below) unlocks its full value. |
+| **Install command** | — | The exact command to run the server, e.g. `npx -y @you/my-mcp`. Used by the web install buttons and `npx mcpx install`. Without it, the install path falls back to a *guessed* package name. No shell metacharacters allowed. |
 | **Tags** | — | Up to 10. Tags like `filesystem`, `shell`, `database` flag sensitive capabilities. |
 | **Price** | — | `free` (default) or `paid` with a monthly amount. |
 
@@ -51,16 +52,34 @@ who paid. You can actively improve yours:
 
 | Do this | Why it helps |
 |---------|-------------|
-| **Link a public repo** (GitHub/GitLab/Bitbucket) | Source provenance is worth up to **25 points** — the single largest factor. |
+| **Link a public repo & verify ownership** (below) | Source provenance is worth up to **25 points** — the single largest factor — but only at full value once ownership is proven. |
 | **Declare an OSI license** (MIT, Apache-2.0, …) | License clarity is worth up to **15 points**. |
+| **Keep your source clean** | A High/Moderate source scan (secrets, tool-poisoning, dangerous execution) now subtracts from your score. |
 | **Accumulate real installs & reviews** | Adoption (15) and satisfaction (15) reward genuine traction. |
 | **Get publisher-verified** | Verified identity is worth **20 points** and removes the sensitive-capability penalty. |
 | **Be honest about capabilities** | Unreviewed sensitive tags cost points — but verification clears the penalty. |
 
-A brand-new, sourced, MIT-licensed tool typically lands in **Community**; with
-verification and adoption it climbs to **Verified** and **Official**.
+A brand-new, sourced, MIT-licensed tool typically lands in **Community** once its
+repo is verified; with publisher verification and adoption it climbs to
+**Verified** and **Official**.
 
-### Getting verified
+### Verify repository ownership
+
+Linking a repo URL no longer earns full provenance on its own — you prove you
+control it with a one-time challenge file:
+
+1. In the **Dashboard → Your Tools**, click **Verify** next to your tool (or call
+   `GET /api/servers/:slug/verify`) to get a per-server token.
+2. Add a file named **`.mcpx-verify`** to your repository root containing exactly
+   that token; commit and push to the default branch.
+3. Click **Check now** (or `POST /api/servers/:slug/verify`). MCPX clones the repo,
+   confirms the token, and sets `repo_verified` — unlocking the full **25**
+   provenance points.
+
+Changing your repo URL later resets verification (and triggers a fresh source
+scan), so re-verify after moving the repository.
+
+### Getting verified (publisher identity)
 
 Verification is a manual review by MCPX (it sets the `verified` flag and can
 mark a tool `trending`). It confirms you control the listed source and that the
@@ -148,9 +167,15 @@ curl -s https://www.mcpx.digital/api/servers \
     "category_id": "dev",
     "description": "Does something genuinely useful for agents.",
     "repo_url": "https://github.com/you/my-cool-mcp",
+    "install_command": "npx -y @you/my-cool-mcp",
     "price_type": "free",
     "tags": ["dev", "automation"]
   }'
+
+# 3. Verify repo ownership: GET the token, add it as .mcpx-verify in your repo,
+#    then POST to complete (unlocks full provenance points).
+curl -s https://www.mcpx.digital/api/servers/my-cool-mcp/verify \
+  -H "Authorization: Bearer $TOKEN"
 ```
 
 See the full [API Reference](API.md) for every field and endpoint.

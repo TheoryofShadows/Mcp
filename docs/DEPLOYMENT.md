@@ -122,6 +122,30 @@ Full details in [GITHUB_PAGES.md](GITHUB_PAGES.md).
 
 ---
 
+## Source scanning & sandboxing
+
+`/api/scan`, publish-time auto-scans, and repo ownership verification all
+**clone arbitrary public repositories** (`server/lib/repoScan.js`). The clone is
+already constrained — shallow `--depth 1`, 20s timeout, `GIT_TERMINAL_PROMPT=0`,
+output `maxBuffer`, skipped `node_modules`/build dirs, per-file size and total
+file caps — and scoring is pure regex over text (no code is executed). But a
+`git clone` still runs a subprocess on the host.
+
+For untrusted, internet-facing deployments, run the scanning workload with extra
+isolation:
+
+- Prefer a **separate worker/service** (or container) for scans, with a
+  read-only root filesystem, a non-root user, and CPU/memory limits.
+- On Railway, this can be a second service; elsewhere, a constrained container
+  or a sandbox such as gVisor/seccomp.
+- Kill switch: set **`MCPX_DISABLE_AUTO_SCAN=1`** to turn off publish/update
+  auto-scans (the explicit `/api/scan` endpoint and verification still work).
+
+Full container sandboxing is an operational task, not an app setting — treat the
+above as the recommended hardening before exposing scanning at scale.
+
+---
+
 ## Local development
 
 ```bash

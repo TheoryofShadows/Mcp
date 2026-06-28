@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
-  Package, DollarSign, Download, Star, CreditCard, ExternalLink, Plus, AlertCircle
+  Package, DollarSign, Download, Star, CreditCard, ExternalLink, Plus, AlertCircle,
+  ShieldCheck, ShieldAlert
 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import PriceTag from "../components/PriceTag";
+import VerifyRepoModal from "../components/VerifyRepoModal";
 import { SEED_TOOLS } from "../data/seed";
 import { supabase } from "../lib/supabase";
 import { fetchServers, getMe, connectStripe } from "../api/client";
@@ -146,6 +148,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [demoMode, setDemoMode] = useState(false);
   const [stripeLoading, setStripeLoading] = useState(false);
+  const [verifyTool, setVerifyTool] = useState(null);
 
   const chartMonths = getLastSixMonths();
   const nextPayout = getNextPayoutDate();
@@ -320,7 +323,7 @@ export default function Dashboard() {
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid #1a1a1a" }}>
-                  {["Tool", "Category", "Installs", "Rating", "Revenue", "Price", ""].map((h) => (
+                  {["Tool", "Category", "Installs", "Rating", "Revenue", "Price", "Source", ""].map((h) => (
                     <th key={h} style={{ padding: "12px 20px", textAlign: "left", fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--text-muted)", fontWeight: 600, whiteSpace: "nowrap", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                       {h}
                     </th>
@@ -363,6 +366,26 @@ export default function Dashboard() {
                     </td>
                     <td style={{ padding: "16px 20px" }}>
                       <PriceTag tool={tool} size="sm" />
+                    </td>
+                    <td style={{ padding: "16px 20px" }}>
+                      {demoMode ? (
+                        <span style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>—</span>
+                      ) : tool.repo_verified ? (
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: "5px", fontSize: "12px", color: "#10b981", fontFamily: "var(--font-mono)" }}>
+                          <ShieldCheck size={13} /> Verified
+                        </span>
+                      ) : tool.repo_url ? (
+                        <button
+                          onClick={() => setVerifyTool(tool)}
+                          style={{ display: "inline-flex", alignItems: "center", gap: "5px", fontSize: "12px", fontFamily: "var(--font-mono)", color: "#fbbf24", background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.25)", borderRadius: "6px", padding: "5px 10px", cursor: "pointer" }}
+                        >
+                          <ShieldAlert size={13} /> Verify
+                        </button>
+                      ) : (
+                        <Link to={`/tool/${tool.slug}`} title="Add a repository URL to verify" style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "var(--font-mono)", textDecoration: "none" }}>
+                          add repo →
+                        </Link>
+                      )}
                     </td>
                     <td style={{ padding: "16px 20px" }}>
                       <Link
@@ -456,6 +479,16 @@ export default function Dashboard() {
           Powered by Stripe Connect · Payouts every 1st of the month
         </p>
       </div>
+
+      {verifyTool && (
+        <VerifyRepoModal
+          server={verifyTool}
+          onClose={() => setVerifyTool(null)}
+          onVerified={(slug) => {
+            setTools((prev) => prev.map((t) => (t.slug === slug ? { ...t, repo_verified: true } : t)));
+          }}
+        />
+      )}
     </main>
   );
 }

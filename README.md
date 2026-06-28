@@ -227,7 +227,9 @@ Full architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - [x] Capability and risk warnings
 - [x] Stripe Connect payouts + Pro/Enterprise platform subscriptions
 - [x] GitHub Pages demo + full documentation
-- [ ] `npx mcpx install <slug>` — CLI installer
+- [x] `npx mcpx install <slug>` — trust-enforcing CLI installer ([`cli/`](cli/))
+- [x] Repo ownership verification (`.mcpx-verify`) + source-scan-aware Trust Score
+- [x] Reference MCP server: [`@mcpx/railway`](railway-mcp/)
 - [ ] Solana Pay — crypto-native payments (stubbed, coming soon)
 - [ ] GitHub OAuth login (Supabase — optional, configurable)
 - [ ] Server versioning and changelogs

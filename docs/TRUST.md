@@ -25,12 +25,28 @@ clamped to `[0, 100]`.
 
 | Factor | Max | What earns the points |
 |--------|-----|-----------------------|
-| **Source provenance** | 25 | Public repo on a known host (GitHub/GitLab/Bitbucket) = full; other URL = partial; none = 0 |
+| **Source provenance** | 25 | **Verified-ownership** repo on a known host = full (25); a linked-but-unverified repo, or any other URL = partial (12); none = 0 |
 | **License clarity** | 15 | Recognized OSI license (MIT, Apache-2.0, BSD, ISC, MPL, GPL/LGPL/AGPL) = full; other declared = partial; none = 0 |
 | **Publisher identity** | 20 | MCPX-verified publisher = full; community (unreviewed) = small base |
-| **Adoption** | 15 | Logarithmic in install count — rewards real traction without letting whales max it out |
+| **Adoption** | 15 | Logarithmic in install count (**distinct authenticated installers** only — anonymous installs don't count) — rewards real traction without letting whales max it out |
 | **User satisfaction** | 15 | Average rating scaled by review volume; needs ~25+ reviews for full credit; <3 reviews barely counts |
 | **Maturity** | 10 | Logarithmic in days listed — ~1 year reaches full |
+
+### Provenance verification
+
+Linking a repository URL is **not** enough to earn the full 25 provenance points —
+otherwise anyone could paste a link to a famous repo they don't control. Full
+provenance requires **proven ownership**: either an MCPX-verified publisher, or a
+completed `.mcpx-verify` challenge (you place a per-server token file in the repo
+root; MCPX clones and confirms it). Until then the repo counts as a partial
+(unverified) source. See [PUBLISHING](PUBLISHING.md#verify-repository-ownership).
+
+### Source-scan penalty
+
+The live source scan (below) is **bound into the score**: a server whose latest
+repository scan comes back **High** risk loses **15 points**, and **Moderate**
+loses **5**. The scan re-runs when a server is published and whenever its repo URL
+changes, so a server can't pass review and then point at malicious code.
 
 ### Risk penalties
 
@@ -84,7 +100,7 @@ A new, MIT-licensed tool with a public GitHub repo, no reviews yet, and no
 sensitive tags:
 
 ```
-provenance    25  (public repo on known host)
+provenance    12  (repo linked but ownership not yet verified)
 license       15  (MIT)
 publisher      6  (community — not yet reviewed)
 adoption       0  (no installs yet)
@@ -92,12 +108,13 @@ satisfaction   0  (no reviews yet)
 maturity       0  (just listed)
 penalties      0
 ────────────────
-score         46  → "Community", confidence "medium"
+score         33  → "Caution", confidence "medium"
 ```
 
-As it gains installs, earns reviews, ages, and (optionally) gets verified, the
-same tool climbs toward **Verified** and **Official** — automatically, from real
-signals.
+After the publisher completes `.mcpx-verify`, provenance jumps to **25** (score
+→ 46, "Community"). As the tool then gains installs, earns reviews, ages, and
+(optionally) gets verified, it climbs toward **Verified** and **Official** —
+automatically, from real signals.
 
 ---
 
@@ -118,6 +135,10 @@ category. The scan returns the same `{ score, tier, factors, findings }` shape
 as the trust report, so agents can gate behavior on both.
 
 Scan tiers: **Safe** (100) → **Low** (70–99) → **Moderate** (40–69) → **High** (<40).
+
+The latest scan tier is stored per server and **feeds the Trust Score** (see the
+source-scan penalty above): publishing a server and changing its repo URL both
+trigger a re-scan, so this signal stays current rather than being a one-time check.
 
 ---
 
