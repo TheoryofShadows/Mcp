@@ -1,5 +1,7 @@
 import express from "express";
 import cors from "cors";
+import db from "./db.js";
+import { httpLogger, captureError, logger } from "./lib/observability.js";
 import { authenticateToken } from "./middleware/auth.js";
 import { authenticateDescopeToken } from "./middleware/descopeAuth.js";
 import authRoutes from "./routes/auth.js";
@@ -8,6 +10,7 @@ import categoryRoutes from "./routes/categories.js";
 import statsRoutes from "./routes/stats.js";
 import tierRoutes from "./routes/tiers.js";
 import paymentRoutes from "./routes/payments.js";
+import earningsRoutes from "./routes/earnings.js";
 import adminRoutes from "./routes/admin.js";
 import discoverRoutes from "./routes/discover.js";
 import scanRoutes from "./routes/scan.js";
@@ -16,6 +19,9 @@ export function createApp() {
   const app = express();
 
   app.set("trust proxy", 1);
+
+  // Structured request logging (pino-http). Skips the health probe; silent in tests.
+  app.use(httpLogger);
 
   const allowedOrigins = process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(",")
@@ -117,10 +123,30 @@ export function createApp() {
   app.use("/api/stats", statsRoutes);
   app.use("/api/tiers", tierRoutes);
   app.use("/api/payments", paymentRoutes);
+  app.use("/api/earnings", earningsRoutes);
   app.use("/api/admin", adminRoutes);
 
+  // Liveness + readiness: confirm the process is up AND the database answers a
+  // trivial query. A failing DB returns 503 so Railway's healthcheck restarts
+  // the container instead of serving a half-dead instance.
   app.get("/api/health", (_req, res) => {
-    res.json({ status: "ok", timestamp: new Date().toISOString() });
+    try {
+      db.prepare("SELECT 1").get();
+      res.json({ status: "ok", db: "ok", timestamp: new Date().toISOString() });
+    } catch (err) {
+      captureError(err);
+      res.status(503).json({ status: "degraded", db: "error", timestamp: new Date().toISOString() });
+    }
+  });
+
+  // Global error handler — last middleware. Logs + reports to Sentry, returns a
+  // generic JSON 500 (no internals leaked). Express 5 routes pass thrown/async
+  // errors here.
+  app.use((err, req, res, _next) => {
+    captureError(err);
+    logger.error({ err, path: req.path, method: req.method }, "unhandled request error");
+    if (res.headersSent) return;
+    res.status(err.status || 500).json({ error: "Internal server error" });
   });
 
   return app;

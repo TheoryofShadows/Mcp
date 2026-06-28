@@ -2,16 +2,19 @@ import { fileURLToPath } from "url";
 import { dirname, join, extname } from "path";
 import { createApp } from "./app.js";
 import db from "./db.js";
+import { logger, initSentry } from "./lib/observability.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const PORT = process.env.PORT || 3001;
 
+initSentry();
+
 // Auto-seed: if the database has no users, run the seed script
 const userCount = db.prepare("SELECT COUNT(*) as c FROM users").get().c;
 if (userCount === 0) {
-  console.log("Empty database detected. Running seed...");
+  logger.info("Empty database detected. Running seed...");
   await import("./seed.js");
 }
 
@@ -41,12 +44,12 @@ app.get("/{*splat}", (req, res) => {
 });
 
 const server = app.listen(PORT, () => {
-  console.log(`MCPX API server running on http://localhost:${PORT}`);
+  logger.info({ port: PORT }, `MCPX API server running on http://localhost:${PORT}`);
 });
 
 // Graceful shutdown — Railway sends SIGTERM before killing the process
 process.on("SIGTERM", () => {
-  console.log("[server] SIGTERM received — shutting down gracefully");
+  logger.info("[server] SIGTERM received — shutting down gracefully");
   server.close(() => {
     db.close();
     process.exit(0);

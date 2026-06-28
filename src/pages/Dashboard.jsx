@@ -9,7 +9,7 @@ import PriceTag from "../components/PriceTag";
 import VerifyRepoModal from "../components/VerifyRepoModal";
 import { SEED_TOOLS } from "../data/seed";
 import { supabase } from "../lib/supabase";
-import { fetchServers, getMe, connectStripe } from "../api/client";
+import { fetchServers, getMe, connectStripe, fetchEarnings } from "../api/client";
 
 // Mock dashboard data for demo / no-auth mode
 const MOCK_TOOLS = SEED_TOOLS.filter((t) => ["github-mcp", "filesystem-mcp", "postgres-mcp"].includes(t.slug));
@@ -149,9 +149,25 @@ export default function Dashboard() {
   const [demoMode, setDemoMode] = useState(false);
   const [stripeLoading, setStripeLoading] = useState(false);
   const [verifyTool, setVerifyTool] = useState(null);
+  const [earnings, setEarnings] = useState(null);
 
   const chartMonths = getLastSixMonths();
   const nextPayout = getNextPayoutDate();
+
+  // Real earned revenue (cents → dollars), as a last-6-months net series aligned
+  // to chartMonths. Falls back to the listed-revenue estimate when no sales yet.
+  const now = new Date();
+  const last6Keys = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    last6Keys.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+  }
+  const netSeries = last6Keys.map((k) => (earnings?.by_month?.find((m) => m.month === k)?.net_cents || 0) / 100);
+  const maxNet = Math.max(1, ...netSeries);
+  const hasEarnings = !!earnings && earnings.sales_count > 0;
+  const thisMonthNet = (earnings?.this_month_net_cents || 0) / 100;
+  const totalNet = (earnings?.total_net_cents || 0) / 100;
+  const availableBalance = hasEarnings ? totalNet : stats.monthly_revenue * 0.85;
 
   useEffect(() => {
     if (authLoading) return;
@@ -168,6 +184,8 @@ export default function Dashboard() {
       setStats(s);
       setLoading(false);
     });
+    // Real earned revenue (from completed sales) — best-effort.
+    fetchEarnings().then(setEarnings).catch(() => setEarnings(null));
   }, [user, authLoading]);
 
   if (loading || authLoading) {
@@ -262,16 +280,19 @@ export default function Dashboard() {
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-          <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "16px" }}>Revenue (last 6 months)</h2>
+          <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "16px" }}>
+            {hasEarnings ? "Net revenue (last 6 months)" : "Revenue (last 6 months)"}
+          </h2>
           <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--text-muted)" }}>
-            This month: ${stats.monthly_revenue.toLocaleString()}
+            This month: ${hasEarnings ? thisMonthNet.toLocaleString() : stats.monthly_revenue.toLocaleString()}
           </span>
         </div>
-        {/* Placeholder bar chart */}
+        {/* Real net-revenue bars when sales exist; demo bars otherwise */}
         <div style={{ display: "flex", alignItems: "flex-end", gap: "8px", height: "100px" }}>
-          {[38, 52, 44, 68, 80, 100].map((pct, i) => (
+          {(hasEarnings ? netSeries.map((v) => Math.round((v / maxNet) * 100)) : [38, 52, 44, 68, 80, 100]).map((pct, i) => (
             <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "6px" }}>
               <div
+                title={hasEarnings ? `$${netSeries[i].toLocaleString()} net` : undefined}
                 style={{
                   width: "100%",
                   height: `${pct}%`,
@@ -424,11 +445,15 @@ export default function Dashboard() {
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "20px" }} className="payout-grid">
           <div style={{ padding: "16px", background: "#0d0d0d", borderRadius: "10px", border: "1px solid #1a1a1a" }}>
-            <div style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--text-muted)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Available Balance</div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "22px", color: "#10b981" }}>
-              ${(stats.monthly_revenue * 0.85).toLocaleString()}
+            <div style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--text-muted)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              {hasEarnings ? "Net Earned (all-time)" : "Available Balance"}
             </div>
-            <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px", fontFamily: "var(--font-mono)" }}>after 15% platform fee</div>
+            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "22px", color: "#10b981" }}>
+              ${availableBalance.toLocaleString()}
+            </div>
+            <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px", fontFamily: "var(--font-mono)" }}>
+              {hasEarnings ? `from ${earnings.sales_count} sale${earnings.sales_count === 1 ? "" : "s"}, after 15% fee` : "after 15% platform fee"}
+            </div>
           </div>
           <div style={{ padding: "16px", background: "#0d0d0d", borderRadius: "10px", border: "1px solid #1a1a1a" }}>
             <div style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--text-muted)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Next Payout</div>

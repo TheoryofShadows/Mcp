@@ -122,6 +122,33 @@ Full details in [GITHUB_PAGES.md](GITHUB_PAGES.md).
 
 ---
 
+## Observability
+
+- **Structured logs:** the server logs JSON via `pino` (request logs via `pino-http`).
+  Set `LOG_LEVEL` (`info` default; `debug`/`warn`/`error`). The `/api/health` probe
+  is excluded from request logs.
+- **Error tracking (optional):** set `SENTRY_DSN` to send unhandled errors to Sentry.
+  Without it, Sentry is a no-op. Tune sampling with `SENTRY_TRACES_SAMPLE_RATE`.
+- **Health check is DB-aware:** `GET /api/health` runs a trivial query and returns
+  **503** if the database is unreachable, so Railway restarts a half-dead instance
+  instead of routing traffic to it.
+
+## Database backups
+
+SQLite lives in the mounted volume (`/data/mcpx.db`). Take consistent, online
+snapshots with the built-in script (uses better-sqlite3's `.backup()` — safe while
+the app is running):
+
+```bash
+BACKUP_DIR=/data/backups npm run backup:db    # → /data/backups/mcpx-<timestamp>.db
+```
+
+- **Schedule it** as a Railway cron service (e.g. daily) and **ship the output
+  off-box** (object storage) — a volume snapshot in the same project is not a
+  disaster-recovery backup.
+- **Restore:** stop the service, copy a chosen `mcpx-*.db` to the path in `DB_PATH`,
+  redeploy. (Validate a backup periodically by restoring it into a scratch service.)
+
 ## Source scanning & sandboxing
 
 `/api/scan`, publish-time auto-scans, and repo ownership verification all

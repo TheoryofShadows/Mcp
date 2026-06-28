@@ -364,11 +364,18 @@ router.post("/stripe/webhook", async (req, res) => {
         }
 
         if (session.mode === "payment") {
-          // Tool purchase — record the install
+          // Tool purchase — record the install and the sale (for real revenue).
           const { server_id } = session.metadata || {};
           if (server_id) {
             db.prepare("INSERT INTO installs (id, server_id, user_id) VALUES (?, ?, ?)")
               .run(uuid(), server_id, userId);
+            const grossCents = Number(session.amount_total) || 0;
+            if (grossCents > 0) {
+              const feeCents = Math.round(grossCents * PLATFORM_FEE_PCT);
+              db.prepare(
+                "INSERT INTO sales (id, server_id, buyer_id, gross_cents, fee_cents) VALUES (?, ?, ?, ?, ?)"
+              ).run(uuid(), server_id, userId, grossCents, feeCents);
+            }
           }
         }
         break;

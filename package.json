@@ -34,12 +34,14 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "sync:vendored": "node scripts/sync-shared.js",
+    "backup:db": "node scripts/backup-db.js",
     "test": "vitest run",
     "test:watch": "vitest"
   },
   "dependencies": {
     "@descope/node-sdk": "^1.10.0",
     "@descope/react-sdk": "^2.26.7",
+    "@sentry/node": "^10.62.0",
     "@supabase/supabase-js": "^2.98.0",
     "@vitejs/plugin-react": "^5.1.1",
     "bcryptjs": "^3.0.3",
@@ -48,6 +50,8 @@
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.575.0",
+    "pino": "^10.3.1",
+    "pino-http": "^11.0.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.13.0",
