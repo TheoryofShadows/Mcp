@@ -38,9 +38,42 @@ function checkAuthRateLimit(req, res) {
   return true;
 }
 
+// Account *creation* gets its own, much tighter budget than login attempts.
+// Reviews and adoption ride on having an account, so cheap account farming is a
+// trust-gaming vector — this caps new accounts per IP independently of the
+// generous login limiter above. Only *successful* registrations count toward the
+// budget (failed validation shouldn't lock a legitimate user out).
+const registerRateLimit = new Map();
+const REGISTER_WINDOW_MS = 60 * 60 * 1000;                  // 1 hour
+const REGISTER_MAX = Number(process.env.REGISTER_MAX_PER_HOUR) || 10;
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of registerRateLimit) {
+    if (now > entry.resetAt) registerRateLimit.delete(key);
+  }
+}, 10 * 60 * 1000).unref();
+
+function registerBudget(req) {
+  const ip = req.ip || req.socket?.remoteAddress || "unknown";
+  const now = Date.now();
+  let entry = registerRateLimit.get(ip);
+  if (!entry || now > entry.resetAt) {
+    entry = { count: 0, resetAt: now + REGISTER_WINDOW_MS };
+    registerRateLimit.set(ip, entry);
+  }
+  return entry;
+}
+
 // POST /api/auth/register
 router.post("/register", async (req, res) => {
   if (!checkAuthRateLimit(req, res)) return;
+  const budget = registerBudget(req);
+  if (budget.count >= REGISTER_MAX) {
+    res.set("Retry-After", String(Math.ceil((budget.resetAt - Date.now()) / 1000)));
+    auditLog("auth.register.ratelimited", req.ip || "unknown", {});
+    return res.status(429).json({ error: "Too many accounts created from this network. Try again later." });
+  }
   const { email, username, password, display_name } = req.body;
 
   if (!email || !username || !password) {
@@ -80,6 +113,8 @@ router.post("/register", async (req, res) => {
   db.prepare(
     `INSERT INTO users (id, email, username, display_name, password_hash) VALUES (?, ?, ?, ?, ?)`
   ).run(id, email, username, String(display_name || username).slice(0, 50), password_hash);
+
+  budget.count++; // count only successful account creations toward the per-IP cap
 
   const token = signToken({ id });
   const user = db.prepare("SELECT id, email, username, display_name, tier, created_at FROM users WHERE id = ?").get(id);

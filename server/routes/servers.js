@@ -4,8 +4,22 @@ import db from "../db.js";
 import { requireAuth } from "../middleware/auth.js";
 import { computeTrust } from "../lib/trustScore.js";
 import { auditLog } from "../lib/audit.js";
+import { scheduleScan, latestScanTier } from "../lib/scanService.js";
 
 const router = Router();
+
+// Validate a publisher-declared install command. It is shown to users and split
+// into command+args for client configs, so reject anything with shell-control
+// characters that could enable command chaining/redirection.
+function validateInstallCommand(value) {
+  if (typeof value !== "string") return "install_command must be a string";
+  const cmd = value.trim();
+  if (cmd.length < 1 || cmd.length > 200) return "install_command must be 1-200 characters";
+  if (/[;&|`<>\n\r\\]/.test(cmd) || cmd.includes("$(") || cmd.includes("${")) {
+    return "install_command contains disallowed shell characters";
+  }
+  return null;
+}
 
 // GET /api/servers — list with search, filter, pagination, sort
 router.get("/", (req, res) => {
@@ -156,6 +170,7 @@ router.get("/:slug/trust", (req, res) => {
     name: row.name,
     ...computeTrust({
       repo_url: row.repo_url,
+      repo_verified: row.repo_verified,
       license: row.license,
       verified: row.verified,
       installs: row.installs,
@@ -164,6 +179,7 @@ router.get("/:slug/trust", (req, res) => {
       created_at: row.created_at,
       tags: row.tags,
       open_flags: openFlags,
+      scan_tier: latestScanTier(row.id),
     }),
   });
 });
@@ -177,10 +193,15 @@ router.post("/", requireAuth, (req, res) => {
     return res.status(429).json({ error: "You can create up to 10 servers per day" });
   }
 
-  const { name, category_id, description, long_description, price_type, price_amount, repo_url, tags } = req.body;
+  const { name, category_id, description, long_description, price_type, price_amount, repo_url, tags, install_command } = req.body;
 
   if (!name || !category_id || !description) {
     return res.status(400).json({ error: "Name, category, and description are required" });
+  }
+
+  if (install_command !== undefined && install_command !== null && install_command !== "") {
+    const installErr = validateInstallCommand(install_command);
+    if (installErr) return res.status(400).json({ error: installErr });
   }
 
   if (typeof name !== "string" || typeof description !== "string") {
@@ -236,14 +257,18 @@ router.post("/", requireAuth, (req, res) => {
 
   db.prepare(`
     INSERT INTO servers (id, name, slug, author_id, category_id, description, long_description,
-      price_type, price_amount, price_label, gradient, repo_url, tags, status)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')
+      price_type, price_amount, price_label, gradient, repo_url, tags, install_command, status)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')
   `).run(
     id, name, slug, req.user.id, category_id,
     description, long_description || "",
     price_type || "free", price_amount || 0, priceLabel,
-    gradient, repo_url || "", JSON.stringify(tags || [])
+    gradient, repo_url || "", JSON.stringify(tags || []),
+    install_command ? String(install_command).trim() : null
   );
+
+  // Kick off a best-effort source scan (fire-and-forget; never blocks the response).
+  scheduleScan(id, repo_url);
 
   const row = db.prepare(`
     SELECT s.*, u.username as author_username, u.display_name as author_display_name,
@@ -265,7 +290,7 @@ router.patch("/:slug", requireAuth, (req, res) => {
     return res.status(403).json({ error: "You can only update your own servers" });
   }
 
-  const allowed = ["description", "long_description", "repo_url", "tags", "license"];
+  const allowed = ["description", "long_description", "repo_url", "tags", "license", "install_command"];
   const updates = [];
   const values = [];
 
@@ -280,6 +305,11 @@ router.patch("/:slug", requireAuth, (req, res) => {
         }
         updates.push("tags = ?");
         values.push(JSON.stringify(req.body.tags));
+      } else if (field === "install_command") {
+        const installErr = req.body.install_command ? validateInstallCommand(req.body.install_command) : null;
+        if (installErr) return res.status(400).json({ error: installErr });
+        updates.push("install_command = ?");
+        values.push(req.body.install_command ? String(req.body.install_command).trim() : null);
       } else if (field === "description") {
         const desc = String(req.body.description);
         if (desc.length < 10 || desc.length > 500) {
@@ -302,10 +332,17 @@ router.patch("/:slug", requireAuth, (req, res) => {
 
   if (!updates.length) return res.status(400).json({ error: "No fields to update" });
 
+  // Changing the repository invalidates any prior ownership proof and triggers a
+  // fresh source scan — closing the "pass review, then point at a new repo" gap.
+  const repoChanged = req.body.repo_url !== undefined;
+  if (repoChanged) updates.push("repo_verified = 0");
+
   updates.push("updated_at = datetime('now')");
   values.push(server.id);
 
   db.prepare(`UPDATE servers SET ${updates.join(", ")} WHERE id = ?`).run(...values);
+
+  if (repoChanged) scheduleScan(server.id, String(req.body.repo_url || ""));
 
   const row = db.prepare(`
     SELECT s.*, u.username as author_username, u.display_name as author_display_name,
@@ -515,6 +552,7 @@ function deriveCapabilities(tags, verified) {
 function formatServer(row) {
   const tags = JSON.parse(row.tags || "[]");
   const { capabilities, risk_level } = deriveCapabilities(tags, !!row.verified);
+  const scan_tier = latestScanTier(row.id);
   return {
     id: row.id,
     name: row.name,
@@ -537,17 +575,21 @@ function formatServer(row) {
     weeklyGrowth: row.weekly_growth,
     revenue: row.monthly_revenue > 0 ? `$${(row.monthly_revenue / 100).toLocaleString()}/mo` : null,
     repo_url: row.repo_url,
+    repo_verified: !!row.repo_verified,
     license: row.license || null,
+    install_command: row.install_command || null,
     tags,
     capabilities,
     risk_level,
     open_flags: row.open_flags || 0,
+    scan: scan_tier ? { tier: scan_tier } : null,
     status: row.status,
     created_at: row.created_at,
     updated_at: row.updated_at,
     // Computed, transparent trust report (see server/lib/trustScore.js)
     trust: computeTrust({
       repo_url: row.repo_url,
+      repo_verified: row.repo_verified,
       license: row.license,
       verified: row.verified,
       installs: row.installs,
@@ -556,6 +598,7 @@ function formatServer(row) {
       created_at: row.created_at,
       tags: row.tags,
       open_flags: row.open_flags || 0,
+      scan_tier,
     }),
   };
 }

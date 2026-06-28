@@ -150,6 +150,47 @@ describe("computeTrust — open flags", () => {
   });
 });
 
+describe("computeTrust — provenance verification gate", () => {
+  const base = {
+    repo_url: "https://github.com/acme/x", license: "MIT", verified: 0,
+    installs: 100, rating: 4, rating_count: 10, created_at: daysAgo(90), tags: [],
+  };
+  it("awards full provenance only when ownership is proven", () => {
+    const unproven = computeTrust({ ...base, repo_verified: 0 }, NOW);
+    const proven = computeTrust({ ...base, repo_verified: 1 }, NOW);
+    const f = (t) => t.factors.find((x) => x.key === "provenance").points;
+    expect(f(unproven)).toBe(12);
+    expect(f(proven)).toBe(25);
+    expect(proven.score).toBeGreaterThan(unproven.score);
+  });
+  it("treats an admin-verified publisher as proven provenance", () => {
+    const t = computeTrust({ ...base, verified: 1, repo_verified: 0 }, NOW);
+    expect(t.factors.find((x) => x.key === "provenance").points).toBe(25);
+  });
+});
+
+describe("computeTrust — source-scan penalty", () => {
+  const base = {
+    repo_url: "https://github.com/acme/x", license: "MIT", verified: 1, repo_verified: 1,
+    installs: 50000, rating: 4.8, rating_count: 120, created_at: daysAgo(300), tags: ["data"],
+  };
+  it("penalizes a high-risk source scan", () => {
+    const clean = computeTrust({ ...base }, NOW);
+    const high = computeTrust({ ...base, scan_tier: "high" }, NOW);
+    expect(high.score).toBe(clean.score - 15);
+    expect(high.penalties.find((p) => p.key === "scan").points).toBe(-15);
+  });
+  it("penalizes a moderate scan less than a high one", () => {
+    const moderate = computeTrust({ ...base, scan_tier: "moderate" }, NOW);
+    const high = computeTrust({ ...base, scan_tier: "high" }, NOW);
+    expect(moderate.score).toBeGreaterThan(high.score);
+  });
+  it("does not penalize a safe/low scan", () => {
+    const safe = computeTrust({ ...base, scan_tier: "safe" }, NOW);
+    expect(safe.penalties.some((p) => p.key === "scan")).toBe(false);
+  });
+});
+
 describe("computeTrust — staleness", () => {
   const FIXED_NOW = new Date("2026-06-01T00:00:00Z").getTime();
   const daysBefore = (n) => new Date(FIXED_NOW - n * 86400_000).toISOString();

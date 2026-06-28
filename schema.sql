@@ -71,6 +71,8 @@ create table if not exists servers (
   price_label      text default 'free',
   -- Meta
   verified         boolean default false,
+  repo_verified    boolean default false,   -- proven repo ownership → full provenance
+  install_command  text,                    -- verifiable install spec (CLI + web)
   trending         boolean default false,
   tags             text[]  default '{}',
   gradient         text not null default 'linear-gradient(135deg,#4DFFB4,#4D9FFF)',
@@ -146,6 +148,15 @@ create table if not exists subscriptions (
   stripe_subscription_id text,
   created_at             timestamptz default now(),
   expires_at             timestamptz  -- NULL = no expiry (free tier)
+);
+
+-- ─── Source scans (latest per server; bound into the Trust Score) ────────────
+create table if not exists server_scans (
+  server_id     uuid primary key references servers(id) on delete cascade,
+  score         integer not null,
+  tier          text not null,
+  finding_count integer not null default 0,
+  scanned_at    timestamptz default now()
 );
 
 -- ─── Audit events (server-managed; no client RLS access) ─────────────────────

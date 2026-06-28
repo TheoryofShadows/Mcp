@@ -1,6 +1,7 @@
 import { Router } from "express";
 import db from "../db.js";
 import { computeTrust } from "../lib/trustScore.js";
+import { latestScanTier } from "../lib/scanService.js";
 
 const router = Router();
 const SITE = (process.env.APP_URL || "https://www.mcpx.digital").replace(/\/$/, "");
@@ -36,9 +37,10 @@ router.get("/", (req, res) => {
 
   const servers = rows.map((r) => {
     const trust = computeTrust({
-      repo_url: r.repo_url, license: r.license, verified: r.verified,
+      repo_url: r.repo_url, repo_verified: r.repo_verified, license: r.license, verified: r.verified,
       installs: r.installs, rating: r.rating, rating_count: r.rating_count,
       created_at: r.created_at, tags: r.tags, open_flags: r.open_flags,
+      scan_tier: latestScanTier(r.id),
     });
     return {
       name: r.name,

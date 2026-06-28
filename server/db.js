@@ -117,6 +117,18 @@ db.exec(`
     processed_at TEXT DEFAULT (datetime('now'))
   );
 
+  -- Latest source-code scan per server (see server/lib/repoScan.js). One row per
+  -- server, upserted on each scan. Bound into the Trust Score so a repository
+  -- that scans "high" risk is penalized, and re-scanned on update so a server
+  -- can't pass review and then push malicious code.
+  CREATE TABLE IF NOT EXISTS server_scans (
+    server_id     TEXT PRIMARY KEY REFERENCES servers(id) ON DELETE CASCADE,
+    score         INTEGER NOT NULL,
+    tier          TEXT NOT NULL,
+    finding_count INTEGER NOT NULL DEFAULT 0,
+    scanned_at    TEXT DEFAULT (datetime('now'))
+  );
+
   -- Persistent audit trail. Admin actions, auth failures and safety-sensitive
   -- writes are recorded here (in addition to structured stdout) so they survive
   -- a process restart and can be reconstructed for forensics/compliance.
@@ -172,6 +184,8 @@ for (const sql of [
   "ALTER TABLE users ADD COLUMN stripe_onboarding_done INTEGER DEFAULT 0",
   "ALTER TABLE subscriptions ADD COLUMN stripe_subscription_id TEXT",
   "ALTER TABLE servers ADD COLUMN license TEXT",                // Trust Score: license-clarity signal
+  "ALTER TABLE servers ADD COLUMN install_command TEXT",        // Verifiable install spec (CLI + web)
+  "ALTER TABLE servers ADD COLUMN repo_verified INTEGER DEFAULT 0", // Proven repo ownership → full provenance
 ]) {
   try { db.prepare(sql).run(); } catch { /* column already exists */ }
 }
