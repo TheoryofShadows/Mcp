@@ -44,9 +44,12 @@ Defensive measures built into the app:
   routes.
 - **Input validation** on every write — lengths, formats, types, and enum
   whitelists.
-- **Rate limiting** — auth (20 / 15 min / IP) and installs (1 / min / IP /
-  server).
+- **Rate limiting** — global API (120 req/min/IP with bounded memory), auth
+  (20 / 15 min / IP), installs (1 / min / IP / server), scans (8 / min / IP),
+  reports (8 / 10 min / IP), server creation (10 / day / user).
 - **CORS allow-list** via `CORS_ORIGINS`.
+- **Security headers** — HSTS (2 years, includeSubDomains, preload),
+  X-Content-Type-Options, X-Frame-Options DENY, strict CSP, Referrer-Policy.
 - **Stripe webhook signature verification** against `STRIPE_WEBHOOK_SECRET`
   using the raw request body.
 - **Response-type guarding** in the API client so an upstream HTML error page is

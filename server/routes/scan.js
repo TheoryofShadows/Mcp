@@ -31,8 +31,9 @@ function rateLimited(ip) {
   return arr.length > MAX_PER_WINDOW;
 }
 
-// --- naive single-flight cache so repeated scans of the same repo are cheap
+// --- bounded single-flight cache so repeated scans of the same repo are cheap
 const CACHE_TTL_MS = 10 * 60_000;
+const CACHE_MAX = 500;
 const cache = new Map(); // url -> { at, report }
 
 async function runScan(repoUrl) {
@@ -41,6 +42,10 @@ async function runScan(repoUrl) {
     return { ...cached.report, cached: true };
   }
   const report = await scanRepo(repoUrl);
+  if (cache.size >= CACHE_MAX) {
+    const oldest = cache.keys().next().value;
+    cache.delete(oldest);
+  }
   cache.set(repoUrl, { at: Date.now(), report });
   return report;
 }
@@ -85,13 +90,17 @@ router.get("/:owner/:repo", async (req, res) => {
   if (rateLimited(ip)) {
     return res.status(429).json({ error: "Too many scans — try again in a minute." });
   }
+  const { owner, repo } = req.params;
+  if (!/^[a-zA-Z0-9_.-]+$/.test(owner) || !/^[a-zA-Z0-9_.-]+$/.test(repo)) {
+    return res.status(400).json({ error: "Invalid owner or repo name." });
+  }
   const host = (req.query.host || "github.com").toString();
   if (!ALLOWED_HOSTS.has(host)) {
     return res.status(400).json({
       error: "Unsupported host. Use github.com, gitlab.com, or bitbucket.org.",
     });
   }
-  const url = `https://${host}/${req.params.owner}/${req.params.repo}`;
+  const url = `https://${host}/${owner}/${repo}`;
   try {
     const report = await runScan(url);
     res.json(report);

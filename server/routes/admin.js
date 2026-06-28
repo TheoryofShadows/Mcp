@@ -84,4 +84,39 @@ router.delete("/servers/:id", requireAdmin, (req, res) => {
   res.json({ success: true });
 });
 
+// GET /api/admin/flags — list flags with server context
+router.get("/flags", requireAdmin, (req, res) => {
+  const status = req.query.status || "open";
+  if (!["open", "reviewed", "dismissed"].includes(status)) {
+    return res.status(400).json({ error: "Invalid status filter" });
+  }
+  const flags = db.prepare(`
+    SELECT f.*, s.name AS server_name, s.slug AS server_slug,
+           u.username AS reporter_username
+    FROM flags f
+    JOIN servers s ON f.server_id = s.id
+    LEFT JOIN users u ON f.user_id = u.id
+    WHERE f.status = ?
+    ORDER BY f.created_at DESC
+    LIMIT 200
+  `).all(status);
+  res.json({ flags });
+});
+
+// PATCH /api/admin/flags/:id — review or dismiss a flag
+router.patch("/flags/:id", requireAdmin, (req, res) => {
+  const { status } = req.body;
+  if (!status || !["reviewed", "dismissed"].includes(status)) {
+    return res.status(400).json({ error: "status must be 'reviewed' or 'dismissed'" });
+  }
+  const flag = db.prepare("SELECT id, server_id FROM flags WHERE id = ?").get(req.params.id);
+  if (!flag) return res.status(404).json({ error: "Flag not found" });
+
+  db.prepare("UPDATE flags SET status = ? WHERE id = ?").run(status, flag.id);
+  auditLog("admin.flag.update", req.descopeUser?.sub || "unknown", {
+    flag_id: flag.id, server_id: flag.server_id, new_status: status,
+  });
+  res.json({ success: true });
+});
+
 export default router;
