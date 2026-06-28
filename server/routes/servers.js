@@ -33,8 +33,12 @@ router.get("/", (req, res) => {
   }
 
   if (search) {
-    where.push("(s.name LIKE ? OR s.description LIKE ? OR s.tags LIKE ?)");
-    const q = `%${search}%`;
+    if (String(search).length > 100) {
+      return res.status(400).json({ error: "Search query too long" });
+    }
+    const escaped = String(search).replace(/[%_\\]/g, "\\$&");
+    const q = `%${escaped}%`;
+    where.push("(s.name LIKE ? ESCAPE '\\' OR s.description LIKE ? ESCAPE '\\' OR s.tags LIKE ? ESCAPE '\\')");
     params.push(q, q, q);
   }
 
@@ -85,7 +89,7 @@ router.get("/", (req, res) => {
       u.username as author_username,
       u.display_name as author_display_name,
       c.label as category_label,
-      (SELECT COUNT(*) FROM flags f WHERE f.server_id = s.id AND f.status = 'open') as open_flags
+      (SELECT COUNT(*) FROM flags f WHERE f.server_id = s.id AND f.status = 'open' AND f.user_id IS NOT NULL) as open_flags
     FROM servers s
     JOIN users u ON s.author_id = u.id
     JOIN categories c ON s.category_id = c.id
@@ -115,7 +119,7 @@ router.get("/:slug", (req, res) => {
       u.username as author_username,
       u.display_name as author_display_name,
       c.label as category_label,
-      (SELECT COUNT(*) FROM flags f WHERE f.server_id = s.id AND f.status = 'open') as open_flags
+      (SELECT COUNT(*) FROM flags f WHERE f.server_id = s.id AND f.status = 'open' AND f.user_id IS NOT NULL) as open_flags
     FROM servers s
     JOIN users u ON s.author_id = u.id
     JOIN categories c ON s.category_id = c.id
@@ -145,7 +149,7 @@ router.get("/:slug/trust", (req, res) => {
   if (!row) {
     return res.status(404).json({ error: "Server not found" });
   }
-  const openFlags = db.prepare("SELECT COUNT(*) c FROM flags WHERE server_id = ? AND status = 'open'").get(row.id).c;
+  const openFlags = db.prepare("SELECT COUNT(*) c FROM flags WHERE server_id = ? AND status = 'open' AND user_id IS NOT NULL").get(row.id).c;
   res.json({
     slug: row.slug,
     name: row.name,
@@ -165,6 +169,13 @@ router.get("/:slug/trust", (req, res) => {
 
 // POST /api/servers — create a new server (auth required)
 router.post("/", requireAuth, (req, res) => {
+  const recentCount = db.prepare(
+    "SELECT COUNT(*) as c FROM servers WHERE author_id = ? AND created_at > datetime('now', '-1 day')"
+  ).get(req.user.id).c;
+  if (recentCount >= 10) {
+    return res.status(429).json({ error: "You can create up to 10 servers per day" });
+  }
+
   const { name, category_id, description, long_description, price_type, price_amount, repo_url, tags } = req.body;
 
   if (!name || !category_id || !description) {
@@ -189,6 +200,10 @@ router.post("/", requireAuth, (req, res) => {
 
   if (tags && (!Array.isArray(tags) || tags.length > 10)) {
     return res.status(400).json({ error: "Tags must be an array of up to 10 items" });
+  }
+
+  if (tags && tags.some((t) => typeof t !== "string" || t.length > 50)) {
+    return res.status(400).json({ error: "Each tag must be a string of up to 50 characters" });
   }
 
   const slug = name
@@ -253,6 +268,12 @@ router.post("/:slug/reviews", requireAuth, (req, res) => {
     return res.status(400).json({ error: "Comment must be under 2000 characters" });
   }
 
+  const reviewer = db.prepare("SELECT created_at FROM users WHERE id = ?").get(req.user.id);
+  const accountAge = Date.now() - new Date(reviewer.created_at).getTime();
+  if (accountAge < 24 * 60 * 60 * 1000) {
+    return res.status(403).json({ error: "Your account must be at least 24 hours old to leave reviews" });
+  }
+
   const server = db.prepare("SELECT id, author_id FROM servers WHERE slug = ?").get(req.params.slug);
   if (!server) {
     return res.status(404).json({ error: "Server not found" });
@@ -315,8 +336,16 @@ router.post("/:slug/install", (req, res) => {
 
   const id = uuid();
   const userId = req.user?.id || null;
+
+  const alreadyInstalled = userId
+    ? db.prepare("SELECT id FROM installs WHERE server_id = ? AND user_id = ?").get(server.id, userId)
+    : null;
+
   db.prepare("INSERT INTO installs (id, server_id, user_id) VALUES (?, ?, ?)").run(id, server.id, userId);
-  db.prepare("UPDATE servers SET installs = installs + 1 WHERE id = ?").run(server.id);
+
+  if (userId && !alreadyInstalled) {
+    db.prepare("UPDATE servers SET installs = installs + 1 WHERE id = ?").run(server.id);
+  }
 
   res.json({ success: true });
 });
@@ -366,6 +395,15 @@ router.post("/:slug/report", (req, res) => {
 
   const server = db.prepare("SELECT id, name FROM servers WHERE slug = ?").get(req.params.slug);
   if (!server) return res.status(404).json({ error: "Server not found" });
+
+  if (req.user?.id) {
+    const existingFlag = db.prepare(
+      "SELECT id FROM flags WHERE server_id = ? AND user_id = ? AND status = 'open'"
+    ).get(server.id, req.user.id);
+    if (existingFlag) {
+      return res.status(409).json({ error: "You have already reported this server" });
+    }
+  }
 
   db.prepare(
     "INSERT INTO flags (id, server_id, user_id, reason, detail) VALUES (?, ?, ?, ?, ?)"

@@ -4,6 +4,13 @@ import db from "../db.js";
 
 const router = Router();
 
+function auditLog(action, actor, details) {
+  console.log(JSON.stringify({
+    type: "audit", action, actor, ...details,
+    timestamp: new Date().toISOString(),
+  }));
+}
+
 // All routes in this file require a valid Descope session with Admin permission.
 // authenticateDescopeToken is applied globally in app.js before these routes.
 
@@ -48,6 +55,9 @@ router.patch("/servers/:id", requireAdmin, (req, res) => {
   values.push(id);
 
   db.prepare(`UPDATE servers SET ${updates.join(", ")} WHERE id = ?`).run(...values);
+  auditLog("admin.server.update", req.descopeUser?.sub || "unknown", {
+    server_id: id, changes: { verified, trending, status },
+  });
   res.json({ success: true });
 });
 
@@ -70,6 +80,7 @@ router.delete("/servers/:id", requireAdmin, (req, res) => {
   const server = db.prepare("SELECT id FROM servers WHERE id = ?").get(id);
   if (!server) return res.status(404).json({ error: "Server not found" });
   db.prepare("DELETE FROM servers WHERE id = ?").run(id);
+  auditLog("admin.server.delete", req.descopeUser?.sub || "unknown", { server_id: id });
   res.json({ success: true });
 });
 

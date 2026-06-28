@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import request from "supertest";
-import { cleanup } from "./setup.js";
+import { cleanup, backdateUser } from "./setup.js";
 import { createApp } from "../server/app.js";
 
 const app = createApp();
@@ -15,6 +15,7 @@ beforeAll(async () => {
     password: "testpassword",
   });
   token = reg.body.token;
+  backdateUser("servertest@example.com");
 });
 
 afterAll(cleanup);
@@ -153,6 +154,7 @@ describe("POST /api/servers/:slug/reviews", () => {
       password: "reviewerpass",
     });
     reviewerToken = reg.body.token;
+    backdateUser("reviewer@example.com");
   });
 
   it("allows authenticated user to review a server they don't own", async () => {

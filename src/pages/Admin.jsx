@@ -8,8 +8,7 @@ import {
   adminDeleteServer,
 } from "../api/client";
 
-const ADMIN_PERMISSION =
-  import.meta.env.VITE_DESCOPE_ADMIN_PERMISSION ?? "PERM3AginJK2YlsHu6UrjhQcz7wf2iR";
+const ADMIN_PERMISSION = import.meta.env.VITE_DESCOPE_ADMIN_PERMISSION;
 
 const mono = { fontFamily: "var(--font-mono)", fontSize: "13px" };
 

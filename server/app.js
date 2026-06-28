@@ -15,6 +15,8 @@ import scanRoutes from "./routes/scan.js";
 export function createApp() {
   const app = express();
 
+  app.set("trust proxy", 1);
+
   const allowedOrigins = process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(",")
         // Tolerate stray whitespace and angle brackets that sneak in when
@@ -57,16 +59,39 @@ export function createApp() {
       "script-src 'self'",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
-      "connect-src 'self' https:",
+      `connect-src 'self' https://api.descope.com https://*.supabase.co https://api.stripe.com${process.env.CSP_CONNECT_ORIGINS ? " " + process.env.CSP_CONNECT_ORIGINS : ""}`,
     ].join("; "));
     next();
   });
+
+  // Global API rate limiter — sliding window, 120 req/min per IP.
+  const globalHits = new Map();
+  const GLOBAL_WINDOW = 60_000;
+  const GLOBAL_MAX = 120;
+  app.use("/api", (req, res, next) => {
+    const ip = req.ip || "unknown";
+    const now = Date.now();
+    const arr = (globalHits.get(ip) || []).filter((t) => now - t < GLOBAL_WINDOW);
+    if (arr.length >= GLOBAL_MAX) {
+      res.set("Retry-After", "60");
+      return res.status(429).json({ error: "Rate limit exceeded. Try again later." });
+    }
+    arr.push(now);
+    globalHits.set(ip, arr);
+    next();
+  });
+  setInterval(() => {
+    const now = Date.now();
+    for (const [k, v] of globalHits) {
+      if (!v.length || now - v[v.length - 1] > GLOBAL_WINDOW) globalHits.delete(k);
+    }
+  }, 300_000).unref();
 
   // Stripe webhook needs the raw body for signature verification — must be
   // registered BEFORE express.json() consumes and parses the body.
   app.use("/api/payments/stripe/webhook", express.raw({ type: "application/json" }));
 
-  app.use(express.json({ limit: "1mb" }));
+  app.use(express.json({ limit: "256kb" }));
   app.use(authenticateToken);
   app.use(authenticateDescopeToken);
 

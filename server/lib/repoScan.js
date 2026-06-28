@@ -166,7 +166,7 @@ export function scoreFiles(files = []) {
 }
 
 // --- Live repo scan (I/O) -------------------------------------------------
-const ALLOWED_HOSTS = new Set(["github.com", "www.github.com", "gitlab.com", "bitbucket.org"]);
+export const ALLOWED_HOSTS = new Set(["github.com", "www.github.com", "gitlab.com", "bitbucket.org"]);
 const CLONE_TIMEOUT_MS = 20_000;
 const MAX_FILE_BYTES = 512 * 1024;
 const MAX_FILES = 2000;

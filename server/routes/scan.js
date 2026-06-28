@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { scanRepo } from "../lib/repoScan.js";
+import { scanRepo, ALLOWED_HOSTS } from "../lib/repoScan.js";
 
 const router = Router();
 
@@ -86,6 +86,11 @@ router.get("/:owner/:repo", async (req, res) => {
     return res.status(429).json({ error: "Too many scans — try again in a minute." });
   }
   const host = (req.query.host || "github.com").toString();
+  if (!ALLOWED_HOSTS.has(host)) {
+    return res.status(400).json({
+      error: "Unsupported host. Use github.com, gitlab.com, or bitbucket.org.",
+    });
+  }
   const url = `https://${host}/${req.params.owner}/${req.params.repo}`;
   try {
     const report = await runScan(url);

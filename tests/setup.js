@@ -17,6 +17,10 @@ db.prepare(`INSERT OR IGNORE INTO categories (id, label, icon, sort_order) VALUE
   ('data', 'Data', '📊', 2)
 `).run();
 
+export function backdateUser(email) {
+  db.prepare("UPDATE users SET created_at = datetime('now', '-2 days') WHERE email = ?").run(email);
+}
+
 export { db, dbFile };
 
 // Cleanup the temp database file after all tests

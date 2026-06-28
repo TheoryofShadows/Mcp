@@ -80,7 +80,7 @@ router.post("/register", async (req, res) => {
     `INSERT INTO users (id, email, username, display_name, password_hash) VALUES (?, ?, ?, ?, ?)`
   ).run(id, email, username, String(display_name || username).slice(0, 50), password_hash);
 
-  const token = signToken({ id, email, username });
+  const token = signToken({ id });
   const user = db.prepare("SELECT id, email, username, display_name, tier, created_at FROM users WHERE id = ?").get(id);
 
   res.status(201).json({ token, user });
@@ -105,7 +105,7 @@ router.post("/login", async (req, res) => {
     return res.status(401).json({ error: "Invalid credentials" });
   }
 
-  const token = signToken({ id: user.id, email: user.email, username: user.username });
+  const token = signToken({ id: user.id });
 
   res.json({
     token,
