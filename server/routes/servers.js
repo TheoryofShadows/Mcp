@@ -256,6 +256,67 @@ router.post("/", requireAuth, (req, res) => {
   res.status(201).json(formatServer(row));
 });
 
+// PATCH /api/servers/:slug — publisher updates their own server
+router.patch("/:slug", requireAuth, (req, res) => {
+  const server = db.prepare("SELECT id, author_id FROM servers WHERE slug = ?").get(req.params.slug);
+  if (!server) return res.status(404).json({ error: "Server not found" });
+  if (server.author_id !== req.user.id) {
+    return res.status(403).json({ error: "You can only update your own servers" });
+  }
+
+  const allowed = ["description", "long_description", "repo_url", "tags", "license"];
+  const updates = [];
+  const values = [];
+
+  for (const field of allowed) {
+    if (req.body[field] !== undefined) {
+      if (field === "tags") {
+        if (!Array.isArray(req.body.tags) || req.body.tags.length > 10) {
+          return res.status(400).json({ error: "Tags must be an array of up to 10 items" });
+        }
+        if (req.body.tags.some((t) => typeof t !== "string" || t.length > 50)) {
+          return res.status(400).json({ error: "Each tag must be a string of up to 50 characters" });
+        }
+        updates.push("tags = ?");
+        values.push(JSON.stringify(req.body.tags));
+      } else if (field === "description") {
+        const desc = String(req.body.description);
+        if (desc.length < 10 || desc.length > 500) {
+          return res.status(400).json({ error: "Description must be between 10 and 500 characters" });
+        }
+        updates.push("description = ?");
+        values.push(desc);
+      } else if (field === "long_description") {
+        if (String(req.body.long_description).length > 5000) {
+          return res.status(400).json({ error: "Long description must be under 5000 characters" });
+        }
+        updates.push("long_description = ?");
+        values.push(String(req.body.long_description));
+      } else {
+        updates.push(`${field} = ?`);
+        values.push(String(req.body[field]).slice(0, 500));
+      }
+    }
+  }
+
+  if (!updates.length) return res.status(400).json({ error: "No fields to update" });
+
+  updates.push("updated_at = datetime('now')");
+  values.push(server.id);
+
+  db.prepare(`UPDATE servers SET ${updates.join(", ")} WHERE id = ?`).run(...values);
+
+  const row = db.prepare(`
+    SELECT s.*, u.username as author_username, u.display_name as author_display_name,
+           c.label as category_label,
+           (SELECT COUNT(*) FROM flags f WHERE f.server_id = s.id AND f.status = 'open' AND f.user_id IS NOT NULL) as open_flags
+    FROM servers s JOIN users u ON s.author_id = u.id JOIN categories c ON s.category_id = c.id
+    WHERE s.id = ?
+  `).get(server.id);
+
+  res.json(formatServer(row));
+});
+
 // POST /api/servers/:slug/reviews — add a review (auth required)
 router.post("/:slug/reviews", requireAuth, (req, res) => {
   const { rating, comment } = req.body;

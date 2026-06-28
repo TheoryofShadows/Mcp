@@ -64,26 +64,40 @@ export function createApp() {
     next();
   });
 
-  // Global API rate limiter — sliding window, 120 req/min per IP.
+  // Global API rate limiter — fixed window, 120 req/min per IP.
+  // Uses a counter per window instead of storing every timestamp to bound memory.
   const globalHits = new Map();
   const GLOBAL_WINDOW = 60_000;
   const GLOBAL_MAX = 120;
+  const MAX_TRACKED_IPS = 50_000;
   app.use("/api", (req, res, next) => {
     const ip = req.ip || "unknown";
     const now = Date.now();
-    const arr = (globalHits.get(ip) || []).filter((t) => now - t < GLOBAL_WINDOW);
-    if (arr.length >= GLOBAL_MAX) {
+    let entry = globalHits.get(ip);
+    if (!entry || now - entry.windowStart >= GLOBAL_WINDOW) {
+      if (!entry && globalHits.size >= MAX_TRACKED_IPS) {
+        const toDelete = Math.floor(MAX_TRACKED_IPS * 0.1);
+        let deleted = 0;
+        for (const k of globalHits.keys()) {
+          if (deleted >= toDelete) break;
+          globalHits.delete(k);
+          deleted++;
+        }
+      }
+      entry = { count: 0, windowStart: now };
+      globalHits.set(ip, entry);
+    }
+    entry.count++;
+    if (entry.count > GLOBAL_MAX) {
       res.set("Retry-After", "60");
       return res.status(429).json({ error: "Rate limit exceeded. Try again later." });
     }
-    arr.push(now);
-    globalHits.set(ip, arr);
     next();
   });
   setInterval(() => {
-    const now = Date.now();
+    const cutoff = Date.now() - GLOBAL_WINDOW;
     for (const [k, v] of globalHits) {
-      if (!v.length || now - v[v.length - 1] > GLOBAL_WINDOW) globalHits.delete(k);
+      if (v.windowStart < cutoff) globalHits.delete(k);
     }
   }, 300_000).unref();
 

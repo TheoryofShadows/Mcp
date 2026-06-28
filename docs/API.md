@@ -54,8 +54,13 @@ server error, `501` feature not configured.
 | `GET` | `/servers/:slug` | — | Server detail + reviews |
 | `GET` | `/servers/:slug/trust` | — | Machine-readable trust report |
 | `POST` | `/servers` | JWT | Publish a server |
+| `PATCH` | `/servers/:slug` | JWT | Update your own server |
+| `DELETE` | `/servers/:slug` | JWT | Delete your own server |
 | `POST` | `/servers/:slug/reviews` | JWT | Add a review |
 | `POST` | `/servers/:slug/install` | — | Record an install |
+| `POST` | `/servers/:slug/report` | — | Flag a server |
+| `POST` | `/scan` | — | Scan a repo by URL |
+| `GET` | `/scan/:owner/:repo` | — | Scan a GitHub/GitLab/Bitbucket repo |
 | `GET` | `/categories` | — | Categories with counts |
 | `GET` | `/stats` | — | Platform-wide statistics |
 | `GET` | `/tiers` | — | Pricing tiers + projections |
@@ -68,6 +73,8 @@ server error, `501` feature not configured.
 | `PATCH` | `/admin/servers/:id` | Descope admin | Update flags |
 | `DELETE` | `/admin/servers/:id` | Descope admin | Remove a server |
 | `GET` | `/admin/users` | Descope admin | All users |
+| `GET` | `/admin/flags` | Descope admin | List flagged servers |
+| `PATCH` | `/admin/flags/:id` | Descope admin | Review/dismiss a flag |
 
 ---
 
@@ -247,11 +254,79 @@ Rules: you can't review your own server (`400`), and only once per server
 (`409`). On success (`201`) the server's average `rating` and `rating_count` are
 recalculated.
 
+### `PATCH /servers/:slug` 🔒
+
+Update your own server's metadata. Body (all optional):
+
+| Field | Rules |
+|-------|-------|
+| `description` | 10–500 chars |
+| `long_description` | ≤ 5,000 chars |
+| `repo_url` | URL string |
+| `license` | License identifier string |
+| `tags` | Array, ≤ 10 items, each ≤ 50 chars |
+
+`200` → the updated server object. Also resets `updated_at`, which clears any
+staleness penalty. `403` if you don't own the server.
+
+### `DELETE /servers/:slug` 🔒
+
+Delete your own server. Cascades to reviews, installs, and flags. `200` →
+`{ "success": true }`. `403` if you don't own it. Admins use
+`DELETE /admin/servers/:id` instead.
+
 ### `POST /servers/:slug/install`
 
 Records an install and increments the counter. Auth is optional (a logged-in
 user is attributed if present). Rate limited to **1 per IP per server per
 minute** (`429` otherwise). `200` → `{ "success": true }`.
+
+### `POST /servers/:slug/report`
+
+Flag a server for review. Auth optional but attributed when present. Rate
+limited to **8 per IP per 10 minutes**.
+
+Body:
+
+| Field | Required | Rules |
+|-------|----------|-------|
+| `reason` | ✅ | One of: `malware`, `impersonation`, `broken`, `spam`, `security`, `other` |
+| `detail` | — | ≤ 1,000 chars |
+
+`201` → `{ "success": true }`. `409` if the authenticated user already has an
+open report on this server.
+
+---
+
+## Scan (repo security)
+
+### `POST /scan`
+
+Body: `{ "repo_url": "https://github.com/owner/repo" }`. Shallow-clones the
+repo and scores it against MCP attack classes. Rate limited to **8 per IP per
+minute**.
+
+`200` →
+
+```json
+{
+  "score": 85,
+  "tier": "low",
+  "finding_count": 2,
+  "factors": [ { "key": "secrets", "label": "Leaked secrets", "points": 40, "max": 40, "hit_count": 0 } ],
+  "findings": [ { "check": "dangerous_surface", "pattern": "exec", "path": "src/index.js", "line": 42, "preview": "…" } ],
+  "confidence": "high",
+  "repo_url": "https://github.com/owner/repo",
+  "file_count": 35,
+  "scanned_at": "2026-06-28T…"
+}
+```
+
+### `GET /scan/:owner/:repo`
+
+Convenience route. Optional `?host=` query param (default `github.com`;
+also accepts `gitlab.com`, `bitbucket.org`). Returns the same shape as
+`POST /scan`.
 
 ---
 

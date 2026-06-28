@@ -15,7 +15,13 @@ router.get("/", (req, res) => {
 
   const where = ["s.status = 'active'"];
   const params = [];
-  if (since) { where.push("s.created_at >= ?"); params.push(since); }
+  if (since) {
+    if (typeof since !== "string" || since.length > 30 || !/^\d{4}-\d{2}-\d{2}/.test(since)) {
+      return res.status(400).json({ error: "since must be an ISO date string (YYYY-MM-DD...)" });
+    }
+    where.push("s.created_at >= ?");
+    params.push(since);
+  }
 
   const rows = db.prepare(`
     SELECT s.*, u.username AS author_username, c.label AS category_label,

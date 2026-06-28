@@ -41,6 +41,21 @@ implies a review) **removes** the penalty. This mirrors real MCP attack classes
 (tool poisoning, over-broad permissions): powerful tools must earn trust through
 review, not just exist.
 
+### Staleness penalty
+
+Servers that go **more than 180 days** without an update to their marketplace
+listing lose up to **5 points**, increasing by 1 point for every additional 90
+days of inactivity. Publishers can reset this by updating their server's
+metadata (description, tags, repo URL, etc.) via `PATCH /api/servers/:slug`.
+
+### Community flag penalty
+
+Open user reports (flags) reduce trust by **5 points per open report**, capped
+at **10 points total**. Only reports from authenticated users count — anonymous
+flags do not affect the score. An admin dismissing a flag removes its penalty.
+This prevents a few malicious reports from zeroing out an otherwise-strong
+server while still surfacing genuine community concerns.
+
 ### Confidence
 
 Alongside the score, the report includes a `confidence` of `high` / `medium` /
@@ -83,6 +98,26 @@ score         46  → "Community", confidence "medium"
 As it gains installs, earns reviews, ages, and (optionally) gets verified, the
 same tool climbs toward **Verified** and **Official** — automatically, from real
 signals.
+
+---
+
+## Live repository scanning
+
+Beyond marketplace metadata, MCPX can scan the **actual source code** of a
+server's repository via `POST /api/scan` or `GET /api/scan/:owner/:repo`. This
+is the unfakeable trust signal — it reads real code and checks for:
+
+| Check | Max | What it detects |
+|-------|-----|-----------------|
+| **Leaked secrets** | 40 | Hardcoded API keys (OpenAI, GitHub, AWS, Slack) |
+| **Tool-poisoning directives** | 35 | "Ignore previous instructions", exfiltration directives, concealment |
+| **Dangerous execution surface** | 25 | `eval()`, `child_process`, `spawn()`, `new Function()` |
+
+A clean repo scores **100** ("safe"). Each finding deducts points from its
+category. The scan returns the same `{ score, tier, factors, findings }` shape
+as the trust report, so agents can gate behavior on both.
+
+Scan tiers: **Safe** (100) → **Low** (70–99) → **Moderate** (40–69) → **High** (<40).
 
 ---
 
