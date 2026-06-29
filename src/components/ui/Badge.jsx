@@ -2,9 +2,9 @@ import { memo } from "react";
 
 const BADGE_STYLES = {
   default: {
-    background: "rgba(124, 108, 255, 0.12)",
+    background: "rgba(34, 211, 238, 0.12)",
     color: "var(--accent-light)",
-    border: "1px solid rgba(124, 108, 255, 0.25)",
+    border: "1px solid rgba(34, 211, 238, 0.25)",
   },
   trending: {
     background: "rgba(236, 72, 153, 0.12)",
@@ -12,9 +12,9 @@ const BADGE_STYLES = {
     border: "1px solid rgba(236, 72, 153, 0.25)",
   },
   paid: {
-    background: "rgba(168, 85, 247, 0.12)",
+    background: "rgba(20, 184, 166, 0.12)",
     color: "var(--accent-purple)",
-    border: "1px solid rgba(168, 85, 247, 0.25)",
+    border: "1px solid rgba(20, 184, 166, 0.25)",
   },
   free: {
     background: "rgba(56, 189, 248, 0.12)",

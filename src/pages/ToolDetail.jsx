@@ -81,7 +81,7 @@ function renderMarkdown(text) {
     if (line.startsWith("# ")) {
       elements.push(<h1 key={key++} style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "24px", margin: "32px 0 12px", letterSpacing: "-0.5px" }}>{line.slice(2)}</h1>);
     } else if (line.startsWith("## ")) {
-      elements.push(<h2 key={key++} style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "18px", margin: "28px 0 10px", color: "#b9adff" }}>{line.slice(3)}</h2>);
+      elements.push(<h2 key={key++} style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "18px", margin: "28px 0 10px", color: "#a5f3fc" }}>{line.slice(3)}</h2>);
     } else if (line.startsWith("### ")) {
       elements.push(<h3 key={key++} style={{ fontFamily: "var(--font-heading)", fontWeight: 600, fontSize: "15px", margin: "20px 0 8px" }}>{line.slice(4)}</h3>);
     } else if (line.startsWith("- ") || line.startsWith("* ")) {
@@ -183,7 +183,7 @@ export default function ToolDetail() {
     return (
       <div role="alert" style={{ maxWidth: "900px", margin: "80px auto", padding: "0 24px", textAlign: "center" }}>
         <h1 style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "24px", marginBottom: "12px" }}>Tool not found</h1>
-        <Link to="/marketplace" style={{ color: "#a594ff", fontSize: "14px" }}>← Back to Marketplace</Link>
+        <Link to="/marketplace" style={{ color: "#67e8f9", fontSize: "14px" }}>← Back to Marketplace</Link>
       </div>
     );
   }
@@ -452,7 +452,7 @@ export default function ToolDetail() {
                               width: 32,
                               height: 32,
                               borderRadius: "50%",
-                              background: "linear-gradient(135deg, #7c6cff, #a855f7)",
+                              background: "linear-gradient(135deg, #22d3ee, #14b8a6)",
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
@@ -514,7 +514,7 @@ export default function ToolDetail() {
               style={{
                 width: "100%",
                 padding: "13px",
-                background: "linear-gradient(135deg, #7c6cff, #a855f7)",
+                background: "linear-gradient(135deg, #22d3ee, #14b8a6)",
                 border: "none",
                 borderRadius: "10px",
                 color: "#fff",
@@ -523,7 +523,7 @@ export default function ToolDetail() {
                 cursor: checkoutLoading ? "not-allowed" : "pointer",
                 opacity: checkoutLoading ? 0.7 : 1,
                 marginBottom: "10px",
-                boxShadow: "0 0 20px rgba(124, 108, 255,0.25)",
+                boxShadow: "0 0 20px rgba(34, 211, 238,0.25)",
                 transition: "all 0.15s",
               }}
               onClick={async () => {
@@ -547,8 +547,8 @@ export default function ToolDetail() {
                   setActiveTab("Install");
                 }
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 0 28px rgba(124, 108, 255,0.4)")}
-              onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "0 0 20px rgba(124, 108, 255,0.25)")}
+              onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 0 28px rgba(34, 211, 238,0.4)")}
+              onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "0 0 20px rgba(34, 211, 238,0.25)")}
             >
               {checkoutLoading ? "Redirecting…" : tool.price_type === "free" ? "Install Tool" : `Subscribe — ${tool.price_label || tool.price}`}
             </button>

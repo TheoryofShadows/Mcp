@@ -121,7 +121,7 @@ export default function VerifyRepoModal({ server, onClose, onVerified }) {
                 <code style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "#c4c9d4", wordBreak: "break-all" }}>{info.token}</code>
                 <button
                   onClick={copyToken}
-                  style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "6px 12px", borderRadius: "6px", border: "none", background: copied ? "rgba(16,185,129,0.12)" : "rgba(124, 108, 255,0.12)", color: copied ? "#10b981" : "#a594ff", cursor: "pointer", fontSize: "12px", fontFamily: "var(--font-mono)", flexShrink: 0 }}
+                  style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "6px 12px", borderRadius: "6px", border: "none", background: copied ? "rgba(16,185,129,0.12)" : "rgba(34, 211, 238,0.12)", color: copied ? "#10b981" : "#67e8f9", cursor: "pointer", fontSize: "12px", fontFamily: "var(--font-mono)", flexShrink: 0 }}
                 >
                   {copied ? <Check size={12} /> : <Copy size={12} />}
                   {copied ? "Copied" : "Copy"}

@@ -112,7 +112,7 @@ export default function Home() {
             transform: "translateX(-50%)",
             width: "600px",
             height: "400px",
-            background: "radial-gradient(ellipse at center, rgba(124, 108, 255,0.12) 0%, transparent 70%)",
+            background: "radial-gradient(ellipse at center, rgba(34, 211, 238,0.12) 0%, transparent 70%)",
             pointerEvents: "none",
           }}
         />
@@ -125,8 +125,8 @@ export default function Home() {
               alignItems: "center",
               gap: "8px",
               padding: "6px 16px",
-              background: "rgba(124, 108, 255,0.08)",
-              border: "1px solid rgba(124, 108, 255,0.2)",
+              background: "rgba(34, 211, 238,0.08)",
+              border: "1px solid rgba(34, 211, 238,0.2)",
               borderRadius: "100px",
               marginBottom: "32px",
             }}
@@ -145,7 +145,7 @@ export default function Home() {
               style={{
                 fontFamily: "var(--font-mono)",
                 fontSize: "12px",
-                color: "#a594ff",
+                color: "#67e8f9",
                 letterSpacing: "0.06em",
               }}
             >
@@ -168,7 +168,7 @@ export default function Home() {
             The App Store for{" "}
             <span
               style={{
-                background: "linear-gradient(135deg, #b9adff 0%, #7c6cff 50%, #a855f7 100%)",
+                background: "linear-gradient(135deg, #a5f3fc 0%, #22d3ee 50%, #14b8a6 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
               }}
@@ -189,7 +189,7 @@ export default function Home() {
           >
             Discover, install, and monetize MCP tools. Build integrations for Claude and
             earn revenue — we handle the marketplace.{" "}
-            <span style={{ color: "#a594ff" }}>15% fee model.</span>
+            <span style={{ color: "#67e8f9" }}>15% fee model.</span>
           </p>
 
           {/* Search */}
@@ -223,7 +223,7 @@ export default function Home() {
                   fontFamily: "var(--font-body)",
                   outline: "none",
                 }}
-                onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(124, 108, 255,0.4)")}
+                onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(34, 211, 238,0.4)")}
                 onBlur={(e) => (e.currentTarget.style.borderColor = "#2e2e44")}
                 aria-label="Search MCP tools"
               />
@@ -232,7 +232,7 @@ export default function Home() {
               type="submit"
               style={{
                 padding: "14px 22px",
-                background: "linear-gradient(135deg, #7c6cff, #a855f7)",
+                background: "linear-gradient(135deg, #22d3ee, #14b8a6)",
                 border: "none",
                 borderRadius: "0 12px 12px 0",
                 color: "#fff",
@@ -267,8 +267,8 @@ export default function Home() {
                   transition: "all 0.15s",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = "rgba(124, 108, 255,0.3)";
-                  e.currentTarget.style.color = "#b9adff";
+                  e.currentTarget.style.borderColor = "rgba(34, 211, 238,0.3)";
+                  e.currentTarget.style.color = "#a5f3fc";
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.borderColor = "#1d1d2b";
@@ -319,7 +319,7 @@ export default function Home() {
                   marginBottom: "4px",
                 }}
               >
-                <Icon size={14} color="#7c6cff" />
+                <Icon size={14} color="#22d3ee" />
                 <span
                   style={{
                     fontFamily: "var(--font-heading)",
@@ -365,12 +365,12 @@ export default function Home() {
               body: "Every server gets a transparent Trust Score (0–100) computed from real signals — source, license, adoption, reviews, and capability risk — with every point explained. Not a badge someone toggled.",
             },
             {
-              icon: DollarSign, color: "#7c6cff",
+              icon: DollarSign, color: "#22d3ee",
               title: "Builders get paid",
               body: "List a paid tool and keep 85%. Real Stripe payouts to publishers, not just exposure — monetization is built in, not bolted on.",
             },
             {
-              icon: Bot, color: "#a78bfa",
+              icon: Bot, color: "#7dd3fc",
               title: "Built for agents",
               body: "Machine-readable trust at /api/servers/:slug/trust and a live discovery feed, so an agent can vet a tool before it installs — plus one-click install for Claude, Cursor, and VS Code.",
             },
@@ -461,7 +461,7 @@ export default function Home() {
               alignItems: "center",
               gap: "5px",
               fontSize: "13px",
-              color: "#a594ff",
+              color: "#67e8f9",
               textDecoration: "none",
               fontWeight: 500,
             }}
@@ -492,8 +492,8 @@ export default function Home() {
           maxWidth: "1100px",
           marginLeft: "auto",
           marginRight: "auto",
-          background: "linear-gradient(135deg, rgba(124, 108, 255,0.15) 0%, rgba(139,92,246,0.1) 100%)",
-          border: "1px solid rgba(124, 108, 255,0.25)",
+          background: "linear-gradient(135deg, rgba(34, 211, 238,0.15) 0%, rgba(139,92,246,0.1) 100%)",
+          border: "1px solid rgba(34, 211, 238,0.25)",
           borderRadius: "20px",
           padding: "52px 40px",
           textAlign: "center",
@@ -503,7 +503,7 @@ export default function Home() {
           style={{
             width: 52,
             height: 52,
-            background: "linear-gradient(135deg, #7c6cff, #a855f7)",
+            background: "linear-gradient(135deg, #22d3ee, #14b8a6)",
             borderRadius: "14px",
             display: "flex",
             alignItems: "center",
@@ -544,13 +544,13 @@ export default function Home() {
               alignItems: "center",
               gap: "8px",
               padding: "12px 24px",
-              background: "linear-gradient(135deg, #7c6cff, #a855f7)",
+              background: "linear-gradient(135deg, #22d3ee, #14b8a6)",
               borderRadius: "10px",
               color: "#fff",
               fontSize: "14px",
               fontWeight: 600,
               textDecoration: "none",
-              boxShadow: "0 0 24px rgba(124, 108, 255,0.3)",
+              boxShadow: "0 0 24px rgba(34, 211, 238,0.3)",
             }}
           >
             Submit a Tool <ArrowRight size={14} />
@@ -563,9 +563,9 @@ export default function Home() {
               gap: "8px",
               padding: "12px 24px",
               background: "transparent",
-              border: "1px solid rgba(124, 108, 255,0.3)",
+              border: "1px solid rgba(34, 211, 238,0.3)",
               borderRadius: "10px",
-              color: "#b9adff",
+              color: "#a5f3fc",
               fontSize: "14px",
               fontWeight: 500,
               textDecoration: "none",

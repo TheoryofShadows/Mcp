@@ -131,8 +131,8 @@ export default function DocsSection() {
         style={{
           marginTop: "var(--space-xl)",
           padding: "var(--space-lg)",
-          background: "rgba(124, 108, 255, 0.06)",
-          border: "1px solid rgba(124, 108, 255, 0.18)",
+          background: "rgba(34, 211, 238, 0.06)",
+          border: "1px solid rgba(34, 211, 238, 0.18)",
           borderRadius: "14px",
           textAlign: "center",
         }}

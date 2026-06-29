@@ -45,7 +45,7 @@ export const PRICING_TIERS = [
     ],
     accent: "var(--accent-electric)",
     gradient:
-      "linear-gradient(135deg, rgba(124,108,255,0.12), rgba(56,189,248,0.05))",
+      "linear-gradient(135deg, rgba(34, 211, 238,0.12), rgba(56,189,248,0.05))",
     popular: true,
   },
   {
@@ -62,7 +62,7 @@ export const PRICING_TIERS = [
     ],
     accent: "var(--accent-purple)",
     gradient:
-      "linear-gradient(135deg, rgba(168,85,247,0.1), rgba(236,72,153,0.05))",
+      "linear-gradient(135deg, rgba(20, 184, 166,0.1), rgba(236,72,153,0.05))",
   },
 ];
 

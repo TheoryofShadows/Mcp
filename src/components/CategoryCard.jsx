@@ -12,8 +12,8 @@ export default function CategoryCard({ category, count, active, onClick }) {
         justifyContent: "center",
         gap: "10px",
         padding: "24px 16px",
-        background: active ? "rgba(124, 108, 255,0.12)" : "#12121c",
-        border: `1px solid ${active ? "rgba(124, 108, 255,0.4)" : "#1d1d2b"}`,
+        background: active ? "rgba(34, 211, 238,0.12)" : "#12121c",
+        border: `1px solid ${active ? "rgba(34, 211, 238,0.4)" : "#1d1d2b"}`,
         borderRadius: "14px",
         cursor: "pointer",
         textAlign: "center",
@@ -23,8 +23,8 @@ export default function CategoryCard({ category, count, active, onClick }) {
       }}
       onMouseEnter={(e) => {
         if (!active) {
-          e.currentTarget.style.background = "rgba(124, 108, 255,0.07)";
-          e.currentTarget.style.borderColor = "rgba(124, 108, 255,0.25)";
+          e.currentTarget.style.background = "rgba(34, 211, 238,0.07)";
+          e.currentTarget.style.borderColor = "rgba(34, 211, 238,0.25)";
         }
       }}
       onMouseLeave={(e) => {
@@ -55,7 +55,7 @@ export default function CategoryCard({ category, count, active, onClick }) {
             fontFamily: "var(--font-heading)",
             fontWeight: 600,
             fontSize: "13px",
-            color: active ? "#b9adff" : "var(--text-primary)",
+            color: active ? "#a5f3fc" : "var(--text-primary)",
             marginBottom: "3px",
           }}
         >

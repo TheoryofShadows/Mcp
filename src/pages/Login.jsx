@@ -123,7 +123,7 @@ export default function Login() {
           transform: "translateX(-50%)",
           width: "500px",
           height: "500px",
-          background: "radial-gradient(ellipse, rgba(124, 108, 255,0.08) 0%, transparent 70%)",
+          background: "radial-gradient(ellipse, rgba(34, 211, 238,0.08) 0%, transparent 70%)",
           pointerEvents: "none",
         }}
       />
@@ -141,13 +141,13 @@ export default function Login() {
             style={{
               width: 56,
               height: 56,
-              background: "linear-gradient(135deg, #7c6cff, #a855f7)",
+              background: "linear-gradient(135deg, #22d3ee, #14b8a6)",
               borderRadius: "16px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               margin: "0 auto 16px",
-              boxShadow: "0 0 32px rgba(124, 108, 255,0.3)",
+              boxShadow: "0 0 32px rgba(34, 211, 238,0.3)",
             }}
           >
             <Zap size={26} color="#fff" />
@@ -234,7 +234,7 @@ export default function Login() {
                       color: "var(--text-secondary)",
                     }}
                   >
-                    <CheckCircle size={14} color="#7c6cff" style={{ flexShrink: 0 }} />
+                    <CheckCircle size={14} color="#22d3ee" style={{ flexShrink: 0 }} />
                     {perk}
                   </div>
                 ))}
@@ -255,7 +255,7 @@ export default function Login() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="dev@mcpx.dev"
                     style={inputStyle}
-                    onFocus={(e) => (e.target.style.borderColor = "#7c6cff")}
+                    onFocus={(e) => (e.target.style.borderColor = "#22d3ee")}
                     onBlur={(e) => (e.target.style.borderColor = "#2e2e44")}
                   />
                 </div>
@@ -272,7 +272,7 @@ export default function Login() {
                       onChange={(e) => setUsername(e.target.value)}
                       placeholder="cooldev42"
                       style={inputStyle}
-                      onFocus={(e) => (e.target.style.borderColor = "#7c6cff")}
+                      onFocus={(e) => (e.target.style.borderColor = "#22d3ee")}
                       onBlur={(e) => (e.target.style.borderColor = "#2e2e44")}
                     />
                   </div>
@@ -290,7 +290,7 @@ export default function Login() {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Min 6 characters"
                     style={inputStyle}
-                    onFocus={(e) => (e.target.style.borderColor = "#7c6cff")}
+                    onFocus={(e) => (e.target.style.borderColor = "#22d3ee")}
                     onBlur={(e) => (e.target.style.borderColor = "#2e2e44")}
                   />
                 </div>
@@ -301,7 +301,7 @@ export default function Login() {
                   style={{
                     width: "100%",
                     padding: "13px",
-                    background: loading ? "#1d1d2b" : "linear-gradient(135deg, #7c6cff, #a855f7)",
+                    background: loading ? "#1d1d2b" : "linear-gradient(135deg, #22d3ee, #14b8a6)",
                     border: "none",
                     borderRadius: "12px",
                     color: "#fff",
@@ -323,7 +323,7 @@ export default function Login() {
                     style={{
                       background: "none",
                       border: "none",
-                      color: "#a594ff",
+                      color: "#67e8f9",
                       cursor: "pointer",
                       fontSize: "13px",
                       fontWeight: 600,
@@ -340,8 +340,8 @@ export default function Login() {
                   <div
                     style={{
                       padding: "10px 14px",
-                      background: "rgba(124, 108, 255,0.07)",
-                      border: "1px solid rgba(124, 108, 255,0.15)",
+                      background: "rgba(34, 211, 238,0.07)",
+                      border: "1px solid rgba(34, 211, 238,0.15)",
                       borderRadius: "10px",
                       fontSize: "12px",
                       color: "var(--text-muted)",
@@ -349,7 +349,7 @@ export default function Login() {
                       textAlign: "center",
                     }}
                   >
-                    Dev only — Demo: <strong style={{ color: "#b9adff" }}>dev@mcpx.dev</strong> / <strong style={{ color: "#b9adff" }}>demo1234</strong>
+                    Dev only — Demo: <strong style={{ color: "#a5f3fc" }}>dev@mcpx.dev</strong> / <strong style={{ color: "#a5f3fc" }}>demo1234</strong>
                   </div>
                 )}
               </form>
@@ -394,13 +394,13 @@ export default function Login() {
           )}
           <p style={{ fontSize: "12px", color: "var(--text-muted)" }}>
             By signing in you agree to our{" "}
-            <Link to="/" style={{ color: "#a594ff", textDecoration: "none" }}>Terms</Link>
+            <Link to="/" style={{ color: "#67e8f9", textDecoration: "none" }}>Terms</Link>
             {" "}and{" "}
-            <Link to="/" style={{ color: "#a594ff", textDecoration: "none" }}>Privacy Policy</Link>
+            <Link to="/" style={{ color: "#67e8f9", textDecoration: "none" }}>Privacy Policy</Link>
           </p>
           <p style={{ fontSize: "12px", color: "var(--text-muted)" }}>
             Just browsing?{" "}
-            <Link to="/marketplace" style={{ color: "#a594ff", textDecoration: "none" }}>
+            <Link to="/marketplace" style={{ color: "#67e8f9", textDecoration: "none" }}>
               Explore marketplace →
             </Link>
           </p>

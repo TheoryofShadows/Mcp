@@ -3,21 +3,21 @@
 /* ─── Design Tokens ─── */
 
 :root {
-  /* Colors — MCPX "Aurora" 2026 theme (cool-toned dark + iris accent) */
+  /* Colors — MCPX "Aurora" 2026 theme (cool-toned dark + cyan accent) */
   --bg-primary: #08080d;
   --bg-secondary: #0d0d15;
   --bg-card: #12121c;
   --bg-card-hover: #1a1a28;
-  --accent: #7c6cff;
-  --accent-light: #a594ff;
-  --accent-dim: rgba(124, 108, 255, 0.12);
+  --accent: #22d3ee;
+  --accent-light: #67e8f9;
+  --accent-dim: rgba(34, 211, 238, 0.12);
   /* Accent rgb channels — for building translucent layers in one place */
-  --accent-rgb: 124, 108, 255;
+  --accent-rgb: 34, 211, 238;
   --accent-cyan: #22d3ee;
-  /* Legacy aliases kept for backward compat — now mapped to the iris accent */
-  --accent-electric: #7c6cff;
+  /* Legacy aliases kept for backward compat — now mapped to the cyan accent */
+  --accent-electric: #22d3ee;
   --accent-blue: #38bdf8;
-  --accent-purple: #a855f7;
+  --accent-purple: #14b8a6;
   --accent-pink: #ec4899;
   --accent-orange: #fbbf24;
   --text-primary: #f4f4fa;
@@ -25,7 +25,7 @@
   --text-muted: #64647e;
   --border-subtle: #1d1d2b;
   --border-accent: #2e2e44;
-  --glow-indigo: rgba(124, 108, 255, 0.18);
+  --glow-indigo: rgba(34, 211, 238, 0.18);
   --glow-blue: rgba(56, 189, 248, 0.14);
 
   /* Spacing scale */
@@ -101,9 +101,9 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(60% 50% at 15% -5%, rgba(124, 108, 255, 0.14), transparent 60%),
+    radial-gradient(60% 50% at 15% -5%, rgba(34, 211, 238, 0.14), transparent 60%),
     radial-gradient(50% 45% at 90% 5%, rgba(56, 189, 248, 0.10), transparent 60%),
-    radial-gradient(70% 60% at 50% 110%, rgba(168, 85, 247, 0.08), transparent 65%);
+    radial-gradient(70% 60% at 50% 110%, rgba(20, 184, 166, 0.08), transparent 65%);
 }
 
 /* ─── Skip to content (a11y) ─── */

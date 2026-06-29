@@ -52,7 +52,7 @@ export default function Navbar() {
           style={{
             width: 32,
             height: 32,
-            background: "linear-gradient(135deg, #7c6cff, #a855f7)",
+            background: "linear-gradient(135deg, #22d3ee, #14b8a6)",
             borderRadius: "8px",
             display: "flex",
             alignItems: "center",
@@ -67,7 +67,7 @@ export default function Navbar() {
             fontFamily: "var(--font-heading)",
             fontWeight: 800,
             fontSize: "20px",
-            background: "linear-gradient(135deg, #b9adff, #7c6cff)",
+            background: "linear-gradient(135deg, #a5f3fc, #22d3ee)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
             letterSpacing: "-0.5px",
@@ -79,9 +79,9 @@ export default function Navbar() {
           style={{
             fontSize: "10px",
             fontFamily: "var(--font-mono)",
-            background: "rgba(124, 108, 255,0.2)",
-            color: "#a594ff",
-            border: "1px solid rgba(124, 108, 255,0.3)",
+            background: "rgba(34, 211, 238,0.2)",
+            color: "#67e8f9",
+            border: "1px solid rgba(34, 211, 238,0.3)",
             borderRadius: "5px",
             padding: "1px 6px",
           }}
@@ -110,8 +110,8 @@ export default function Navbar() {
               fontFamily: "var(--font-body)",
               fontSize: "13px",
               fontWeight: 500,
-              color: isActive(path) ? "#b9adff" : "var(--text-secondary)",
-              background: isActive(path) ? "rgba(124, 108, 255,0.1)" : "transparent",
+              color: isActive(path) ? "#a5f3fc" : "var(--text-secondary)",
+              background: isActive(path) ? "rgba(34, 211, 238,0.1)" : "transparent",
               transition: "all 0.15s ease",
             }}
             onMouseEnter={(e) => {
@@ -208,21 +208,21 @@ export default function Navbar() {
               style={{
                 textDecoration: "none",
                 padding: "7px 18px",
-                background: "linear-gradient(135deg, #7c6cff, #a855f7)",
+                background: "linear-gradient(135deg, #22d3ee, #14b8a6)",
                 borderRadius: "8px",
                 color: "#fff",
                 fontSize: "13px",
                 fontWeight: 600,
                 fontFamily: "var(--font-body)",
-                boxShadow: "0 0 20px rgba(124, 108, 255,0.25)",
+                boxShadow: "0 0 20px rgba(34, 211, 238,0.25)",
                 transition: "all 0.15s ease",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow = "0 0 28px rgba(124, 108, 255,0.4)";
+                e.currentTarget.style.boxShadow = "0 0 28px rgba(34, 211, 238,0.4)";
                 e.currentTarget.style.transform = "translateY(-1px)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow = "0 0 20px rgba(124, 108, 255,0.25)";
+                e.currentTarget.style.boxShadow = "0 0 20px rgba(34, 211, 238,0.25)";
                 e.currentTarget.style.transform = "translateY(0)";
               }}
             >
@@ -279,8 +279,8 @@ export default function Navbar() {
                 fontFamily: "var(--font-body)",
                 fontSize: "15px",
                 fontWeight: 500,
-                color: isActive(path) ? "#b9adff" : "var(--text-secondary)",
-                background: isActive(path) ? "rgba(124, 108, 255,0.1)" : "transparent",
+                color: isActive(path) ? "#a5f3fc" : "var(--text-secondary)",
+                background: isActive(path) ? "rgba(34, 211, 238,0.1)" : "transparent",
                 display: "flex",
                 alignItems: "center",
                 gap: "10px",

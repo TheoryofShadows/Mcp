@@ -117,7 +117,7 @@ async function loadDashboard(user) {
   }
 }
 
-function StatCard({ icon: Icon, label, value, sub, color = "#7c6cff" }) {
+function StatCard({ icon: Icon, label, value, sub, color = "#22d3ee" }) {
   return (
     <div
       style={{
@@ -215,13 +215,13 @@ export default function Dashboard() {
             alignItems: "center",
             gap: "7px",
             padding: "10px 20px",
-            background: "linear-gradient(135deg, #7c6cff, #a855f7)",
+            background: "linear-gradient(135deg, #22d3ee, #14b8a6)",
             borderRadius: "10px",
             color: "#fff",
             textDecoration: "none",
             fontSize: "13px",
             fontWeight: 600,
-            boxShadow: "0 0 20px rgba(124, 108, 255,0.25)",
+            boxShadow: "0 0 20px rgba(34, 211, 238,0.25)",
           }}
         >
           <Plus size={14} />
@@ -245,7 +245,7 @@ export default function Dashboard() {
           <AlertCircle size={16} color="#fbbf24" style={{ flexShrink: 0 }} />
           <p style={{ fontSize: "13px", color: "var(--text-secondary)" }}>
             Showing demo data.{" "}
-            <Link to="/login" style={{ color: "#a594ff", textDecoration: "none", fontWeight: 600 }}>
+            <Link to="/login" style={{ color: "#67e8f9", textDecoration: "none", fontWeight: 600 }}>
               Sign in
             </Link>{" "}
             to see your own tools and revenue.
@@ -263,10 +263,10 @@ export default function Dashboard() {
         }}
         className="stats-grid"
       >
-        <StatCard icon={Package}    label="Tools Listed"       value={stats.tools_count}                                               sub="published & pending"              color="#7c6cff" />
+        <StatCard icon={Package}    label="Tools Listed"       value={stats.tools_count}                                               sub="published & pending"              color="#22d3ee" />
         <StatCard icon={DollarSign} label="Monthly Revenue"    value={`$${stats.monthly_revenue.toLocaleString()}`}                    sub={`$${(stats.monthly_revenue * 0.85).toLocaleString()} after 15% fee`} color="#10b981" />
         <StatCard icon={Download}   label="Total Installs"     value={stats.total_installs >= 1000 ? `${(stats.total_installs / 1000).toFixed(1)}K` : stats.total_installs} sub="all time" color="#3b82f6" />
-        <StatCard icon={Star}       label="Avg Rating"         value={stats.avg_rating ? stats.avg_rating.toFixed(1) : "—"}            sub="across all tools"                 color="#a78bfa" />
+        <StatCard icon={Star}       label="Avg Rating"         value={stats.avg_rating ? stats.avg_rating.toFixed(1) : "—"}            sub="across all tools"                 color="#7dd3fc" />
       </div>
 
       {/* Revenue placeholder chart */}
@@ -297,10 +297,10 @@ export default function Dashboard() {
                   width: "100%",
                   height: `${pct}%`,
                   background: i === 5
-                    ? "linear-gradient(180deg, #7c6cff, #a855f7)"
-                    : "rgba(124, 108, 255,0.2)",
+                    ? "linear-gradient(180deg, #22d3ee, #14b8a6)"
+                    : "rgba(34, 211, 238,0.2)",
                   borderRadius: "5px 5px 0 0",
-                  border: i === 5 ? "1px solid rgba(124, 108, 255,0.5)" : "1px solid #1d1d2b",
+                  border: i === 5 ? "1px solid rgba(34, 211, 238,0.5)" : "1px solid #1d1d2b",
                   transition: "background 0.15s",
                 }}
               />
@@ -334,7 +334,7 @@ export default function Dashboard() {
             <p style={{ color: "var(--text-muted)", fontSize: "14px", marginBottom: "16px" }}>No tools published yet.</p>
             <Link
               to="/submit"
-              style={{ color: "#a594ff", fontSize: "13px", textDecoration: "none" }}
+              style={{ color: "#67e8f9", fontSize: "13px", textDecoration: "none" }}
             >
               Submit your first tool →
             </Link>
@@ -411,7 +411,7 @@ export default function Dashboard() {
                     <td style={{ padding: "16px 20px" }}>
                       <Link
                         to={`/tool/${tool.slug}`}
-                        style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "12px", color: "#a594ff", textDecoration: "none" }}
+                        style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "12px", color: "#67e8f9", textDecoration: "none" }}
                       >
                         View <ExternalLink size={11} />
                       </Link>
@@ -438,8 +438,8 @@ export default function Dashboard() {
             <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "16px", marginBottom: "4px" }}>Payouts</h2>
             <p style={{ fontSize: "12px", color: "var(--text-muted)" }}>Receive monthly payouts via Stripe Connect</p>
           </div>
-          <div style={{ width: 36, height: 36, background: "rgba(124, 108, 255,0.1)", borderRadius: "9px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <CreditCard size={16} color="#a594ff" />
+          <div style={{ width: 36, height: 36, background: "rgba(34, 211, 238,0.1)", borderRadius: "9px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <CreditCard size={16} color="#67e8f9" />
           </div>
         </div>
 
@@ -466,10 +466,10 @@ export default function Dashboard() {
           style={{
             width: "100%",
             padding: "12px",
-            background: "rgba(124, 108, 255,0.08)",
-            border: "1px solid rgba(124, 108, 255,0.2)",
+            background: "rgba(34, 211, 238,0.08)",
+            border: "1px solid rgba(34, 211, 238,0.2)",
             borderRadius: "10px",
-            color: "#b9adff",
+            color: "#a5f3fc",
             fontSize: "13px",
             fontWeight: 600,
             cursor: stripeLoading ? "not-allowed" : "pointer",
@@ -494,8 +494,8 @@ export default function Dashboard() {
               setStripeLoading(false);
             }
           }}
-          onMouseEnter={(e) => { if (!stripeLoading) e.currentTarget.style.background = "rgba(124, 108, 255,0.14)"; }}
-          onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(124, 108, 255,0.08)")}
+          onMouseEnter={(e) => { if (!stripeLoading) e.currentTarget.style.background = "rgba(34, 211, 238,0.14)"; }}
+          onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(34, 211, 238,0.08)")}
         >
           <CreditCard size={14} />
           {stripeLoading ? "Connecting…" : "Connect Stripe for Payouts"}

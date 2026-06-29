@@ -28,9 +28,9 @@ const ToolCard = memo(function ToolCard({ tool, index = 0 }) {
           flexDirection: "column",
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.borderColor = "rgba(124, 108, 255,0.3)";
+          e.currentTarget.style.borderColor = "rgba(34, 211, 238,0.3)";
           e.currentTarget.style.transform = "translateY(-2px)";
-          e.currentTarget.style.boxShadow = "0 8px 32px rgba(124, 108, 255,0.1)";
+          e.currentTarget.style.boxShadow = "0 8px 32px rgba(34, 211, 238,0.1)";
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.borderColor = "#1d1d2b";

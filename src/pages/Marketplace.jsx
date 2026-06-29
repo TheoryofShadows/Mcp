@@ -183,7 +183,7 @@ export default function MarketplacePage() {
               outline: "none",
               transition: "border-color 0.15s",
             }}
-            onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(124, 108, 255,0.4)")}
+            onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(34, 211, 238,0.4)")}
             onBlur={(e) => (e.currentTarget.style.borderColor = "#2e2e44")}
             aria-label="Search MCP tools"
           />
@@ -199,9 +199,9 @@ export default function MarketplacePage() {
                 padding: "8px 14px",
                 borderRadius: "8px",
                 border: "1px solid",
-                borderColor: priceFilter === p ? "rgba(124, 108, 255,0.5)" : "#2e2e44",
-                background: priceFilter === p ? "rgba(124, 108, 255,0.12)" : "#12121c",
-                color: priceFilter === p ? "#b9adff" : "var(--text-secondary)",
+                borderColor: priceFilter === p ? "rgba(34, 211, 238,0.5)" : "#2e2e44",
+                background: priceFilter === p ? "rgba(34, 211, 238,0.12)" : "#12121c",
+                color: priceFilter === p ? "#a5f3fc" : "var(--text-secondary)",
                 fontSize: "12px",
                 fontFamily: "var(--font-mono)",
                 cursor: "pointer",
@@ -285,9 +285,9 @@ export default function MarketplacePage() {
               padding: "7px 14px",
               borderRadius: "100px",
               border: "1px solid",
-              borderColor: category === cat.id ? "rgba(124, 108, 255,0.5)" : "#2e2e44",
-              background: category === cat.id ? "rgba(124, 108, 255,0.12)" : "#12121c",
-              color: category === cat.id ? "#b9adff" : "var(--text-secondary)",
+              borderColor: category === cat.id ? "rgba(34, 211, 238,0.5)" : "#2e2e44",
+              background: category === cat.id ? "rgba(34, 211, 238,0.12)" : "#12121c",
+              color: category === cat.id ? "#a5f3fc" : "var(--text-secondary)",
               fontSize: "12px",
               fontFamily: "var(--font-mono)",
               cursor: "pointer",
@@ -357,10 +357,10 @@ export default function MarketplacePage() {
               onClick={clearFilters}
               style={{
                 padding: "10px 20px",
-                background: "rgba(124, 108, 255,0.12)",
-                border: "1px solid rgba(124, 108, 255,0.3)",
+                background: "rgba(34, 211, 238,0.12)",
+                border: "1px solid rgba(34, 211, 238,0.3)",
                 borderRadius: "8px",
-                color: "#b9adff",
+                color: "#a5f3fc",
                 cursor: "pointer",
                 fontSize: "13px",
               }}
@@ -373,7 +373,7 @@ export default function MarketplacePage() {
               style={{
                 display: "inline-block",
                 padding: "10px 20px",
-                background: "linear-gradient(135deg, #7c6cff, #a855f7)",
+                background: "linear-gradient(135deg, #22d3ee, #14b8a6)",
                 borderRadius: "8px",
                 color: "#fff",
                 textDecoration: "none",

@@ -16,7 +16,7 @@ const STATUS_OPTIONS = ["active", "pending", "inactive"];
 
 const TIER_COLORS = {
   starter: "#6b7280",
-  pro: "#7c6cff",
+  pro: "#22d3ee",
   enterprise: "#fbbf24",
 };
 
@@ -50,7 +50,7 @@ function Toggle({ value, onChange, disabled }) {
         height: 18,
         borderRadius: "9px",
         border: "none",
-        background: value ? "#7c6cff" : "#2e2e44",
+        background: value ? "#22d3ee" : "#2e2e44",
         cursor: disabled ? "not-allowed" : "pointer",
         position: "relative",
         transition: "background 0.2s",
@@ -287,7 +287,7 @@ function UsersTab() {
                         width: 30,
                         height: 30,
                         borderRadius: "50%",
-                        background: "linear-gradient(135deg, #7c6cff, #a855f7)",
+                        background: "linear-gradient(135deg, #22d3ee, #14b8a6)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
