@@ -768,6 +768,10 @@ input:focus-visible {
     display: none !important;
   }
 
+  .nav-auth-actions {
+    display: none !important;
+  }
+
   .nav-mobile-toggle {
     display: flex !important;
   }

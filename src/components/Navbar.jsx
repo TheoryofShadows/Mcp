@@ -33,8 +33,9 @@ export default function Navbar() {
         alignItems: "center",
         justifyContent: "space-between",
         padding: "0 24px",
-        background: "rgba(10,10,10,0.85)",
-        backdropFilter: "blur(16px)",
+        background: "rgba(8,8,13,0.72)",
+        backdropFilter: "blur(20px) saturate(140%)",
+        WebkitBackdropFilter: "blur(20px) saturate(140%)",
         borderBottom: "1px solid #1d1d2b",
       }}
     >
@@ -137,6 +138,7 @@ export default function Navbar() {
 
       {/* Auth */}
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <div className="nav-auth-actions" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
         {user ? (
           <>
             <span
@@ -230,6 +232,7 @@ export default function Navbar() {
             </Link>
           </>
         )}
+        </div>
 
         {/* Mobile toggle */}
         <button
@@ -296,6 +299,68 @@ export default function Navbar() {
               active={isActive("/admin")}
               onClick={() => setMobileOpen(false)}
             />
+          )}
+
+          {/* Auth actions (mobile) */}
+          <div style={{ height: "1px", background: "#1d1d2b", margin: "8px 0" }} />
+          {user ? (
+            <button
+              onClick={() => { logout(); setMobileOpen(false); }}
+              style={{
+                width: "100%",
+                padding: "12px 16px",
+                background: "transparent",
+                border: "1px solid #2e2e44",
+                borderRadius: "10px",
+                color: "var(--text-secondary)",
+                fontSize: "15px",
+                fontFamily: "var(--font-body)",
+                cursor: "pointer",
+              }}
+            >
+              Sign Out
+            </button>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              <Link
+                to="/login"
+                onClick={() => setMobileOpen(false)}
+                style={{
+                  textDecoration: "none",
+                  padding: "12px 16px",
+                  background: "transparent",
+                  border: "1px solid #2e2e44",
+                  borderRadius: "10px",
+                  color: "var(--text-primary)",
+                  fontSize: "15px",
+                  fontFamily: "var(--font-body)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                }}
+              >
+                <LogIn size={15} />
+                Sign In
+              </Link>
+              <Link
+                to="/login"
+                onClick={() => setMobileOpen(false)}
+                style={{
+                  textDecoration: "none",
+                  padding: "12px 16px",
+                  background: "linear-gradient(135deg, #22d3ee, #14b8a6)",
+                  borderRadius: "10px",
+                  color: "#fff",
+                  fontSize: "15px",
+                  fontWeight: 600,
+                  fontFamily: "var(--font-body)",
+                  textAlign: "center",
+                }}
+              >
+                Get Started →
+              </Link>
+            </div>
           )}
         </div>
       )}
