@@ -35,8 +35,8 @@ function CopyButton({ text, style = {} }) {
         padding: "6px 12px",
         borderRadius: "6px",
         border: "none",
-        background: copied ? "rgba(16,185,129,0.12)" : "rgba(99,102,241,0.12)",
-        color: copied ? "#10b981" : "#818cf8",
+        background: copied ? "rgba(16,185,129,0.12)" : "rgba(34, 211, 238,0.12)",
+        color: copied ? "#10b981" : "#67e8f9",
         cursor: "pointer",
         fontSize: "12px",
         fontFamily: "var(--font-mono)",
@@ -59,7 +59,7 @@ function CommandBlock({ code, language = "bash" }) {
       style={{
         position: "relative",
         background: "#0a0a0f",
-        border: "1px solid #1e1e2e",
+        border: "1px solid #1a1a28",
         borderRadius: "8px",
         overflow: "hidden",
       }}
@@ -70,7 +70,7 @@ function CommandBlock({ code, language = "bash" }) {
           alignItems: "center",
           justifyContent: "space-between",
           padding: "8px 14px",
-          borderBottom: "1px solid #1e1e2e",
+          borderBottom: "1px solid #1a1a28",
           background: "#0d0d1a",
         }}
       >
@@ -118,9 +118,9 @@ function TabButton({ active, onClick, icon: Icon, label }) {
         padding: "8px 16px",
         borderRadius: "8px",
         border: "1px solid",
-        borderColor: active ? "rgba(99,102,241,0.5)" : "rgba(255,255,255,0.06)",
-        background: active ? "rgba(99,102,241,0.12)" : "transparent",
-        color: active ? "#818cf8" : "#6b7280",
+        borderColor: active ? "rgba(34, 211, 238,0.5)" : "rgba(255,255,255,0.06)",
+        background: active ? "rgba(34, 211, 238,0.12)" : "transparent",
+        color: active ? "#67e8f9" : "#6b7280",
         cursor: "pointer",
         fontSize: "13px",
         fontFamily: "var(--font-mono)",
@@ -155,8 +155,8 @@ export default function InstallButtons({ server }) {
   return (
     <div
       style={{
-        background: "var(--bg-card, #111118)",
-        border: "1px solid var(--border-subtle, #1e1e2e)",
+        background: "var(--bg-card, #12121c)",
+        border: "1px solid var(--border-subtle, #1a1a28)",
         borderRadius: "12px",
         overflow: "hidden",
       }}
@@ -165,7 +165,7 @@ export default function InstallButtons({ server }) {
       <div
         style={{
           padding: "16px 20px 0",
-          borderBottom: "1px solid #1e1e2e",
+          borderBottom: "1px solid #1a1a28",
         }}
       >
         <div
@@ -221,7 +221,7 @@ export default function InstallButtons({ server }) {
                 href="https://claude.ai/download"
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ color: "#6366f1", textDecoration: "none" }}
+                style={{ color: "#22d3ee", textDecoration: "none" }}
               >
                 Claude Desktop
               </a>{" "}
@@ -242,7 +242,7 @@ export default function InstallButtons({ server }) {
             >
               Add to{" "}
               <strong style={{ color: "#9ca3af" }}>Cursor Settings → MCP</strong> or paste into{" "}
-              <code style={{ background: "#1e1e2e", padding: "1px 5px", borderRadius: "4px" }}>
+              <code style={{ background: "#1a1a28", padding: "1px 5px", borderRadius: "4px" }}>
                 ~/.cursor/mcp.json
               </code>
               :
@@ -262,7 +262,7 @@ export default function InstallButtons({ server }) {
               }}
             >
               Add to{" "}
-              <code style={{ background: "#1e1e2e", padding: "1px 5px", borderRadius: "4px" }}>
+              <code style={{ background: "#1a1a28", padding: "1px 5px", borderRadius: "4px" }}>
                 .vscode/mcp.json
               </code>{" "}
               in your workspace:

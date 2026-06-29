@@ -3,27 +3,30 @@
 /* ─── Design Tokens ─── */
 
 :root {
-  /* Colors — MCPX indigo theme */
-  --bg-primary: #0a0a0a;
-  --bg-secondary: #0d0d0d;
-  --bg-card: #111111;
-  --bg-card-hover: #161616;
-  --accent: #6366f1;
-  --accent-light: #818cf8;
-  --accent-dim: rgba(99, 102, 241, 0.12);
-  /* Legacy aliases kept for backward compat */
-  --accent-electric: #6366f1;
-  --accent-blue: #3b82f6;
-  --accent-purple: #8b5cf6;
+  /* Colors — MCPX "Aurora" 2026 theme (cool-toned dark + cyan accent) */
+  --bg-primary: #08080d;
+  --bg-secondary: #0d0d15;
+  --bg-card: #12121c;
+  --bg-card-hover: #1a1a28;
+  --accent: #22d3ee;
+  --accent-light: #67e8f9;
+  --accent-dim: rgba(34, 211, 238, 0.12);
+  /* Accent rgb channels — for building translucent layers in one place */
+  --accent-rgb: 34, 211, 238;
+  --accent-cyan: #22d3ee;
+  /* Legacy aliases kept for backward compat — now mapped to the cyan accent */
+  --accent-electric: #22d3ee;
+  --accent-blue: #38bdf8;
+  --accent-purple: #14b8a6;
   --accent-pink: #ec4899;
-  --accent-orange: #f59e0b;
-  --text-primary: #f1f1f3;
-  --text-secondary: #9999b0;
-  --text-muted: #606070;
-  --border-subtle: #1a1a1a;
-  --border-accent: #2a2a2a;
-  --glow-indigo: rgba(99, 102, 241, 0.15);
-  --glow-blue: rgba(59, 130, 246, 0.12);
+  --accent-orange: #fbbf24;
+  --text-primary: #f4f4fa;
+  --text-secondary: #a0a0bd;
+  --text-muted: #64647e;
+  --border-subtle: #1d1d2b;
+  --border-accent: #2e2e44;
+  --glow-indigo: rgba(34, 211, 238, 0.18);
+  --glow-blue: rgba(56, 189, 248, 0.14);
 
   /* Spacing scale */
   --space-xs: 4px;
@@ -88,6 +91,19 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ambient "aurora" backdrop — subtle depth behind all content (2026 refresh) */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 50% at 15% -5%, rgba(34, 211, 238, 0.14), transparent 60%),
+    radial-gradient(50% 45% at 90% 5%, rgba(56, 189, 248, 0.10), transparent 60%),
+    radial-gradient(70% 60% at 50% 110%, rgba(20, 184, 166, 0.08), transparent 65%);
 }
 
 /* ─── Skip to content (a11y) ─── */
@@ -227,11 +243,11 @@ input:focus-visible {
   font-size: var(--font-lg);
   font-weight: 700;
   letter-spacing: -0.3px;
-  box-shadow: 0 0 30px rgba(77, 255, 180, 0.2);
+  box-shadow: 0 8px 24px rgba(var(--accent-rgb), 0.28);
 }
 
 .btn-primary:hover {
-  box-shadow: 0 0 40px rgba(77, 255, 180, 0.3);
+  box-shadow: 0 10px 32px rgba(var(--accent-rgb), 0.4);
 }
 
 .btn-secondary {
@@ -260,7 +276,7 @@ input:focus-visible {
 }
 
 .btn-outline-green:hover {
-  background: rgba(77, 255, 180, 0.08);
+  background: rgba(var(--accent-rgb), 0.1);
 }
 
 .btn-gradient {
@@ -286,9 +302,9 @@ input:focus-visible {
 .card:hover,
 .card:focus-within {
   background: var(--bg-card-hover);
-  border-color: var(--border-accent);
+  border-color: rgba(var(--accent-rgb), 0.35);
   transform: translateY(-3px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(var(--accent-rgb), 0.08);
 }
 
 .card-accent-line {
@@ -316,9 +332,9 @@ input:focus-visible {
   align-items: center;
   justify-content: space-between;
   padding: 14px var(--section-px);
-  background: rgba(7, 7, 10, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(8, 8, 13, 0.72);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
   border-bottom: 1px solid var(--border-subtle);
   min-height: var(--nav-height);
 }
@@ -421,8 +437,8 @@ input:focus-visible {
 
 .category-btn[aria-selected="true"] {
   border-color: var(--accent-electric);
-  background: rgba(77, 255, 180, 0.08);
-  color: var(--accent-electric);
+  background: rgba(var(--accent-rgb), 0.1);
+  color: var(--accent-light);
 }
 
 /* ─── Tag ─── */
@@ -752,6 +768,10 @@ input:focus-visible {
     display: none !important;
   }
 
+  .nav-auth-actions {
+    display: none !important;
+  }
+
   .nav-mobile-toggle {
     display: flex !important;
   }
@@ -769,7 +789,7 @@ select {
 /* ─── Smooth scrollbar for code blocks ─── */
 code::-webkit-scrollbar { height: 4px; }
 code::-webkit-scrollbar-track { background: transparent; }
-code::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 2px; }
+code::-webkit-scrollbar-thumb { background: var(--border-accent); border-radius: 2px; }
 
 /* ─── Footer responsive ─── */
 @media (max-width: 768px) {

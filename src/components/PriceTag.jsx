@@ -18,9 +18,9 @@ export default function PriceTag({ tool, size = "sm" }) {
         borderRadius: "6px",
         letterSpacing: "0.02em",
         ...sizes[size],
-        background: isFree ? "rgba(16,185,129,0.12)" : "rgba(99,102,241,0.15)",
-        color: isFree ? "#10b981" : "#818cf8",
-        border: `1px solid ${isFree ? "rgba(16,185,129,0.25)" : "rgba(99,102,241,0.3)"}`,
+        background: isFree ? "rgba(16,185,129,0.12)" : "rgba(34, 211, 238,0.15)",
+        color: isFree ? "#10b981" : "#67e8f9",
+        border: `1px solid ${isFree ? "rgba(16,185,129,0.25)" : "rgba(34, 211, 238,0.3)"}`,
       }}
     >
       {label}

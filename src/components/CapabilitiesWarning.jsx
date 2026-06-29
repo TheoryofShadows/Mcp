@@ -19,7 +19,7 @@ const CAPABILITY_META = {
 
 const RISK_META = {
   low:    { label: "Low Risk",    color: "#10b981", bg: "rgba(16,185,129,0.06)",  border: "rgba(16,185,129,0.2)",  icon: Shield },
-  medium: { label: "Medium Risk", color: "#f59e0b", bg: "rgba(245,158,11,0.06)", border: "rgba(245,158,11,0.2)",  icon: AlertTriangle },
+  medium: { label: "Medium Risk", color: "#fbbf24", bg: "rgba(251, 191, 36,0.06)", border: "rgba(251, 191, 36,0.2)",  icon: AlertTriangle },
   high:   { label: "High Risk",   color: "#ef4444", bg: "rgba(239,68,68,0.06)",   border: "rgba(239,68,68,0.2)",   icon: AlertTriangle },
 };
 

@@ -30,7 +30,7 @@ export const PRICING_TIERS = [
     ],
     accent: "var(--accent-blue)",
     gradient:
-      "linear-gradient(135deg, rgba(77,159,255,0.08), rgba(77,159,255,0.02))",
+      "linear-gradient(135deg, rgba(56,189,248,0.1), rgba(56,189,248,0.02))",
   },
   {
     name: "Pro Publisher",
@@ -45,7 +45,7 @@ export const PRICING_TIERS = [
     ],
     accent: "var(--accent-electric)",
     gradient:
-      "linear-gradient(135deg, rgba(77,255,180,0.1), rgba(77,159,255,0.05))",
+      "linear-gradient(135deg, rgba(34, 211, 238,0.12), rgba(56,189,248,0.05))",
     popular: true,
   },
   {
@@ -62,7 +62,7 @@ export const PRICING_TIERS = [
     ],
     accent: "var(--accent-purple)",
     gradient:
-      "linear-gradient(135deg, rgba(155,109,255,0.08), rgba(255,109,180,0.04))",
+      "linear-gradient(135deg, rgba(20, 184, 166,0.1), rgba(236,72,153,0.05))",
   },
 ];
 

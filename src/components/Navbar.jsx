@@ -33,9 +33,10 @@ export default function Navbar() {
         alignItems: "center",
         justifyContent: "space-between",
         padding: "0 24px",
-        background: "rgba(10,10,10,0.85)",
-        backdropFilter: "blur(16px)",
-        borderBottom: "1px solid #1a1a1a",
+        background: "rgba(8,8,13,0.72)",
+        backdropFilter: "blur(20px) saturate(140%)",
+        WebkitBackdropFilter: "blur(20px) saturate(140%)",
+        borderBottom: "1px solid #1d1d2b",
       }}
     >
       {/* Logo */}
@@ -52,7 +53,7 @@ export default function Navbar() {
           style={{
             width: 32,
             height: 32,
-            background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+            background: "linear-gradient(135deg, #22d3ee, #14b8a6)",
             borderRadius: "8px",
             display: "flex",
             alignItems: "center",
@@ -67,7 +68,7 @@ export default function Navbar() {
             fontFamily: "var(--font-heading)",
             fontWeight: 800,
             fontSize: "20px",
-            background: "linear-gradient(135deg, #a5b4fc, #6366f1)",
+            background: "linear-gradient(135deg, #a5f3fc, #22d3ee)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
             letterSpacing: "-0.5px",
@@ -79,9 +80,9 @@ export default function Navbar() {
           style={{
             fontSize: "10px",
             fontFamily: "var(--font-mono)",
-            background: "rgba(99,102,241,0.2)",
-            color: "#818cf8",
-            border: "1px solid rgba(99,102,241,0.3)",
+            background: "rgba(34, 211, 238,0.2)",
+            color: "#67e8f9",
+            border: "1px solid rgba(34, 211, 238,0.3)",
             borderRadius: "5px",
             padding: "1px 6px",
           }}
@@ -110,14 +111,14 @@ export default function Navbar() {
               fontFamily: "var(--font-body)",
               fontSize: "13px",
               fontWeight: 500,
-              color: isActive(path) ? "#a5b4fc" : "var(--text-secondary)",
-              background: isActive(path) ? "rgba(99,102,241,0.1)" : "transparent",
+              color: isActive(path) ? "#a5f3fc" : "var(--text-secondary)",
+              background: isActive(path) ? "rgba(34, 211, 238,0.1)" : "transparent",
               transition: "all 0.15s ease",
             }}
             onMouseEnter={(e) => {
               if (!isActive(path)) {
                 e.currentTarget.style.color = "var(--text-primary)";
-                e.currentTarget.style.background = "#1a1a1a";
+                e.currentTarget.style.background = "#1d1d2b";
               }
             }}
             onMouseLeave={(e) => {
@@ -137,6 +138,7 @@ export default function Navbar() {
 
       {/* Auth */}
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <div className="nav-auth-actions" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
         {user ? (
           <>
             <span
@@ -153,7 +155,7 @@ export default function Navbar() {
               style={{
                 padding: "7px 16px",
                 background: "transparent",
-                border: "1px solid #2a2a2a",
+                border: "1px solid #2e2e44",
                 borderRadius: "8px",
                 color: "var(--text-secondary)",
                 fontSize: "13px",
@@ -162,11 +164,11 @@ export default function Navbar() {
                 transition: "all 0.15s ease",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "#3a3a3a";
+                e.currentTarget.style.borderColor = "#2e2e44";
                 e.currentTarget.style.color = "var(--text-primary)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = "#2a2a2a";
+                e.currentTarget.style.borderColor = "#2e2e44";
                 e.currentTarget.style.color = "var(--text-secondary)";
               }}
             >
@@ -181,7 +183,7 @@ export default function Navbar() {
                 textDecoration: "none",
                 padding: "7px 16px",
                 background: "transparent",
-                border: "1px solid #2a2a2a",
+                border: "1px solid #2e2e44",
                 borderRadius: "8px",
                 color: "var(--text-secondary)",
                 fontSize: "13px",
@@ -192,11 +194,11 @@ export default function Navbar() {
                 transition: "all 0.15s ease",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "#3a3a3a";
+                e.currentTarget.style.borderColor = "#2e2e44";
                 e.currentTarget.style.color = "var(--text-primary)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = "#2a2a2a";
+                e.currentTarget.style.borderColor = "#2e2e44";
                 e.currentTarget.style.color = "var(--text-secondary)";
               }}
             >
@@ -208,21 +210,21 @@ export default function Navbar() {
               style={{
                 textDecoration: "none",
                 padding: "7px 18px",
-                background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                background: "linear-gradient(135deg, #22d3ee, #14b8a6)",
                 borderRadius: "8px",
                 color: "#fff",
                 fontSize: "13px",
                 fontWeight: 600,
                 fontFamily: "var(--font-body)",
-                boxShadow: "0 0 20px rgba(99,102,241,0.25)",
+                boxShadow: "0 0 20px rgba(34, 211, 238,0.25)",
                 transition: "all 0.15s ease",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow = "0 0 28px rgba(99,102,241,0.4)";
+                e.currentTarget.style.boxShadow = "0 0 28px rgba(34, 211, 238,0.4)";
                 e.currentTarget.style.transform = "translateY(-1px)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow = "0 0 20px rgba(99,102,241,0.25)";
+                e.currentTarget.style.boxShadow = "0 0 20px rgba(34, 211, 238,0.25)";
                 e.currentTarget.style.transform = "translateY(0)";
               }}
             >
@@ -230,6 +232,7 @@ export default function Navbar() {
             </Link>
           </>
         )}
+        </div>
 
         {/* Mobile toggle */}
         <button
@@ -239,7 +242,7 @@ export default function Navbar() {
           style={{
             display: "none",
             background: "transparent",
-            border: "1px solid #2a2a2a",
+            border: "1px solid #2e2e44",
             borderRadius: "8px",
             padding: "7px",
             color: "var(--text-secondary)",
@@ -258,8 +261,8 @@ export default function Navbar() {
             top: "60px",
             left: 0,
             right: 0,
-            background: "#0d0d0d",
-            borderBottom: "1px solid #1a1a1a",
+            background: "#0d0d15",
+            borderBottom: "1px solid #1d1d2b",
             padding: "16px 24px",
             display: "flex",
             flexDirection: "column",
@@ -279,8 +282,8 @@ export default function Navbar() {
                 fontFamily: "var(--font-body)",
                 fontSize: "15px",
                 fontWeight: 500,
-                color: isActive(path) ? "#a5b4fc" : "var(--text-secondary)",
-                background: isActive(path) ? "rgba(99,102,241,0.1)" : "transparent",
+                color: isActive(path) ? "#a5f3fc" : "var(--text-secondary)",
+                background: isActive(path) ? "rgba(34, 211, 238,0.1)" : "transparent",
                 display: "flex",
                 alignItems: "center",
                 gap: "10px",
@@ -296,6 +299,68 @@ export default function Navbar() {
               active={isActive("/admin")}
               onClick={() => setMobileOpen(false)}
             />
+          )}
+
+          {/* Auth actions (mobile) */}
+          <div style={{ height: "1px", background: "#1d1d2b", margin: "8px 0" }} />
+          {user ? (
+            <button
+              onClick={() => { logout(); setMobileOpen(false); }}
+              style={{
+                width: "100%",
+                padding: "12px 16px",
+                background: "transparent",
+                border: "1px solid #2e2e44",
+                borderRadius: "10px",
+                color: "var(--text-secondary)",
+                fontSize: "15px",
+                fontFamily: "var(--font-body)",
+                cursor: "pointer",
+              }}
+            >
+              Sign Out
+            </button>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              <Link
+                to="/login"
+                onClick={() => setMobileOpen(false)}
+                style={{
+                  textDecoration: "none",
+                  padding: "12px 16px",
+                  background: "transparent",
+                  border: "1px solid #2e2e44",
+                  borderRadius: "10px",
+                  color: "var(--text-primary)",
+                  fontSize: "15px",
+                  fontFamily: "var(--font-body)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                }}
+              >
+                <LogIn size={15} />
+                Sign In
+              </Link>
+              <Link
+                to="/login"
+                onClick={() => setMobileOpen(false)}
+                style={{
+                  textDecoration: "none",
+                  padding: "12px 16px",
+                  background: "linear-gradient(135deg, #22d3ee, #14b8a6)",
+                  borderRadius: "10px",
+                  color: "#fff",
+                  fontSize: "15px",
+                  fontWeight: 600,
+                  fontFamily: "var(--font-body)",
+                  textAlign: "center",
+                }}
+              >
+                Get Started →
+              </Link>
+            </div>
           )}
         </div>
       )}

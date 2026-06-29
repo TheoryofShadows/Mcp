@@ -14,8 +14,8 @@ import { useState } from "react";
  */
 const TIER_META = {
   official:  { label: "Official",  color: "#10b981", Icon: ShieldCheck },
-  verified:  { label: "Verified",  color: "#6366f1", Icon: ShieldCheck },
-  community: { label: "Community", color: "#f59e0b", Icon: Shield },
+  verified:  { label: "Verified",  color: "#22d3ee", Icon: ShieldCheck },
+  community: { label: "Community", color: "#fbbf24", Icon: Shield },
   caution:   { label: "Caution",   color: "#ef4444", Icon: ShieldAlert },
 };
 

@@ -105,8 +105,8 @@ export default function AuthModal({ onClose }) {
             role="alert"
             style={{
               padding: "var(--space-sm) var(--space-md)",
-              background: "rgba(255, 109, 180, 0.1)",
-              border: "1px solid rgba(255, 109, 180, 0.3)",
+              background: "rgba(236, 72, 153, 0.1)",
+              border: "1px solid rgba(236, 72, 153, 0.3)",
               borderRadius: "var(--radius-md)",
               fontFamily: "var(--font-mono)",
               fontSize: "var(--font-sm)",
