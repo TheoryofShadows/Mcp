@@ -193,8 +193,10 @@ try {
 // ─── Idempotent column migrations ─────────────────────────────────────────────
 for (const sql of [
   "ALTER TABLE users ADD COLUMN stripe_customer_id TEXT",
-  "ALTER TABLE users ADD COLUMN stripe_account_id TEXT",        // Connect: publisher payout account
+  "ALTER TABLE users ADD COLUMN stripe_account_id TEXT",        // Connect v1: publisher payout account
   "ALTER TABLE users ADD COLUMN stripe_onboarding_done INTEGER DEFAULT 0",
+  "ALTER TABLE users ADD COLUMN stripe_v2_account_id TEXT",     // Accounts v2: recipient connected account
+  "ALTER TABLE users ADD COLUMN stripe_v2_onboarding_done INTEGER DEFAULT 0", // stripe_transfers capability active
   "ALTER TABLE subscriptions ADD COLUMN stripe_subscription_id TEXT",
   "ALTER TABLE servers ADD COLUMN license TEXT",                // Trust Score: license-clarity signal
   "ALTER TABLE servers ADD COLUMN install_command TEXT",        // Verifiable install spec (CLI + web)

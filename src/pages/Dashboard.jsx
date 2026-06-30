@@ -9,7 +9,7 @@ import PriceTag from "../components/PriceTag";
 import VerifyRepoModal from "../components/VerifyRepoModal";
 import { SEED_TOOLS } from "../data/seed";
 import { supabase } from "../lib/supabase";
-import { fetchServers, getMe, connectStripe, fetchEarnings } from "../api/client";
+import { fetchServers, getMe, connectStripe, connectStripeV2, fetchEarnings } from "../api/client";
 
 // Mock dashboard data for demo / no-auth mode
 const MOCK_TOOLS = SEED_TOOLS.filter((t) => ["github-mcp", "filesystem-mcp", "postgres-mcp"].includes(t.slug));
@@ -148,6 +148,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [demoMode, setDemoMode] = useState(false);
   const [stripeLoading, setStripeLoading] = useState(false);
+  const [stripeV2Loading, setStripeV2Loading] = useState(false);
   const [verifyTool, setVerifyTool] = useState(null);
   const [earnings, setEarnings] = useState(null);
 
@@ -500,6 +501,46 @@ export default function Dashboard() {
           <CreditCard size={14} />
           {stripeLoading ? "Connecting…" : "Connect Stripe for Payouts"}
         </button>
+
+        <button
+          style={{
+            width: "100%",
+            marginTop: "10px",
+            padding: "12px",
+            background: "transparent",
+            border: "1px solid rgba(34, 211, 238,0.2)",
+            borderRadius: "10px",
+            color: "#a5f3fc",
+            fontSize: "13px",
+            fontWeight: 600,
+            cursor: stripeV2Loading ? "not-allowed" : "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "8px",
+            transition: "all 0.15s",
+            opacity: stripeV2Loading ? 0.7 : 1,
+          }}
+          disabled={stripeV2Loading}
+          onClick={async () => {
+            if (!user) { window.location.href = "/login"; return; }
+            setStripeV2Loading(true);
+            try {
+              const data = await connectStripeV2();
+              if (data?.onboarding_url) window.location.href = data.onboarding_url;
+            } catch (err) {
+              alert(`Stripe Accounts v2 error: ${err.message}`);
+            } finally {
+              setStripeV2Loading(false);
+            }
+          }}
+          onMouseEnter={(e) => { if (!stripeV2Loading) e.currentTarget.style.background = "rgba(34, 211, 238,0.08)"; }}
+          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+        >
+          <CreditCard size={14} />
+          {stripeV2Loading ? "Connecting…" : "Connect with Accounts v2"}
+        </button>
+
         <p style={{ fontSize: "11px", color: "var(--text-muted)", textAlign: "center", marginTop: "10px", fontFamily: "var(--font-mono)" }}>
           Powered by Stripe Connect · Payouts every 1st of the month
         </p>
