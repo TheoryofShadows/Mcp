@@ -26,6 +26,12 @@ const router = Router();
 const APP_URL = process.env.APP_URL || "http://localhost:5173";
 const PLATFORM_FEE_PCT = 0.15; // 15% — publishers keep 85%
 
+// Accounts v2 onboarding parameters (see the marketplace blueprint). The country
+// is the connected account's identity.country; currency is the checkout currency.
+// Both default to a US/USD marketplace and are overridable per deployment.
+const CONNECTED_ACCOUNT_COUNTRY = process.env.CONNECTED_ACCOUNT_COUNTRY || "US";
+const CURRENCY = process.env.CURRENCY || "usd";
+
 // Initialise Stripe client — null when key not configured.
 // Pin the API version so object shapes can't drift under us on an SDK bump.
 // As of Basil (2025-03-31) and later — which this SDK defaults to — the billing
@@ -168,7 +174,8 @@ router.post("/stripe/tool-checkout", requireAuth, async (req, res) => {
   if (!server_slug) return res.status(400).json({ error: "server_slug required" });
 
   const server = db.prepare(`
-    SELECT s.*, u.stripe_account_id, u.stripe_onboarding_done
+    SELECT s.*, u.stripe_account_id, u.stripe_onboarding_done,
+           u.stripe_v2_account_id, u.stripe_v2_onboarding_done
     FROM servers s JOIN users u ON u.id = s.author_id
     WHERE s.slug = ? AND s.status = 'active'
   `).get(server_slug);
@@ -177,7 +184,15 @@ router.post("/stripe/tool-checkout", requireAuth, async (req, res) => {
   if (server.price_type !== "paid" || !server.price_amount) {
     return res.status(400).json({ error: "This tool is free" });
   }
-  if (!server.stripe_account_id || !server.stripe_onboarding_done) {
+
+  // Prefer the publisher's Accounts v2 recipient if they onboarded that way;
+  // otherwise fall back to the v1 Express account. Either is a valid destination
+  // for the destination charge — only the account id differs.
+  const payoutAccountId =
+    (server.stripe_v2_onboarding_done && server.stripe_v2_account_id) ||
+    (server.stripe_onboarding_done && server.stripe_account_id) ||
+    null;
+  if (!payoutAccountId) {
     return res.status(402).json({ error: "Publisher has not completed Stripe onboarding" });
   }
 
@@ -191,7 +206,7 @@ router.post("/stripe/tool-checkout", requireAuth, async (req, res) => {
       line_items: [{
         quantity: 1,
         price_data: {
-          currency: "usd",
+          currency: CURRENCY,
           unit_amount: server.price_amount,
           product_data: {
             name: server.name,
@@ -202,7 +217,7 @@ router.post("/stripe/tool-checkout", requireAuth, async (req, res) => {
       }],
       payment_intent_data: {
         application_fee_amount: appFee,
-        transfer_data: { destination: server.stripe_account_id },
+        transfer_data: { destination: payoutAccountId },
       },
       success_url: `${APP_URL}/tools/${server_slug}?purchased=1`,
       cancel_url:  `${APP_URL}/tools/${server_slug}`,
@@ -295,6 +310,172 @@ router.get("/stripe/connect/refresh", requireAuth, async (req, res) => {
     console.error("[stripe] connect refresh error:", err.message);
     res.redirect(`${APP_URL}/dashboard?connect=error`);
   }
+});
+
+// ─── GET /api/payments/stripe/connect/v2 ─────────────────────────────────────
+// Accounts v2 marketplace onboarding. Creates a connected account configured as
+// a *recipient* (stripe_transfers capability) so the platform can pay it out via
+// destination charges, then returns a Stripe-hosted onboarding link.
+//   https://docs.stripe.com/api/v2/core/accounts
+//   https://docs.stripe.com/api/v2/core/account_links
+
+router.get("/stripe/connect/v2", requireAuth, async (req, res) => {
+  if (!requireStripe(res)) return;
+
+  try {
+    const user = db.prepare(
+      "SELECT stripe_v2_account_id, stripe_v2_onboarding_done, display_name, username, email FROM users WHERE id = ?"
+    ).get(req.user.id);
+
+    let accountId = user?.stripe_v2_account_id;
+
+    if (!accountId) {
+      // Create an Accounts v2 recipient. Responsibilities sit with the platform
+      // (losses + fees collected by the application) and the account gets an
+      // Express dashboard, matching the marketplace blueprint.
+      const account = await stripe.v2.core.accounts.create({
+        display_name: user?.display_name || user?.username || "MCPX publisher",
+        contact_email: user?.email || req.user.email,
+        dashboard: "express",
+        identity: { country: CONNECTED_ACCOUNT_COUNTRY },
+        defaults: {
+          responsibilities: {
+            losses_collector: "application",
+            fees_collector: "application",
+          },
+        },
+        configuration: {
+          recipient: {
+            capabilities: {
+              stripe_balance: {
+                stripe_transfers: { requested: true },
+              },
+            },
+          },
+        },
+        include: [
+          "configuration.merchant",
+          "configuration.recipient",
+          "identity",
+          "defaults",
+          "configuration.customer",
+        ],
+      });
+
+      accountId = account.id;
+      db.prepare("UPDATE users SET stripe_v2_account_id = ? WHERE id = ?")
+        .run(accountId, req.user.id);
+      console.log(`[stripe] Created Accounts v2 recipient ${accountId} for user ${req.user.id}`);
+    }
+
+    const accountLink = await stripe.v2.core.accountLinks.create({
+      account: accountId,
+      use_case: {
+        type: "account_onboarding",
+        account_onboarding: {
+          configurations: ["recipient", "merchant"],
+          return_url:  `${APP_URL}/dashboard?connect=success`,
+          refresh_url: `${APP_URL}/api/payments/stripe/connect/v2/refresh`,
+        },
+      },
+    });
+
+    res.json({ onboarding_url: accountLink.url, account_id: accountId });
+  } catch (err) {
+    console.error("[stripe] connect v2 error:", err.message);
+    res.status(500).json({ error: "Failed to create Accounts v2 connected account" });
+  }
+});
+
+// ─── GET /api/payments/stripe/connect/v2/refresh ─────────────────────────────
+// Re-generates an Accounts v2 onboarding link when the previous one expired.
+// Stripe redirects the publisher here if they close the tab and come back.
+
+router.get("/stripe/connect/v2/refresh", requireAuth, async (req, res) => {
+  if (!requireStripe(res)) return;
+
+  try {
+    const user = db.prepare("SELECT stripe_v2_account_id FROM users WHERE id = ?").get(req.user.id);
+    if (!user?.stripe_v2_account_id) {
+      return res.redirect(`${APP_URL}/dashboard?connect=not_started`);
+    }
+
+    const accountLink = await stripe.v2.core.accountLinks.create({
+      account: user.stripe_v2_account_id,
+      use_case: {
+        type: "account_onboarding",
+        account_onboarding: {
+          configurations: ["recipient", "merchant"],
+          return_url:  `${APP_URL}/dashboard?connect=success`,
+          refresh_url: `${APP_URL}/api/payments/stripe/connect/v2/refresh`,
+        },
+      },
+    });
+
+    res.redirect(accountLink.url);
+  } catch (err) {
+    console.error("[stripe] connect v2 refresh error:", err.message);
+    res.redirect(`${APP_URL}/dashboard?connect=error`);
+  }
+});
+
+// ─── POST /api/payments/stripe/v2-webhook ────────────────────────────────────
+// Accounts v2 events arrive as *thin events* on a dedicated v2 event destination
+// with its own signing secret (separate from the v1 webhook). We listen for the
+// recipient's stripe_transfers capability going active to mark the publisher as
+// ready to receive payouts. Body is raw — express.raw() applied in app.js.
+
+router.post("/stripe/v2-webhook", async (req, res) => {
+  if (!stripe) {
+    return res.status(501).json({ error: "Stripe is not configured" });
+  }
+
+  const sig    = req.headers["stripe-signature"];
+  const secret = process.env.STRIPE_V2_WEBHOOK_SECRET;
+
+  if (!secret) return res.status(501).json({ error: "STRIPE_V2_WEBHOOK_SECRET is not set" });
+  if (!sig)    return res.status(400).json({ error: "Missing stripe-signature header" });
+
+  let notification;
+  try {
+    notification = stripe.parseEventNotification(req.body, sig, secret);
+  } catch (err) {
+    return res.status(400).json({ error: `Webhook signature invalid: ${err.message}` });
+  }
+
+  // Reuse the v1 idempotency ledger — event ids are globally unique across APIs.
+  const alreadyProcessed = db.prepare("SELECT event_id FROM processed_events WHERE event_id = ?").get(notification.id);
+  if (alreadyProcessed) {
+    return res.json({ received: true, duplicate: true });
+  }
+  db.prepare("INSERT INTO processed_events (event_id, event_type) VALUES (?, ?)").run(notification.id, notification.type);
+
+  try {
+    if (notification.type === "v2.core.account[configuration.recipient].capability_status_updated") {
+      const accountId = notification.related_object?.id;
+      if (accountId) {
+        // The thin event carries no data — fetch the account to read the current
+        // capability status, then flip the onboarding flag once transfers are live.
+        const account = await stripe.v2.core.accounts.retrieve(accountId, {
+          include: ["configuration.recipient"],
+        });
+        const status =
+          account?.configuration?.recipient?.capabilities?.stripe_balance?.stripe_transfers?.status;
+
+        if (status === "active") {
+          db.prepare(
+            "UPDATE users SET stripe_v2_onboarding_done = 1, updated_at = datetime('now') WHERE stripe_v2_account_id = ?"
+          ).run(accountId);
+          console.log(`[stripe] Accounts v2 recipient ${accountId} transfers active — onboarding complete`);
+        }
+      }
+    }
+  } catch (err) {
+    console.error("[stripe] v2 webhook handler error:", err.message);
+    return res.status(500).json({ error: "Webhook handler failed" });
+  }
+
+  res.json({ received: true });
 });
 
 // ─── POST /api/payments/stripe/webhook ───────────────────────────────────────

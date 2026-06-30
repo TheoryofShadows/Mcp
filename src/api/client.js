@@ -195,6 +195,14 @@ export async function connectStripe() {
   return request("/payments/stripe/connect");
 }
 
+/**
+ * Start Stripe Accounts v2 onboarding (marketplace recipient).
+ * Returns { onboarding_url, account_id }.
+ */
+export async function connectStripeV2() {
+  return request("/payments/stripe/connect/v2");
+}
+
 // ─── Admin ───
 
 export async function adminFetchServers() {
