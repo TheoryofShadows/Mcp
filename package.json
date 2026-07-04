@@ -39,7 +39,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@descope/node-sdk": "^1.10.0",
+    "@descope/node-sdk": "^2.11.0",
     "@descope/react-sdk": "^2.26.7",
     "@sentry/node": "^10.62.0",
     "@supabase/supabase-js": "^2.98.0",
