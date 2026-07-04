@@ -40,7 +40,7 @@
   },
   "dependencies": {
     "@descope/node-sdk": "^2.11.0",
-    "@descope/react-sdk": "^2.26.7",
+    "@descope/react-sdk": "^2.30.2",
     "@sentry/node": "^10.63.0",
     "@supabase/supabase-js": "^2.98.0",
     "@vitejs/plugin-react": "^5.1.1",
