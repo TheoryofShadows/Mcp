@@ -68,8 +68,8 @@ router.get("/", (req, res) => {
     }
     const escaped = String(search).replace(/[%_\\]/g, "\\$&");
     const q = `%${escaped}%`;
-    where.push("(s.name LIKE ? ESCAPE '\\' OR s.description LIKE ? ESCAPE '\\' OR s.tags LIKE ? ESCAPE '\\')");
-    params.push(q, q, q);
+    where.push("(s.name LIKE ? ESCAPE '\\' OR s.slug LIKE ? ESCAPE '\\' OR s.description LIKE ? ESCAPE '\\' OR s.tags LIKE ? ESCAPE '\\')");
+    params.push(q, q, q, q);
   }
 
   if (verified === "true") {

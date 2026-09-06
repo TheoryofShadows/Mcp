@@ -35,6 +35,26 @@ describe("GET /api/servers", () => {
     expect(res.body.servers).toHaveLength(0);
   });
 
+  it("matches hyphenated slug substrings (name + slug)", async () => {
+    const created = await request(app)
+      .post("/api/servers")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        name: "Flow Probe Unique",
+        category_id: "dev-tools",
+        description: "A temporary server used only to verify slug substring search.",
+      });
+    expect(created.status).toBe(201);
+    const createdSlug = created.body.slug;
+    expect(createdSlug).toMatch(/flow/);
+
+    // Query uses hyphens like a marketplace paste of a partial slug.
+    const hyphenPart = createdSlug.split("-").slice(0, 2).join("-");
+    const res = await request(app).get(`/api/servers?search=${encodeURIComponent(hyphenPart)}`);
+    expect(res.status).toBe(200);
+    expect(res.body.servers.find((s) => s.slug === createdSlug)).toBeTruthy();
+  });
+
   it("respects pagination parameters", async () => {
     const res = await request(app).get("/api/servers?page=1&limit=5");
     expect(res.status).toBe(200);
@@ -246,6 +266,14 @@ describe("PATCH /api/servers/:slug status (unpublish)", () => {
     const list = await request(app).get(`/api/servers?search=Unpublishable`);
     expect(list.status).toBe(200);
     expect(list.body.servers.find((s) => s.slug === pubSlug)).toBeUndefined();
+
+    const mine = await request(app)
+      .get("/api/servers?author=publisherstatus&include_inactive=true&limit=50")
+      .set("Authorization", `Bearer ${pubToken}`);
+    expect(mine.status).toBe(200);
+    const row = mine.body.servers.find((s) => s.slug === pubSlug);
+    expect(row).toBeTruthy();
+    expect(row.status).toBe("inactive");
   });
 
   it("lets the author republish with status active", async () => {

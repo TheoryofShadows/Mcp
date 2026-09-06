@@ -161,6 +161,8 @@ export default function Dashboard() {
   }, [user?.solana_wallet]);
   const [verifyTool, setVerifyTool] = useState(null);
   const [statusBusySlug, setStatusBusySlug] = useState(null);
+  const [pendingStatusSlug, setPendingStatusSlug] = useState(null);
+  const [statusFeedback, setStatusFeedback] = useState(null); // { type: 'ok'|'err', text }
   const [earnings, setEarnings] = useState(null);
 
   const chartMonths = getLastSixMonths();
@@ -200,19 +202,34 @@ export default function Dashboard() {
     fetchEarnings().then(setEarnings).catch(() => setEarnings(null));
   }, [user, authLoading]);
 
-  async function togglePublish(tool) {
+  function requestTogglePublish(tool) {
+    if (demoMode || statusBusySlug) return;
+    setStatusFeedback(null);
+    setPendingStatusSlug((prev) => (prev === tool.slug ? null : tool.slug));
+  }
+
+  async function confirmTogglePublish(tool) {
     if (demoMode || statusBusySlug) return;
     const next = tool.status === "inactive" ? "active" : "inactive";
     const label = next === "inactive" ? "Unpublish" : "Republish";
-    if (!window.confirm(`${label} "${tool.name}"?${next === "inactive" ? " It will disappear from the marketplace until you republish." : ""}`)) {
-      return;
-    }
+    setPendingStatusSlug(null);
     setStatusBusySlug(tool.slug);
+    setStatusFeedback(null);
     try {
       const updated = await patchServer(tool.slug, { status: next });
-      setTools((prev) => prev.map((x) => (x.slug === tool.slug ? { ...x, status: updated.status } : x)));
+      const applied = updated?.status === "active" || updated?.status === "inactive" ? updated.status : next;
+      setTools((prev) => prev.map((x) => (x.slug === tool.slug ? { ...x, status: applied } : x)));
+      setStatusFeedback({
+        type: "ok",
+        text: applied === "inactive"
+          ? `"${tool.name}" unpublished — hidden from the marketplace.`
+          : `"${tool.name}" republished — visible in the marketplace.`,
+      });
     } catch (err) {
-      window.alert(err.message || `Failed to ${label.toLowerCase()}`);
+      setStatusFeedback({
+        type: "err",
+        text: err.message || `Failed to ${label.toLowerCase()}.`,
+      });
     } finally {
       setStatusBusySlug(null);
     }
@@ -280,6 +297,44 @@ export default function Dashboard() {
             </Link>{" "}
             to see your own tools and revenue.
           </p>
+        </div>
+      )}
+
+      {statusFeedback && (
+        <div
+          role={statusFeedback.type === "err" ? "alert" : "status"}
+          aria-live="polite"
+          style={{
+            display: "flex",
+            gap: "12px",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "14px 18px",
+            background: statusFeedback.type === "err" ? "rgba(239, 68, 68, 0.08)" : "rgba(16, 185, 129, 0.08)",
+            border: statusFeedback.type === "err" ? "1px solid rgba(239, 68, 68, 0.25)" : "1px solid rgba(16, 185, 129, 0.25)",
+            borderRadius: "12px",
+            marginBottom: "28px",
+          }}
+        >
+          <p style={{ fontSize: "13px", color: statusFeedback.type === "err" ? "#fca5a5" : "#6ee7b7", margin: 0 }}>
+            {statusFeedback.text}
+          </p>
+          <button
+            type="button"
+            onClick={() => setStatusFeedback(null)}
+            style={{
+              fontSize: "11px",
+              fontFamily: "var(--font-mono)",
+              color: "var(--text-muted)",
+              background: "transparent",
+              border: "1px solid #2e2e44",
+              borderRadius: "8px",
+              padding: "4px 8px",
+              cursor: "pointer",
+            }}
+          >
+            Dismiss
+          </button>
         </div>
       )}
 
@@ -452,27 +507,69 @@ export default function Dashboard() {
                           View <ExternalLink size={11} />
                         </Link>
                         {!demoMode && (
-                          <button
-                            type="button"
-                            onClick={() => togglePublish(tool)}
-                            disabled={statusBusySlug === tool.slug}
-                            style={{
-                              fontSize: "12px",
-                              fontFamily: "var(--font-mono)",
-                              color: tool.status === "inactive" ? "#10b981" : "#f59e0b",
-                              background: "transparent",
-                              border: "1px solid #2e2e44",
-                              borderRadius: "8px",
-                              padding: "4px 8px",
-                              cursor: statusBusySlug === tool.slug ? "wait" : "pointer",
-                            }}
-                          >
-                            {statusBusySlug === tool.slug
-                              ? "…"
-                              : tool.status === "inactive"
-                                ? "Republish"
-                                : "Unpublish"}
-                          </button>
+                          pendingStatusSlug === tool.slug ? (
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                              <span style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>
+                                {tool.status === "inactive" ? "Republish?" : "Unpublish?"}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => confirmTogglePublish(tool)}
+                                disabled={statusBusySlug === tool.slug}
+                                style={{
+                                  fontSize: "12px",
+                                  fontFamily: "var(--font-mono)",
+                                  color: tool.status === "inactive" ? "#10b981" : "#f59e0b",
+                                  background: "transparent",
+                                  border: "1px solid #2e2e44",
+                                  borderRadius: "8px",
+                                  padding: "4px 8px",
+                                  cursor: statusBusySlug === tool.slug ? "wait" : "pointer",
+                                }}
+                              >
+                                {statusBusySlug === tool.slug ? "…" : "Confirm"}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setPendingStatusSlug(null)}
+                                disabled={statusBusySlug === tool.slug}
+                                style={{
+                                  fontSize: "12px",
+                                  fontFamily: "var(--font-mono)",
+                                  color: "var(--text-muted)",
+                                  background: "transparent",
+                                  border: "1px solid #2e2e44",
+                                  borderRadius: "8px",
+                                  padding: "4px 8px",
+                                  cursor: "pointer",
+                                }}
+                              >
+                                Cancel
+                              </button>
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => requestTogglePublish(tool)}
+                              disabled={statusBusySlug === tool.slug}
+                              style={{
+                                fontSize: "12px",
+                                fontFamily: "var(--font-mono)",
+                                color: tool.status === "inactive" ? "#10b981" : "#f59e0b",
+                                background: "transparent",
+                                border: "1px solid #2e2e44",
+                                borderRadius: "8px",
+                                padding: "4px 8px",
+                                cursor: statusBusySlug === tool.slug ? "wait" : "pointer",
+                              }}
+                            >
+                              {statusBusySlug === tool.slug
+                                ? "…"
+                                : tool.status === "inactive"
+                                  ? "Republish"
+                                  : "Unpublish"}
+                            </button>
+                          )
                         )}
                       </div>
                     </td>
