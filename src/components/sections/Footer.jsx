@@ -17,8 +17,8 @@ const LINKS = {
   Company: [
     { label: "GitHub", href: "https://github.com/TheoryofShadows/Mcp" },
     { label: "Changelog", href: "https://github.com/TheoryofShadows/Mcp/blob/main/CHANGELOG.md" },
-    { label: "Security Policy", href: "https://github.com/TheoryofShadows/Mcp/blob/main/SECURITY.md" },
-    { label: "Contributing", href: "https://github.com/TheoryofShadows/Mcp/blob/main/CONTRIBUTING.md" },
+    { label: "Trust & Security", href: "https://github.com/TheoryofShadows/Mcp/blob/main/docs/TRUST.md" },
+    { label: "Solana Pay — Coming soon", href: "https://github.com/TheoryofShadows/Mcp/blob/main/README.md" },
   ],
 };
 
@@ -63,7 +63,7 @@ export default function Footer() {
               </span>
             </Link>
             <p style={{ fontSize: "13px", color: "var(--text-muted)", lineHeight: 1.7, maxWidth: "260px", marginBottom: "20px" }}>
-              The marketplace for Model Context Protocol servers. Discover tools that give AI agents real-world capabilities.
+              Trust-scored MCP tools with Stripe Connect payouts (publishers keep 85%) and one-click install for Claude, Cursor, and VS Code.
             </p>
             <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
               <a
@@ -156,6 +156,8 @@ export default function Footer() {
           <p style={{ fontSize: "12px", fontFamily: "var(--font-mono)", color: "var(--text-muted)" }}>
             Payments by{" "}
             <a href="https://stripe.com" target="_blank" rel="noopener noreferrer" style={{ color: "#67e8f9", textDecoration: "none" }}>Stripe Connect</a>
+            {" "}· Solana Pay{" "}
+            <span style={{ color: "#fbbf24" }}>Coming soon</span>
             {" "}· MCP by{" "}
             <a href="https://modelcontextprotocol.io" target="_blank" rel="noopener noreferrer" style={{ color: "#67e8f9", textDecoration: "none" }}>Anthropic + Linux Foundation</a>
           </p>

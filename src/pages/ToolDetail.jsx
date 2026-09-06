@@ -131,6 +131,13 @@ function StarRating({ rating, size = 14 }) {
 
 const TABS = ["Overview", "Install", "Reviews"];
 
+function formatInstalls(n) {
+  const v = Number(n) || 0;
+  if (v >= 1e6) return `${(v / 1e6).toFixed(1)}M`;
+  if (v >= 1000) return `${(v / 1000).toFixed(v >= 10000 ? 0 : 1)}K`;
+  return v.toLocaleString();
+}
+
 export default function ToolDetail() {
   const { slug } = useParams();
   const [tool, setTool] = useState(null);
@@ -283,7 +290,7 @@ export default function ToolDetail() {
               <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                 <Download size={14} color="var(--text-muted)" />
                 <span style={{ fontFamily: "var(--font-mono)", fontSize: "13px", color: "var(--text-secondary)" }}>
-                  {(tool.installs / 1000).toFixed(1)}K installs
+                  {formatInstalls(tool.installs)} installs
                 </span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
@@ -406,6 +413,9 @@ export default function ToolDetail() {
 
           {activeTab === "Install" && (
             <div role="tabpanel" id="panel-Install" aria-labelledby="tab-Install" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <p style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.6, margin: 0 }}>
+                One-click style configs for Claude Desktop, Cursor, and VS Code. Copy, paste, restart — done.
+              </p>
               <InstallButtons server={tool} />
               {(tool.capabilities?.length > 0 || tool.risk_level) && (
                 <CapabilitiesWarning capabilities={tool.capabilities} riskLevel={tool.risk_level} />
@@ -561,19 +571,36 @@ export default function ToolDetail() {
 
             {installMsg && tool.price_type === "free" && (
               <p style={{ fontSize: "12px", color: "#10b981", textAlign: "center", fontFamily: "var(--font-mono)", marginBottom: "8px" }}>
-                Copy the command below to install ↓
+                Open the Install tab for Claude, Cursor, or VS Code ↓
               </p>
             )}
             {tool.price_type === "paid" && (
-              <p style={{ fontSize: "11px", color: "var(--text-muted)", textAlign: "center", fontFamily: "var(--font-mono)" }}>
-                Secure payment via Stripe
-              </p>
+              <div style={{ textAlign: "center", marginBottom: "4px" }}>
+                <p style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "var(--font-mono)", marginBottom: "4px" }}>
+                  Secure payment via Stripe · Publishers keep 85%
+                </p>
+                <p style={{ fontSize: "10px", color: "#fbbf24", fontFamily: "var(--font-mono)", letterSpacing: "0.04em" }}>
+                  Solana Pay · Coming soon
+                </p>
+              </div>
+            )}
+
+            {tool.trust && (
+              <div style={{ marginBottom: "14px", padding: "12px", background: "#0d0d15", borderRadius: "10px", border: "1px solid #1d1d2b" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+                  <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--text-muted)", letterSpacing: "0.05em", textTransform: "uppercase" }}>Trust Score</span>
+                  <span style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "18px", color: "#22d3ee" }}>{tool.trust.score}</span>
+                </div>
+                <p style={{ fontSize: "11px", color: "var(--text-muted)", margin: 0, lineHeight: 1.45 }}>
+                  Computed · open Overview → Why? for the breakdown
+                </p>
+              </div>
             )}
 
             <div style={{ borderTop: "1px solid #1d1d2b", paddingTop: "16px", marginTop: "16px", display: "flex", flexDirection: "column", gap: "10px" }}>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>Installs</span>
-                <span style={{ fontSize: "12px", fontFamily: "var(--font-mono)", color: "var(--text-secondary)" }}>{tool.installs.toLocaleString()}</span>
+                <span style={{ fontSize: "12px", fontFamily: "var(--font-mono)", color: "var(--text-secondary)" }}>{formatInstalls(tool.installs)}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>Rating</span>

@@ -1021,9 +1021,11 @@ export const SEED_REVIEWS = [
 ];
 
 // ─── Platform Stats ───────────────────────────────────────────────────────────
+// Fallback stats for static / offline demos. Keep these modest — live stats
+// come from the API. Inflated vanity numbers undermine trust.
 export const SEED_STATS = {
   total_tools: 18,
-  total_installs: 762000,
-  total_revenue: 89400,
-  total_developers: 1847,
+  total_installs: 1240,
+  total_revenue: 0,
+  total_developers: 12,
 };

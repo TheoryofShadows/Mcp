@@ -139,7 +139,10 @@ export default function MarketplacePage() {
         >
           MCP Marketplace
         </h1>
-        <p role="status" aria-live="polite" style={{ fontSize: "14px", color: "var(--text-muted)" }}>
+        <p style={{ fontSize: "14px", color: "var(--text-secondary)", marginBottom: "6px", maxWidth: "560px", lineHeight: 1.55 }}>
+          Browse tools with a computed Trust Score. One-click install for Claude, Cursor, and VS Code.
+        </p>
+        <p role="status" aria-live="polite" style={{ fontSize: "13px", color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>
           {loading ? "Loading…" : `${tools.length} tool${tools.length !== 1 ? "s" : ""} available`}
         </p>
       </div>

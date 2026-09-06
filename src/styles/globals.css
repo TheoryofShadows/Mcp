@@ -798,3 +798,21 @@ code::-webkit-scrollbar-thumb { background: var(--border-accent); border-radius:
   }
 }
 
+
+/* Polish: hero search stacks cleanly on narrow phones */
+@media (max-width: 480px) {
+  .hero-search {
+    flex-direction: column !important;
+  }
+  .hero-search input {
+    border-right: 1px solid #2e2e44 !important;
+    border-radius: 12px 12px 0 0 !important;
+  }
+  .hero-search button {
+    border-radius: 0 0 12px 12px !important;
+    justify-content: center;
+  }
+  .pricing-steps {
+    grid-template-columns: 1fr !important;
+  }
+}
