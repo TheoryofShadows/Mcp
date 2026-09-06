@@ -162,7 +162,7 @@ router.post("/login", async (req, res) => {
 // GET /api/auth/me
 router.get("/me", requireAuth, (req, res) => {
   const user = db.prepare(
-    "SELECT id, email, username, display_name, tier, created_at FROM users WHERE id = ?"
+    "SELECT id, email, username, display_name, tier, created_at, stripe_onboarding_done, stripe_account_id FROM users WHERE id = ?"
   ).get(req.user.id);
 
   if (!user) {
@@ -174,7 +174,13 @@ router.get("/me", requireAuth, (req, res) => {
     "SELECT COALESCE(SUM(installs), 0) as c FROM servers WHERE author_id = ?"
   ).get(user.id).c;
 
-  res.json({ ...user, server_count: serverCount, total_installs: totalInstalls });
+  res.json({
+    ...user,
+    stripe_onboarding_done: !!user.stripe_onboarding_done,
+    stripe_connected: !!user.stripe_onboarding_done && !!user.stripe_account_id,
+    server_count: serverCount,
+    total_installs: totalInstalls,
+  });
 });
 
 // POST /api/auth/logout — revoke the presented token so it can no longer be used.
