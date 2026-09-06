@@ -3,6 +3,7 @@ import { dirname, join, extname } from "path";
 import { createApp } from "./app.js";
 import db from "./db.js";
 import { logger, initSentry } from "./lib/observability.js";
+import { startBackupScheduler } from "./lib/backupScheduler.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -45,6 +46,8 @@ app.get("/{*splat}", (req, res) => {
 
 const server = app.listen(PORT, () => {
   logger.info({ port: PORT }, `MCPX API server running on http://localhost:${PORT}`);
+  // Off-box SQLite backups (Railway Buckets / S3). Gated by BACKUP_S3_BUCKET or BACKUP_ENABLED=1.
+  startBackupScheduler();
 });
 
 // Graceful shutdown — Railway sends SIGTERM before killing the process
