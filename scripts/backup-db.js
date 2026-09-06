@@ -5,6 +5,9 @@
  * (safe while the app is running). Optionally uploads to an S3-compatible bucket
  * (Railway Buckets / AWS / R2) and retains the last N local copies.
  *
+ * Upload uses AWS Signature Version 4 over fetch (zero new deps; S3 PutObject).
+ * Compatible with the AWS SDK v3 env var names Railway injects for buckets.
+ *
  * Env:
  *   DB_PATH              source database (default server/mcpx.db)
  *   BACKUP_DIR           destination directory (default <db dir>/backups)
@@ -18,7 +21,8 @@
  *   node scripts/backup-db.js     # or: npm run backup:db
  */
 import Database from "better-sqlite3";
-import { createReadStream, mkdirSync, readdirSync, statSync, unlinkSync } from "node:fs";
+import { createHash, createHmac } from "node:crypto";
+import { mkdirSync, readdirSync, readFileSync, statSync, unlinkSync } from "node:fs";
 import { join, dirname, basename } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -98,26 +102,80 @@ export function pruneLocalBackups(destDir, keep = DEFAULT_KEEP) {
   return { kept: files.slice(0, keep).map((f) => f.path), removed };
 }
 
+function hmac(key, data) {
+  return createHmac("sha256", key).update(data, "utf8").digest();
+}
+
+function hashHex(data) {
+  return createHash("sha256").update(data).digest("hex");
+}
+
+function amzDate(when = new Date()) {
+  const iso = when.toISOString().replace(/[:-]|\.\d{3}/g, "");
+  return { amz: iso, day: iso.slice(0, 8) };
+}
+
+/** AWS SigV4-signed PutObject via fetch (S3 / Railway Buckets / R2). */
 export async function uploadBackupToS3(destPath, s3Config, key = objectKeyForBackup(destPath)) {
-  const { S3Client, PutObjectCommand } = await import("@aws-sdk/client-s3");
-  const client = new S3Client({
-    region: s3Config.region || "auto",
-    endpoint: s3Config.endpoint || undefined,
-    credentials: {
-      accessKeyId: s3Config.accessKeyId,
-      secretAccessKey: s3Config.secretAccessKey,
+  const region = s3Config.region || "auto";
+  const forcePath = process.env.AWS_S3_FORCE_PATH_STYLE === "1";
+  const endpoint = (s3Config.endpoint || `https://s3.${region}.amazonaws.com`).replace(/\/$/, "");
+  const endpointUrl = new URL(endpoint);
+  const host = forcePath ? endpointUrl.host : `${s3Config.bucket}.${endpointUrl.host}`;
+  const basePath = endpointUrl.pathname.replace(/\/$/, "") || "";
+  const objectPath = forcePath
+    ? `${basePath}/${s3Config.bucket}/${key}`
+    : `${basePath}/${key}`;
+  const canonicalUri = objectPath.startsWith("/") ? objectPath : `/${objectPath}`;
+  const body = readFileSync(destPath);
+  const payloadHash = hashHex(body);
+  const { amz, day } = amzDate();
+  const contentType = "application/x-sqlite3";
+  const canonicalHeaders =
+    `content-type:${contentType}\n` +
+    `host:${host}\n` +
+    `x-amz-content-sha256:${payloadHash}\n` +
+    `x-amz-date:${amz}\n`;
+  const signedHeaders = "content-type;host;x-amz-content-sha256;x-amz-date";
+  const canonicalRequest = [
+    "PUT",
+    canonicalUri,
+    "",
+    canonicalHeaders,
+    signedHeaders,
+    payloadHash,
+  ].join("\n");
+  const credentialScope = `${day}/${region}/s3/aws4_request`;
+  const stringToSign = [
+    "AWS4-HMAC-SHA256",
+    amz,
+    credentialScope,
+    hashHex(canonicalRequest),
+  ].join("\n");
+  const kDate = hmac(`AWS4${s3Config.secretAccessKey}`, day);
+  const kRegion = hmac(kDate, region);
+  const kService = hmac(kRegion, "s3");
+  const kSigning = hmac(kService, "aws4_request");
+  const signature = createHmac("sha256", kSigning).update(stringToSign, "utf8").digest("hex");
+  const authorization =
+    `AWS4-HMAC-SHA256 Credential=${s3Config.accessKeyId}/${credentialScope}, ` +
+    `SignedHeaders=${signedHeaders}, Signature=${signature}`;
+  const url = `${endpointUrl.protocol}//${host}${canonicalUri}`;
+  const res = await fetch(url, {
+    method: "PUT",
+    headers: {
+      Authorization: authorization,
+      "Content-Type": contentType,
+      "x-amz-content-sha256": payloadHash,
+      "x-amz-date": amz,
+      "Content-Length": String(body.length),
     },
-    // Railway Buckets use virtual-hosted–style URLs; forcePathStyle only if asked.
-    forcePathStyle: process.env.AWS_S3_FORCE_PATH_STYLE === "1",
+    body,
   });
-  await client.send(
-    new PutObjectCommand({
-      Bucket: s3Config.bucket,
-      Key: key,
-      Body: createReadStream(destPath),
-      ContentType: "application/x-sqlite3",
-    })
-  );
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`S3 PutObject failed (${res.status}): ${text.slice(0, 300)}`);
+  }
   return { bucket: s3Config.bucket, key };
 }
 
