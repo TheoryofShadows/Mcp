@@ -1,6 +1,8 @@
+import { formatPriceLabel } from "../lib/formatPrice";
+
 export default function PriceTag({ tool, size = "sm" }) {
-  const isFree = tool.price_type === "free";
-  const label = isFree ? "Free" : (tool.price_label || `$${tool.price_amount}/mo`);
+  const isFree = tool?.price_type === "free";
+  const label = formatPriceLabel(tool);
 
   const sizes = {
     sm: { fontSize: "11px", padding: "2px 8px" },
