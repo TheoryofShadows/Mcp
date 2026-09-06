@@ -122,6 +122,12 @@ curl -s https://www.mcpx.digital/api/payments/stripe/config
 A `label` of `Live (mainnet money)` means the key is live *and*
 `STRIPE_WEBHOOK_SECRET` is set. The endpoint never returns key material.
 
+The server also audits this at boot and logs a `[payments]` warning for each
+problem it finds — a missing webhook secret, a live key pointing `APP_URL` at
+localhost, unpinned prices about to create products in your live account. Check
+the Railway deploy logs after any payments-related env change: all of these leave
+a *healthy* server, so nothing else will tell you.
+
 ### Checklist
 
 1. **Live secret key** — `STRIPE_SECRET_KEY=sk_live_…` in Railway. A restricted

@@ -127,6 +127,68 @@ function requireStripe(res) {
   return true;
 }
 
+// Boot-time configuration audit for the money path. Every item here is a
+// misconfiguration that still *looks* healthy — the server starts, the health
+// check passes, and the failure only shows up as a buyer who paid and got
+// nothing. Returns warning strings; server/index.js logs them at startup.
+export function paymentsConfigWarnings(env = process.env) {
+  const warnings = [];
+  const mode = stripeKeyMode(env.STRIPE_SECRET_KEY);
+  const isProd = env.NODE_ENV === "production";
+  const appUrl = env.APP_URL || "";
+
+  if (mode === "unset") {
+    if (isProd) warnings.push("STRIPE_SECRET_KEY is not set — every Stripe endpoint returns 501 and nothing can be sold.");
+    return warnings;
+  }
+
+  if (mode === "unknown") {
+    warnings.push("STRIPE_SECRET_KEY does not look like a Stripe key (expected sk_/rk_ prefix).");
+  }
+
+  if (!env.STRIPE_WEBHOOK_SECRET) {
+    warnings.push(
+      "STRIPE_WEBHOOK_SECRET is not set — checkouts will succeed but the webhook is rejected, " +
+      "so no tier upgrade, install unlock, or sale is ever recorded."
+    );
+  }
+
+  if (mode === "test" && isProd) {
+    warnings.push("Stripe is in TEST mode in a production deploy — no real money can move.");
+  }
+
+  if (mode === "live") {
+    if (!appUrl) {
+      warnings.push(
+        "APP_URL is not set while Stripe is LIVE — buyers are redirected to the localhost " +
+        "default after paying, landing on a dead page."
+      );
+    } else if (/^https?:\/\/(localhost|127\.0\.0\.1)/i.test(appUrl)) {
+      warnings.push(`APP_URL is "${appUrl}" while Stripe is LIVE — buyers are redirected to localhost after paying.`);
+    } else if (!/^https:\/\//i.test(appUrl)) {
+      warnings.push(`APP_URL "${appUrl}" is not https — Stripe return links should be https in production.`);
+    }
+
+    if (!env.STRIPE_PRICE_PRO || !env.STRIPE_PRICE_ENTERPRISE) {
+      warnings.push(
+        "STRIPE_PRICE_PRO / STRIPE_PRICE_ENTERPRISE are not pinned while Stripe is LIVE — " +
+        "the first subscription checkout will create products in the live Stripe account."
+      );
+    }
+  }
+
+  // Solana: the USD→SOL rate is a fixed stub, not a price feed. Harmless on
+  // devnet; on mainnet it means real tools sold at a made-up exchange rate.
+  if (env.SOLANA_TREASURY_WALLET && env.SOLANA_CLUSTER === "mainnet-beta") {
+    warnings.push(
+      "Solana Pay is on mainnet-beta while USD→SOL uses the fixed SOLANA_USD_PER_SOL stub " +
+      "rate — real payments are priced off a hardcoded rate, not a live feed."
+    );
+  }
+
+  return warnings;
+}
+
 // ─── Platform subscription price IDs ─────────────────────────────────────────
 
 const TIER_CONFIG = {
@@ -201,7 +263,6 @@ router.get("/stripe/config", (_req, res) => {
     mode,                              // live | test | unknown | unset
     livemode: mode === "live",
     webhook_secret_set: webhookSecret,
-    publishable_key_set: !!process.env.VITE_STRIPE_PUBLISHABLE_KEY,
     prices_pinned: {
       pro: !!process.env.STRIPE_PRICE_PRO,
       enterprise: !!process.env.STRIPE_PRICE_ENTERPRISE,

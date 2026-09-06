@@ -8,6 +8,7 @@ import {
   payoutReadiness,
   grantToolPurchase,
   hasPurchased,
+  paymentsConfigWarnings,
 } from "../server/routes/payments.js";
 
 const app = createApp();
@@ -279,6 +280,65 @@ describe("double-purchase guard", () => {
     expect(res.body.already_purchased).toBeUndefined();
     expect(res.body.reference).toBeTruthy();
     expect(res.body.recipient).toBe(PUBLISHER_WALLET);
+  });
+});
+
+describe("paymentsConfigWarnings", () => {
+  const LIVE = {
+    STRIPE_SECRET_KEY: "sk_live_x",
+    STRIPE_WEBHOOK_SECRET: "whsec_x",
+    STRIPE_PRICE_PRO: "price_pro",
+    STRIPE_PRICE_ENTERPRISE: "price_ent",
+    APP_URL: "https://www.mcpx.digital",
+    NODE_ENV: "production",
+  };
+  const matching = (warnings, re) => warnings.filter((w) => re.test(w));
+
+  it("is silent on a correctly configured live deploy", () => {
+    expect(paymentsConfigWarnings(LIVE)).toEqual([]);
+  });
+
+  it("flags a live key redirecting buyers to localhost after they pay", () => {
+    const w = paymentsConfigWarnings({ ...LIVE, APP_URL: "http://localhost:5173" });
+    expect(matching(w, /localhost/i)).toHaveLength(1);
+  });
+
+  it("flags a live key with APP_URL unset", () => {
+    const w = paymentsConfigWarnings({ ...LIVE, APP_URL: "" });
+    expect(matching(w, /APP_URL is not set/i)).toHaveLength(1);
+  });
+
+  it("flags a missing webhook secret — the silent revenue killer", () => {
+    const w = paymentsConfigWarnings({ ...LIVE, STRIPE_WEBHOOK_SECRET: "" });
+    expect(matching(w, /STRIPE_WEBHOOK_SECRET/)).toHaveLength(1);
+  });
+
+  it("flags test mode in a production deploy", () => {
+    const w = paymentsConfigWarnings({ ...LIVE, STRIPE_SECRET_KEY: "sk_test_x" });
+    expect(matching(w, /TEST mode/)).toHaveLength(1);
+  });
+
+  it("flags unpinned prices on a live key", () => {
+    const w = paymentsConfigWarnings({ ...LIVE, STRIPE_PRICE_PRO: "" });
+    expect(matching(w, /live Stripe account/)).toHaveLength(1);
+  });
+
+  it("flags Solana mainnet priced off the FX stub", () => {
+    const w = paymentsConfigWarnings({
+      ...LIVE,
+      SOLANA_TREASURY_WALLET: "treasury",
+      SOLANA_CLUSTER: "mainnet-beta",
+    });
+    expect(matching(w, /mainnet-beta/)).toHaveLength(1);
+  });
+
+  it("says nothing about Stripe internals when no key is configured outside production", () => {
+    expect(paymentsConfigWarnings({ NODE_ENV: "development" })).toEqual([]);
+  });
+
+  it("flags a missing key in production", () => {
+    const w = paymentsConfigWarnings({ NODE_ENV: "production" });
+    expect(matching(w, /STRIPE_SECRET_KEY is not set/)).toHaveLength(1);
   });
 });
 
