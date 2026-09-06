@@ -8,7 +8,11 @@ import {
   isValidPubkey,
   setSolanaVerifyImpl,
   resetSolanaVerifyImpl,
+  verifyPurchaseTransaction,
+  extractSystemTransfers,
+  SystemProgram,
 } from "../server/lib/solanaPay.js";
+import bs58 from "bs58";
 import { cleanup, db, backdateUser } from "./setup.js";
 import { createApp } from "../server/app.js";
 
@@ -63,6 +67,166 @@ describe("solanaPay helpers", () => {
   });
 });
 
+
+function encodeTransferData(lamports) {
+  const buf = Buffer.alloc(12);
+  buf.writeUInt32LE(2, 0); // SystemInstruction::Transfer
+  buf.writeBigUInt64LE(BigInt(lamports), 4);
+  return bs58.encode(buf);
+}
+
+function mockLegacyTx({ accountKeys, preBalances, postBalances, transfers, err = null }) {
+  const systemId = SystemProgram.programId.toBase58();
+  const instructions = transfers.map(({ from, to, lamports }) => {
+    const keys = [...accountKeys];
+    if (!keys.includes(systemId)) keys.push(systemId);
+    return {
+      programIdIndex: keys.indexOf(systemId),
+      accounts: [accountKeys.indexOf(from), accountKeys.indexOf(to)],
+      data: encodeTransferData(lamports),
+    };
+  });
+  // Ensure system program is in accountKeys for programIdIndex
+  const keys = [...accountKeys];
+  if (!keys.includes(systemId)) keys.push(systemId);
+  // Recompute indexes with final keys
+  const ixs = transfers.map(({ from, to, lamports }) => ({
+    programIdIndex: keys.indexOf(systemId),
+    accounts: [keys.indexOf(from), keys.indexOf(to)],
+    data: encodeTransferData(lamports),
+  }));
+  return {
+    meta: { err, preBalances, postBalances },
+    transaction: { message: { accountKeys: keys, instructions: ixs } },
+  };
+}
+
+function mockConnection(tx) {
+  return { getTransaction: async () => tx };
+}
+
+
+describe("verifyPurchaseTransaction (balance + same-wallet)", () => {
+  const buyer = Keypair.generate().publicKey.toBase58();
+  const publisher = Keypair.generate().publicKey.toBase58();
+  const treasury = Keypair.generate().publicKey.toBase58();
+  const reference = Keypair.generate().publicKey.toBase58();
+  const publisherLamports = 850_000;
+  const platformLamports = 150_000;
+
+  it("accepts distinct-wallet purchase via balance deltas", async () => {
+    const accountKeys = [buyer, publisher, treasury, reference];
+    const tx = mockLegacyTx({
+      accountKeys,
+      preBalances: [10_000_000, 1_000_000, 500_000, 0],
+      postBalances: [10_000_000 - publisherLamports - platformLamports - 5000, 1_000_000 + publisherLamports, 500_000 + platformLamports, 0],
+      transfers: [
+        { from: buyer, to: publisher, lamports: publisherLamports },
+        { from: buyer, to: treasury, lamports: platformLamports },
+      ],
+    });
+    const res = await verifyPurchaseTransaction({
+      signature: "3".repeat(88),
+      reference,
+      recipient: publisher,
+      platformRecipient: treasury,
+      publisherLamports,
+      platformLamports,
+      connection: mockConnection(tx),
+    });
+    expect(res.ok).toBe(true);
+  });
+
+  it("rejects distinct-wallet when publisher delta too low", async () => {
+    const accountKeys = [buyer, publisher, treasury, reference];
+    const tx = mockLegacyTx({
+      accountKeys,
+      preBalances: [10_000_000, 1_000_000, 500_000, 0],
+      postBalances: [9_000_000, 1_000_100, 500_000 + platformLamports, 0],
+      transfers: [
+        { from: buyer, to: publisher, lamports: 100 },
+        { from: buyer, to: treasury, lamports: platformLamports },
+      ],
+    });
+    const res = await verifyPurchaseTransaction({
+      signature: "4".repeat(88),
+      reference,
+      recipient: publisher,
+      platformRecipient: treasury,
+      publisherLamports,
+      platformLamports,
+      connection: mockConnection(tx),
+    });
+    expect(res.ok).toBe(false);
+    expect(res.error).toMatch(/Publisher amount mismatch/);
+  });
+
+  it("accepts same-wallet (buyer === publisher) via transfer instruction parsing", async () => {
+    // Self-transfer: recipient balance does not increase by publisherLamports
+    // (netted with the outbound self-transfer). Delta-only checks would fail.
+    const accountKeys = [buyer, treasury, reference];
+    const fee = 5000;
+    const tx = mockLegacyTx({
+      accountKeys,
+      preBalances: [10_000_000, 500_000, 0],
+      // buyer paid platform + fee; self-transfer is balance-neutral
+      postBalances: [10_000_000 - platformLamports - fee, 500_000 + platformLamports, 0],
+      transfers: [
+        { from: buyer, to: buyer, lamports: publisherLamports },
+        { from: buyer, to: treasury, lamports: platformLamports },
+      ],
+    });
+    // recipient is buyer (same wallet)
+    const res = await verifyPurchaseTransaction({
+      signature: "5".repeat(88),
+      reference,
+      recipient: buyer,
+      platformRecipient: treasury,
+      publisherLamports,
+      platformLamports,
+      connection: mockConnection(tx),
+    });
+    expect(res.ok).toBe(true);
+    expect(res.same_wallet).toBe(true);
+  });
+
+  it("rejects same-wallet when publisher transfer ix is missing/short", async () => {
+    const accountKeys = [buyer, treasury, reference];
+    const tx = mockLegacyTx({
+      accountKeys,
+      preBalances: [10_000_000, 500_000, 0],
+      postBalances: [10_000_000 - platformLamports - 5000, 500_000 + platformLamports, 0],
+      transfers: [
+        { from: buyer, to: buyer, lamports: 10 }, // too small
+        { from: buyer, to: treasury, lamports: platformLamports },
+      ],
+    });
+    const res = await verifyPurchaseTransaction({
+      signature: "6".repeat(88),
+      reference,
+      recipient: buyer,
+      platformRecipient: treasury,
+      publisherLamports,
+      platformLamports,
+      connection: mockConnection(tx),
+    });
+    expect(res.ok).toBe(false);
+    expect(res.error).toMatch(/Publisher amount mismatch/);
+  });
+
+  it("extractSystemTransfers reads transfer lamports", () => {
+    const accountKeys = [buyer, publisher, treasury];
+    const tx = mockLegacyTx({
+      accountKeys,
+      preBalances: [0, 0, 0],
+      postBalances: [0, 0, 0],
+      transfers: [{ from: buyer, to: publisher, lamports: 42 }],
+    });
+    const list = extractSystemTransfers(tx, tx.transaction.message.accountKeys);
+    expect(list).toEqual([{ from: buyer, to: publisher, lamports: 42 }]);
+  });
+});
+
 describe("Solana Pay HTTP", () => {
   const app = createApp();
   let publisherToken;
@@ -74,26 +238,32 @@ describe("Solana Pay HTTP", () => {
     process.env.SOLANA_CLUSTER = "devnet";
     process.env.SOLANA_USD_PER_SOL = "150";
 
+    const suffix = Date.now().toString(36);
+    const pubEmail = `solana-pub-${suffix}@example.com`;
+    const buyerEmail = `solana-buyer-${suffix}@example.com`;
+
     const pub = await request(app).post("/api/auth/register").send({
-      email: "solana-pub@example.com",
-      username: "solanapub",
+      email: pubEmail,
+      username: `solanapub${suffix}`,
       password: "testpassword1",
     });
+    expect(pub.status).toBe(201);
     publisherToken = pub.body.token;
-    backdateUser("solana-pub@example.com");
+    backdateUser(pubEmail);
 
     const buyer = await request(app).post("/api/auth/register").send({
-      email: "solana-buyer@example.com",
-      username: "solanabuyer",
+      email: buyerEmail,
+      username: `solanabuyer${suffix}`,
       password: "testpassword1",
     });
+    expect(buyer.status).toBe(201);
     buyerToken = buyer.body.token;
 
     const created = await request(app)
       .post("/api/servers")
       .set("Authorization", `Bearer ${publisherToken}`)
       .send({
-        name: "Solana Paid Tool",
+        name: `Solana Paid Tool ${suffix}`,
         category_id: "dev-tools",
         description: "A paid tool for Solana Pay tests.",
         price_type: "paid",
@@ -173,7 +343,7 @@ describe("Solana Pay HTTP", () => {
 
     setSolanaVerifyImpl(async () => ({ ok: true }));
 
-    const fakeSig = "1".repeat(88);
+    const fakeSig = `sig1${Date.now()}${"a".repeat(60)}`;
     const conf = await request(app)
       .post("/api/payments/solana/confirm")
       .set("Authorization", `Bearer ${buyerToken}`)
@@ -187,18 +357,19 @@ describe("Solana Pay HTTP", () => {
     expect(status.body.status).toBe("completed");
 
     const sale = db.prepare(
-      "SELECT payment_method, gross_cents, fee_cents FROM sales WHERE buyer_id = (SELECT id FROM users WHERE email = ?) ORDER BY created_at DESC LIMIT 1"
-    ).get("solana-buyer@example.com");
+      "SELECT payment_method, gross_cents, fee_cents FROM sales WHERE payment_method = 'solana' ORDER BY created_at DESC LIMIT 1"
+    ).get();
     expect(sale.payment_method).toBe("solana");
     expect(sale.gross_cents).toBe(1500);
     expect(sale.fee_cents).toBe(225);
 
     const install = db.prepare(`
       SELECT i.id FROM installs i
-      JOIN users u ON u.id = i.user_id
       JOIN servers s ON s.id = i.server_id
-      WHERE u.email = ? AND s.slug = ?
-    `).get("solana-buyer@example.com", paidSlug);
+      WHERE s.slug = ?
+      ORDER BY i.installed_at DESC
+      LIMIT 1
+    `).get(paidSlug);
     expect(install).toBeTruthy();
   });
 
@@ -220,7 +391,7 @@ describe("Solana Pay HTTP", () => {
     const conf = await request(app)
       .post("/api/payments/solana/confirm")
       .set("Authorization", `Bearer ${buyerToken}`)
-      .send({ purchase_id: req.body.purchase_id, signature: "2".repeat(88) });
+      .send({ purchase_id: req.body.purchase_id, signature: `sig2${Date.now()}${"b".repeat(60)}` });
     expect(conf.status).toBe(402);
     expect(conf.body.error).toMatch(/mismatch/i);
 

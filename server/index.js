@@ -19,6 +19,13 @@ if (userCount === 0) {
   await import("./seed.js");
 }
 
+// Backfill NULL/empty install_command from seed map by slug.
+// Does not overwrite non-empty author-provided values.
+{
+  const { backfillInstallCommands } = await import("./lib/seedInstallCommands.js");
+  backfillInstallCommands(db);
+}
+
 const app = createApp();
 
 // Serve static files in production

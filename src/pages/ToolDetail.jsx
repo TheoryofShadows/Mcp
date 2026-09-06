@@ -663,8 +663,31 @@ export default function ToolDetail() {
                         {solanaLoading ? "Confirming on-chain…" : `Pay with Solana · ${solanaCfg.label || "Live (devnet)"}`}
                       </button>
                     )}
+                    {(solanaCfg.cluster || "devnet") !== "mainnet-beta" && (
+                      <div
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          marginBottom: "6px",
+                          padding: "3px 8px",
+                          borderRadius: "999px",
+                          background: "rgba(20, 241, 149, 0.12)",
+                          border: "1px solid rgba(20, 241, 149, 0.35)",
+                          color: "#14F195",
+                          fontSize: "10px",
+                          fontFamily: "var(--font-mono)",
+                          fontWeight: 700,
+                          letterSpacing: "0.06em",
+                          textTransform: "uppercase",
+                        }}
+                        title="Solana Pay is on Devnet — not real mainnet SOL"
+                      >
+                        Devnet · test SOL only
+                      </div>
+                    )}
                     <p style={{ fontSize: "10px", color: "var(--text-muted)", fontFamily: "var(--font-mono)", lineHeight: 1.45 }}>
-                      Atomic 85/15 split · {solanaCfg.currency_label || "SOL (FX stub)"}
+                      Atomic 85/15 split · {solanaCfg.currency_label || "SOL (FX stub)"} · cluster {solanaCfg.cluster || "devnet"}
                       {phantom.publicKey ? ` · ${phantom.publicKey.slice(0, 4)}…${phantom.publicKey.slice(-4)}` : ""}
                     </p>
                     {solanaMsg && (
