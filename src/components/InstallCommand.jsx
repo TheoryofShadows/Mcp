@@ -22,6 +22,34 @@ export default function InstallCommand({ command, label = "Install Command" }) {
     }
   }
 
+  if (!command || !String(command).trim()) {
+    return (
+      <div>
+        {label && (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              marginBottom: "8px",
+              fontSize: "12px",
+              color: "var(--text-muted)",
+              fontFamily: "var(--font-mono)",
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+            }}
+          >
+            <Terminal size={12} />
+            {label}
+          </div>
+        )}
+        <p style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>
+          Install command not published yet.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div>
       {label && (

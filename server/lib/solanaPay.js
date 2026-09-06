@@ -19,6 +19,7 @@ import {
   clusterApiUrl,
   LAMPORTS_PER_SOL,
 } from "@solana/web3.js";
+import bs58 from "bs58";
 
 export const PLATFORM_FEE_PCT = 0.15;
 export const PUBLISHER_PCT = 0.85;
@@ -198,11 +199,14 @@ export async function verifyPurchaseTransaction({
   const recipientDelta = (post[recipientIdx] ?? 0) - (pre[recipientIdx] ?? 0);
   const treasuryDelta = (post[treasuryIdx] ?? 0) - (pre[treasuryIdx] ?? 0);
 
-  if (recipientDelta < publisherLamports) {
-    return {
-      ok: false,
-      error: `Publisher amount mismatch (got ${recipientDelta}, expected ≥ ${publisherLamports})`,
-    };
+  // Fee payer is accountKeys[0] for legacy + most v0 txs returned by getTransaction.
+  const feePayer = accountKeys[0] || null;
+  const sameWallet = !!feePayer && feePayer === recipient;
+
+  // Always require platform treasury credit (buyer → treasury never self-cancels
+  // unless treasury === payer, which we reject separately below).
+  if (feePayer && feePayer === platformRecipient) {
+    return { ok: false, error: "Buyer cannot be the platform treasury" };
   }
   if (treasuryDelta < platformLamports) {
     return {
@@ -211,7 +215,105 @@ export async function verifyPurchaseTransaction({
     };
   }
 
+  if (sameWallet) {
+    // Self-transfer: SystemProgram.transfer(from→same) is a no-op on balance, so
+    // recipientDelta will NOT show publisherLamports. Verify the published
+    // transfer instruction instead (keeps distinct-wallet delta checks intact).
+    const transfers = extractSystemTransfers(tx, accountKeys);
+    const pubOk = transfers.some(
+      (t) => t.to === recipient && t.lamports >= publisherLamports
+    );
+    const feeOk = transfers.some(
+      (t) => t.to === platformRecipient && t.lamports >= platformLamports
+    );
+    if (!pubOk) {
+      return {
+        ok: false,
+        error: `Publisher amount mismatch (same-wallet; no transfer ix ≥ ${publisherLamports})`,
+      };
+    }
+    if (!feeOk) {
+      return {
+        ok: false,
+        error: `Platform amount mismatch (same-wallet; no transfer ix ≥ ${platformLamports})`,
+      };
+    }
+    return { ok: true, same_wallet: true };
+  }
+
+  if (recipientDelta < publisherLamports) {
+    return {
+      ok: false,
+      error: `Publisher amount mismatch (got ${recipientDelta}, expected ≥ ${publisherLamports})`,
+    };
+  }
+
   return { ok: true };
+}
+
+/** Decode SystemProgram.transfer instructions from a getTransaction payload. */
+export function extractSystemTransfers(tx, accountKeys) {
+  const message = tx?.transaction?.message;
+  if (!message) return [];
+  const systemId = SystemProgram.programId.toBase58();
+  const rawIxs = message.instructions || message.compiledInstructions || [];
+  const out = [];
+
+  for (const ix of rawIxs) {
+    let programId;
+    let accountIndexes;
+    let dataBytes;
+    if (typeof ix.programIdIndex === "number") {
+      programId = accountKeys[ix.programIdIndex];
+      accountIndexes = ix.accounts || ix.accountKeyIndexes || [];
+      dataBytes = decodeIxData(ix.data);
+    } else if (ix.programId) {
+      programId = typeof ix.programId === "string" ? ix.programId : ix.programId.toBase58?.();
+      const keys = ix.accounts || ix.keys || [];
+      accountIndexes = keys.map((k) => {
+        if (typeof k === "number") return k;
+        const pk = typeof k === "string" ? k : k.pubkey?.toBase58?.() || k.pubkey || String(k);
+        return accountKeys.indexOf(pk);
+      });
+      dataBytes = decodeIxData(ix.data);
+    } else {
+      continue;
+    }
+    if (programId !== systemId) continue;
+    if (!dataBytes || dataBytes.length < 12) continue;
+    // SystemInstruction::Transfer = u32 LE 2, then u64 LE lamports
+    const disc = dataBytes.readUInt32LE(0);
+    if (disc !== 2) continue;
+    const lamports = Number(dataBytes.readBigUInt64LE(4));
+    const fromIdx = accountIndexes[0];
+    const toIdx = accountIndexes[1];
+    if (fromIdx == null || toIdx == null || fromIdx < 0 || toIdx < 0) continue;
+    out.push({
+      from: accountKeys[fromIdx],
+      to: accountKeys[toIdx],
+      lamports,
+    });
+  }
+  return out;
+}
+
+function decodeIxData(data) {
+  if (!data) return null;
+  if (Buffer.isBuffer(data)) return data;
+  if (data instanceof Uint8Array) return Buffer.from(data);
+  if (typeof data === "string") {
+    try {
+      return Buffer.from(bs58.decode(data));
+    } catch {
+      try {
+        return Buffer.from(data, "base64");
+      } catch {
+        return null;
+      }
+    }
+  }
+  if (Array.isArray(data)) return Buffer.from(data);
+  return null;
 }
 
 export { PublicKey, SystemProgram, Transaction, LAMPORTS_PER_SOL };

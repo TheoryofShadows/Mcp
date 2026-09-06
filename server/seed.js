@@ -1,6 +1,7 @@
 import db from "./db.js";
 import { v4 as uuid } from "uuid";
 import bcrypt from "bcryptjs";
+import { SEED_INSTALL_COMMANDS } from "./lib/seedInstallCommands.js";
 
 // Guard against destroying real data. An *empty* database is always safe to
 // seed — the DELETEs below are no-ops — which is how first-boot auto-seeding
@@ -150,6 +151,7 @@ const servers = [
     long_description: "Docker MCP lets agents manage containers and images: run and stop containers, stream logs, build from Dockerfiles, and bring up docker-compose stacks. Handy for local dev and CI.",
     installs: 33000, rating: 4.5, rating_count: 140, price_type: "free", verified: 0, trending: 0,
     weekly_growth: "+14%", repo_url: "https://github.com/ckreiling/mcp-server-docker", license: "MIT",
+    install_command: "npx -y mcp-server-docker",
     tags: ["docker", "containers", "devops", "shell"] }),
 
   // ── AI & ML ──────────────────────────────────────────────────────────────
@@ -172,6 +174,7 @@ const servers = [
     long_description: "Connects agents to the Hugging Face Hub: search models and datasets, run inference endpoints, and query Spaces — the largest open ML ecosystem, available to your assistant.",
     installs: 24000, rating: 4.5, rating_count: 120, price_type: "free", verified: 0, trending: 0,
     weekly_growth: "+8%", repo_url: "https://github.com/huggingface/hf-mcp-server", license: "Apache-2.0",
+    install_command: "npx -y @llmindset/hf-mcp-server",
     tags: ["ml", "models", "inference", "huggingface"] }),
 
   // ── Data & APIs ──────────────────────────────────────────────────────────
@@ -208,30 +211,35 @@ const servers = [
     long_description: "Exa MCP gives agents a search engine designed for LLMs: embeddings-based semantic search, direct answers with citations, and full-page content retrieval — far cleaner than scraping a SERP.",
     installs: 35000, rating: 4.7, rating_count: 180, price_type: "paid", price_amount: 1000, verified: 1, trending: 1,
     weekly_growth: "+26%", repo_url: "https://github.com/exa-labs/exa-mcp-server", license: "MIT",
+    install_command: "npx -y exa-mcp-server",
     tags: ["search", "web", "neural", "research"] }),
   S({ name: "Tavily MCP", slug: "tavily-mcp", author: "tavily", category: "data",
     description: "Search and extract for agents. Real-time web results optimized for RAG and research workflows.",
     long_description: "Tavily MCP provides agent-tuned web search and content extraction with relevance scoring and source control — purpose-built for retrieval-augmented generation.",
     installs: 27000, rating: 4.6, rating_count: 140, price_type: "paid", price_amount: 900, verified: 1, trending: 0,
     weekly_growth: "+15%", repo_url: "https://github.com/tavily-ai/tavily-mcp", license: "MIT",
+    install_command: "npx -y tavily-mcp",
     tags: ["search", "rag", "research", "web"] }),
   S({ name: "Redis MCP", slug: "redis-mcp", author: "redis", category: "data",
     description: "Official Redis server. Work with strings, hashes, streams, pub/sub, and vector search from your agent.",
     long_description: "The official Redis MCP lets agents read and write all Redis data types, use pub/sub and streams, and run vector similarity search — fast caching and real-time data for AI apps.",
     installs: 29000, rating: 4.6, rating_count: 130, price_type: "free", verified: 1, trending: 0,
     weekly_growth: "+11%", repo_url: "https://github.com/redis/mcp-redis", license: "MIT",
+    install_command: "npx -y @redis/mcp-redis",
     tags: ["redis", "cache", "pubsub", "vector"] }),
   S({ name: "MongoDB MCP", slug: "mongodb-mcp", author: "mongodb", category: "data",
     description: "Official MongoDB server. Query collections, run aggregations, and manage Atlas clusters with natural language.",
     long_description: "The official MongoDB MCP connects agents to MongoDB and Atlas: find and aggregate documents, inspect schemas and indexes, and manage clusters — with read-only mode for safety.",
     installs: 31000, rating: 4.6, rating_count: 150, price_type: "free", verified: 1, trending: 0,
     weekly_growth: "+13%", repo_url: "https://github.com/mongodb-js/mongodb-mcp-server", license: "Apache-2.0",
+    install_command: "npx -y mongodb-mcp-server",
     tags: ["mongodb", "database", "nosql", "atlas"] }),
   S({ name: "Qdrant MCP", slug: "qdrant-mcp", author: "qdrant", category: "data",
     description: "Official vector database server. Store and semantically search embeddings — give your agent long-term recall.",
     long_description: "Qdrant MCP turns a Qdrant vector database into a memory and retrieval layer: store embeddings with payloads and run semantic similarity search for RAG and agent memory.",
     installs: 16000, rating: 4.5, rating_count: 70, price_type: "free", verified: 1, trending: 0,
     weekly_growth: "+10%", repo_url: "https://github.com/qdrant/mcp-server-qdrant", license: "Apache-2.0",
+    install_command: "uvx mcp-server-qdrant",
     tags: ["vector", "embeddings", "search", "rag"] }),
 
   // ── Business ───────────────────────────────────────────────────────────────
@@ -268,6 +276,7 @@ const servers = [
     long_description: "A popular community MCP for Atlassian: search and manage Jira issues, transition tickets, and read and write Confluence pages — works with both Cloud and Server/Data Center.",
     installs: 28000, rating: 4.5, rating_count: 130, price_type: "free", verified: 0, trending: 0,
     weekly_growth: "+9%", repo_url: "https://github.com/sooperset/mcp-atlassian", license: "MIT",
+    install_command: "uvx mcp-atlassian",
     tags: ["jira", "confluence", "atlassian", "tickets"] }),
 
   // ── Creative ───────────────────────────────────────────────────────────────
@@ -276,18 +285,21 @@ const servers = [
     long_description: "Blender MCP connects Claude to Blender so you can create and modify 3D scenes conversationally: add and transform objects, apply materials, import assets, and render — the project that put MCP on the map for 3D artists.",
     installs: 49000, rating: 4.8, rating_count: 260, price_type: "free", verified: 1, trending: 1,
     weekly_growth: "+35%", repo_url: "https://github.com/ahujasid/blender-mcp", license: "MIT",
+    install_command: "uvx blender-mcp",
     tags: ["blender", "3d", "modeling", "creative"] }),
   S({ name: "Figma Context MCP", slug: "figma-context-mcp", author: "glips", category: "creative",
     description: "Give your coding agent Figma context. Pull frames, layout, and design tokens to generate accurate UI code.",
     long_description: "Framelink's Figma MCP feeds design data — layout, styles, components, and tokens — straight into coding agents like Cursor, so generated UI actually matches the design instead of guessing.",
     installs: 44000, rating: 4.7, rating_count: 220, price_type: "free", verified: 1, trending: 1,
     weekly_growth: "+31%", repo_url: "https://github.com/GLips/Figma-Context-MCP", license: "MIT",
+    install_command: "npx -y figma-developer-mcp",
     tags: ["figma", "design", "ui", "frontend"] }),
   S({ name: "ElevenLabs MCP", slug: "elevenlabs-mcp", author: "elevenlabs", category: "creative",
     description: "Official ElevenLabs server. Generate speech, clone voices, and transcribe audio from your agent.",
     long_description: "The official ElevenLabs MCP gives agents text-to-speech with lifelike voices, voice cloning and design, sound effects, and speech-to-text — full audio generation in your workflow.",
     installs: 22000, rating: 4.6, rating_count: 110, price_type: "paid", price_amount: 1100, verified: 1, trending: 0,
     weekly_growth: "+17%", repo_url: "https://github.com/elevenlabs/elevenlabs-mcp", license: "MIT",
+    install_command: "uvx elevenlabs-mcp",
     tags: ["audio", "tts", "voice", "speech"] }),
 
   // ── Infrastructure ─────────────────────────────────────────────────────────
@@ -296,42 +308,49 @@ const servers = [
     long_description: "Cloudflare's official MCP suite lets agents build and operate on the edge: deploy and configure Workers, query D1 databases, manage KV and R2 storage, and pull observability data.",
     installs: 45000, rating: 4.7, rating_count: 240, price_type: "free", verified: 1, trending: 1,
     weekly_growth: "+23%", repo_url: "https://github.com/cloudflare/mcp-server-cloudflare", license: "Apache-2.0",
+    install_command: "npx -y @cloudflare/mcp-server-cloudflare",
     tags: ["cloudflare", "edge", "serverless", "workers"] }),
   S({ name: "AWS MCP", slug: "aws-mcp", author: "awslabs", category: "infra",
     description: "Official AWS Labs MCP servers. Query docs, manage resources, estimate costs, and reason about your cloud.",
     long_description: "AWS Labs' MCP collection brings AWS to agents: authoritative documentation lookup, CDK and Terraform helpers, cost analysis, and service operations across a growing list of AWS products.",
     installs: 38000, rating: 4.6, rating_count: 200, price_type: "free", verified: 1, trending: 1,
     weekly_growth: "+20%", repo_url: "https://github.com/awslabs/mcp", license: "Apache-2.0",
+    install_command: "npx -y @awslabs/mcp",
     tags: ["aws", "cloud", "infrastructure", "devops"] }),
   S({ name: "Sentry MCP", slug: "sentry-mcp", author: "sentry", category: "infra",
     description: "Official Sentry server. Pull issues and stack traces, triage errors, and get AI root-cause suggestions.",
     long_description: "Sentry's official MCP surfaces production errors to your agent: fetch issues and events, read stack traces and breadcrumbs, and use Seer for AI-assisted root-cause analysis — debug straight from chat.",
     installs: 38000, rating: 4.7, rating_count: 190, price_type: "free", verified: 1, trending: 0,
     weekly_growth: "+16%", repo_url: "https://github.com/getsentry/sentry-mcp", license: "MIT",
+    install_command: "npx -y @sentry/mcp-server",
     tags: ["sentry", "errors", "monitoring", "observability"] }),
   S({ name: "Grafana MCP", slug: "grafana-mcp", author: "grafana", category: "infra",
     description: "Official Grafana server. Query dashboards, Prometheus/Loki data, and incidents from your agent.",
     long_description: "Grafana's official MCP lets agents search dashboards, run Prometheus and Loki queries, inspect alerts, and work with incidents and on-call — observability you can converse with.",
     installs: 21000, rating: 4.5, rating_count: 90, price_type: "free", verified: 1, trending: 0,
     weekly_growth: "+12%", repo_url: "https://github.com/grafana/mcp-grafana", license: "Apache-2.0",
+    install_command: "npx -y @grafana/mcp-grafana",
     tags: ["grafana", "metrics", "observability", "monitoring"] }),
   S({ name: "Kubernetes MCP", slug: "kubernetes-mcp", author: "flux159", category: "infra",
     description: "Operate Kubernetes from chat. Inspect pods, apply manifests, scale deployments, and read logs safely.",
     long_description: "A widely used community Kubernetes MCP: list and describe resources, apply and diff manifests, scale and roll out deployments, exec and tail logs — kubectl power with a conversational interface.",
     installs: 26000, rating: 4.5, rating_count: 120, price_type: "free", verified: 0, trending: 0,
     weekly_growth: "+14%", repo_url: "https://github.com/Flux159/mcp-server-kubernetes", license: "MIT",
+    install_command: "npx -y mcp-server-kubernetes",
     tags: ["kubernetes", "k8s", "devops", "infrastructure"] }),
   S({ name: "Time MCP", slug: "time-mcp", author: "modelcontextprotocol", category: "infra",
     description: "Reference time and timezone server. Current time, conversions, and scheduling math for agents.",
     long_description: "The Time reference server gives agents reliable time handling: current time in any IANA timezone, conversions between zones, and date math — small but essential for scheduling and reminders.",
     installs: 30000, rating: 4.6, rating_count: 140, price_type: "free", verified: 1, trending: 0,
     weekly_growth: "+8%", repo_url: "https://github.com/modelcontextprotocol/servers", license: "MIT",
+    install_command: "npx -y @modelcontextprotocol/server-time",
     tags: ["time", "timezone", "scheduling", "reference"] }),
   S({ name: "Chess Analysis MCP", slug: "chess-analysis-mcp", author: "punkpeye", category: "creative",
     description: "Analyze positions with Stockfish. Best moves, evaluations, and opening theory for chess tools and tutors.",
     long_description: "Chess Analysis MCP integrates the Stockfish engine: analyze positions by FEN, get best moves at configurable depth, evaluate lines, and generate annotated PGN — great for tutors and analysis apps.",
     installs: 8400, rating: 4.4, rating_count: 42, price_type: "free", verified: 0, trending: 0,
     weekly_growth: "+15%", repo_url: "https://github.com/punkpeye/mcp-chess", license: "MIT",
+    install_command: "npx -y mcp-chess",
     tags: ["chess", "stockfish", "games", "strategy"] }),
 ];
 
@@ -375,7 +394,7 @@ for (const [i, s] of servers.entries()) {
     id, s.name, s.slug, author.id, s.category, s.description, s.long_description,
     s.installs, s.rating, s.rating_count, s.price_type, priceAmount, priceLabel,
     s.verified ? 1 : 0, s.trending ? 1 : 0, GRADIENTS[i % GRADIENTS.length], s.weekly_growth, monthlyRevenue,
-    s.repo_url, JSON.stringify(s.tags), s.license || null, s.install_command || null, createdAt
+    s.repo_url, JSON.stringify(s.tags), s.license || null, s.install_command || SEED_INSTALL_COMMANDS[s.slug] || null, createdAt
   );
 }
 
