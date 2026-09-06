@@ -42,6 +42,46 @@ const stripe = process.env.STRIPE_SECRET_KEY
   ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2026-02-25.clover" })
   : null;
 
+// Live vs test is decided by the key prefix — Stripe never mixes the two, so a
+// `sk_test_`/`rk_test_` key means every charge below is a sandbox charge and no
+// real money moves. Derived from the prefix only; the key itself never leaves here.
+export function stripeKeyMode(key = process.env.STRIPE_SECRET_KEY) {
+  if (!key) return "unset";
+  if (/^(sk|rk)_live_/.test(key)) return "live";
+  if (/^(sk|rk)_test_/.test(key)) return "test";
+  return "unknown";
+}
+
+// A connected account can have submitted its details and still be unable to take
+// money: Stripe holds `transfers` inactive until verification clears, and a
+// missing bank account leaves `payouts_enabled` false. Destination charges need
+// the transfers capability active, and the publisher needs payouts_enabled to
+// ever see the money in their bank — so both gate "this publisher can be paid".
+export function payoutReadiness(account) {
+  const transfers = account?.capabilities?.transfers;
+  const ready = !!(
+    account?.details_submitted &&
+    account?.charges_enabled &&
+    account?.payouts_enabled &&
+    transfers === "active"
+  );
+  let status;
+  if (ready) status = "enabled";
+  else if (!account?.details_submitted) status = "pending";
+  else if (account?.requirements?.disabled_reason) status = "restricted";
+  else status = "verifying";
+  return {
+    ready,
+    status,
+    details_submitted: !!account?.details_submitted,
+    charges_enabled: !!account?.charges_enabled,
+    payouts_enabled: !!account?.payouts_enabled,
+    transfers_capability: transfers || "inactive",
+    disabled_reason: account?.requirements?.disabled_reason || null,
+    currently_due: account?.requirements?.currently_due || [],
+  };
+}
+
 // `processed_events` is the webhook idempotency ledger — it grows by one row per
 // Stripe event forever. Stripe never replays an event older than a few days, so
 // rows past the retention window are dead weight. Prune them periodically to keep
@@ -67,12 +107,86 @@ export function periodEndISO(subscription) {
   return end ? new Date(end * 1000).toISOString() : null;
 }
 
+// A recorded sale *is* ownership — it's what unlocks the install command
+// (servers.js) and what pays the publisher. Checking it before opening any
+// checkout stops a buyer paying twice for a tool they already own, whichever
+// rail they use. Duplicate charges mean refunds, and refunds against a
+// destination charge are clawed back from the publisher's balance.
+export function hasPurchased(serverId, buyerId) {
+  if (!serverId || !buyerId) return false;
+  return !!db.prepare(
+    "SELECT 1 AS ok FROM sales WHERE server_id = ? AND buyer_id = ? LIMIT 1"
+  ).get(serverId, buyerId);
+}
+
 function requireStripe(res) {
   if (!stripe) {
     res.status(501).json({ error: "Stripe is not configured (STRIPE_SECRET_KEY missing)" });
     return false;
   }
   return true;
+}
+
+// Boot-time configuration audit for the money path. Every item here is a
+// misconfiguration that still *looks* healthy — the server starts, the health
+// check passes, and the failure only shows up as a buyer who paid and got
+// nothing. Returns warning strings; server/index.js logs them at startup.
+export function paymentsConfigWarnings(env = process.env) {
+  const warnings = [];
+  const mode = stripeKeyMode(env.STRIPE_SECRET_KEY);
+  const isProd = env.NODE_ENV === "production";
+  const appUrl = env.APP_URL || "";
+
+  if (mode === "unset") {
+    if (isProd) warnings.push("STRIPE_SECRET_KEY is not set — every Stripe endpoint returns 501 and nothing can be sold.");
+    return warnings;
+  }
+
+  if (mode === "unknown") {
+    warnings.push("STRIPE_SECRET_KEY does not look like a Stripe key (expected sk_/rk_ prefix).");
+  }
+
+  if (!env.STRIPE_WEBHOOK_SECRET) {
+    warnings.push(
+      "STRIPE_WEBHOOK_SECRET is not set — checkouts will succeed but the webhook is rejected, " +
+      "so no tier upgrade, install unlock, or sale is ever recorded."
+    );
+  }
+
+  if (mode === "test" && isProd) {
+    warnings.push("Stripe is in TEST mode in a production deploy — no real money can move.");
+  }
+
+  if (mode === "live") {
+    if (!appUrl) {
+      warnings.push(
+        "APP_URL is not set while Stripe is LIVE — buyers are redirected to the localhost " +
+        "default after paying, landing on a dead page."
+      );
+    } else if (/^https?:\/\/(localhost|127\.0\.0\.1)/i.test(appUrl)) {
+      warnings.push(`APP_URL is "${appUrl}" while Stripe is LIVE — buyers are redirected to localhost after paying.`);
+    } else if (!/^https:\/\//i.test(appUrl)) {
+      warnings.push(`APP_URL "${appUrl}" is not https — Stripe return links should be https in production.`);
+    }
+
+    if (!env.STRIPE_PRICE_PRO || !env.STRIPE_PRICE_ENTERPRISE) {
+      warnings.push(
+        "STRIPE_PRICE_PRO / STRIPE_PRICE_ENTERPRISE are not pinned while Stripe is LIVE — " +
+        "the first subscription checkout will create products in the live Stripe account."
+      );
+    }
+  }
+
+  // Solana: the USD→SOL rate is a fixed stub, not a price feed. Harmless on
+  // devnet; on mainnet it means real tools sold at a made-up exchange rate.
+  if (env.SOLANA_TREASURY_WALLET && env.SOLANA_CLUSTER === "mainnet-beta") {
+    warnings.push(
+      "Solana Pay is on mainnet-beta while USD→SOL uses the fixed SOLANA_USD_PER_SOL stub " +
+      "rate — real payments are priced off a hardcoded rate, not a live feed."
+    );
+  }
+
+  return warnings;
 }
 
 // ─── Platform subscription price IDs ─────────────────────────────────────────
@@ -132,6 +246,40 @@ async function getPriceId(tierId) {
   return priceIdCache[tierId];
 }
 
+// ─── GET /api/payments/stripe/config ─────────────────────────────────────────
+// Public readiness, mirroring /solana/config. No secrets — only whether the
+// pieces that have to be set for real money to move actually are, and whether
+// the key in use is live or test. This is the endpoint to curl after a deploy
+// to answer "are we live?" without opening the Stripe Dashboard.
+
+router.get("/stripe/config", (_req, res) => {
+  const mode = stripeKeyMode();
+  const configured = !!stripe;
+  const webhookSecret = !!process.env.STRIPE_WEBHOOK_SECRET;
+  const live = configured && mode === "live" && webhookSecret;
+
+  res.json({
+    enabled: configured,
+    mode,                              // live | test | unknown | unset
+    livemode: mode === "live",
+    webhook_secret_set: webhookSecret,
+    prices_pinned: {
+      pro: !!process.env.STRIPE_PRICE_PRO,
+      enterprise: !!process.env.STRIPE_PRICE_ENTERPRISE,
+    },
+    platform_fee_pct: PLATFORM_FEE_PCT * 100,
+    publisher_share_pct: (1 - PLATFORM_FEE_PCT) * 100,
+    app_url: APP_URL,
+    label: !configured
+      ? "Not configured"
+      : live
+        ? "Live (mainnet money)"
+        : mode === "test"
+          ? "Test mode — no real charges"
+          : "Configured (incomplete)",
+  });
+});
+
 // ─── POST /api/payments/stripe/checkout ──────────────────────────────────────
 // Create a Checkout Session for a platform subscription (Pro / Enterprise).
 
@@ -184,6 +332,14 @@ router.post("/stripe/tool-checkout", requireAuth, async (req, res) => {
   if (!server) return res.status(404).json({ error: "Server not found" });
   if (server.price_type !== "paid" || !server.price_amount) {
     return res.status(400).json({ error: "This tool is free" });
+  }
+  // Already owned — hand back access instead of opening a second checkout.
+  // Not an error: the caller asked for access to this tool and access exists.
+  // Checked before the publisher gate because ownership is a fact about the
+  // buyer: someone who already paid keeps their access even if the publisher's
+  // payouts have since been restricted.
+  if (hasPurchased(server.id, req.user.id)) {
+    return res.json({ already_purchased: true, checkout_url: null, server_slug });
   }
   if (!server.stripe_account_id || !server.stripe_onboarding_done) {
     return res.status(402).json({ error: "Publisher has not completed Stripe onboarding" });
@@ -258,19 +414,25 @@ router.get("/stripe/connect", requireAuth, async (req, res) => {
       console.log(`[stripe] Created Connect account ${accountId} for user ${req.user.id}`);
     }
 
-    // Connected-account webhooks are easy to miss in Dashboard config. Always
-    // reconcile against Stripe so a completed Express KYC marks the publisher
-    // ready even if account.updated never arrived.
-    if (accountId && !onboardingDone) {
+    // Connected-account webhooks are easy to miss in Dashboard config, so always
+    // reconcile against Stripe — in both directions. An account that finished KYC
+    // becomes payout-ready even if account.updated never arrived, and one Stripe
+    // has since restricted stops being advertised as able to take money.
+    let readiness = null;
+    if (accountId) {
       try {
         const live = await stripe.accounts.retrieve(accountId);
-        if (live?.details_submitted) {
-          db.prepare(
-            "UPDATE users SET stripe_onboarding_done = 1, updated_at = datetime('now') WHERE id = ?"
-          ).run(req.user.id);
-          onboardingDone = true;
-          console.log(`[stripe] Synced onboarding complete for ${accountId} (user ${req.user.id})`);
+        readiness = payoutReadiness(live);
+        if (readiness.ready !== onboardingDone) {
+          console.log(
+            `[stripe] Payout readiness for ${accountId} (user ${req.user.id}): ` +
+            `${onboardingDone ? "ready" : "not ready"} → ${readiness.ready ? "ready" : readiness.status}`
+          );
         }
+        db.prepare(
+          "UPDATE users SET stripe_onboarding_done = ?, stripe_payouts_status = ?, updated_at = datetime('now') WHERE id = ?"
+        ).run(readiness.ready ? 1 : 0, readiness.status, req.user.id);
+        onboardingDone = readiness.ready;
       } catch (syncErr) {
         console.error("[stripe] onboarding sync error:", syncErr.message);
       }
@@ -279,7 +441,11 @@ router.get("/stripe/connect", requireAuth, async (req, res) => {
     if (onboardingDone) {
       // Already onboarded — return Express dashboard login link
       const loginLink = await stripe.accounts.createLoginLink(accountId);
-      return res.json({ dashboard_url: loginLink.url, onboarding_done: true });
+      return res.json({
+        dashboard_url: loginLink.url,
+        onboarding_done: true,
+        payouts: readiness,
+      });
     }
 
     // Generate an onboarding AccountLink (single-use, expires after 5 min)
@@ -290,7 +456,7 @@ router.get("/stripe/connect", requireAuth, async (req, res) => {
       type: "account_onboarding",
     });
 
-    res.json({ onboarding_url: accountLink.url, account_id: accountId });
+    res.json({ onboarding_url: accountLink.url, account_id: accountId, payouts: readiness });
   } catch (err) {
     console.error("[stripe] connect error:", err.message);
     res.status(500).json({ error: "Failed to create Connect account" });
@@ -324,6 +490,39 @@ router.get("/stripe/connect/refresh", requireAuth, async (req, res) => {
   }
 });
 
+// Grant a paid tool: unlock the install and record the sale that feeds both the
+// publisher's earnings and the platform's 15%. One transaction, so a Stripe retry
+// after a failed delivery re-applies it cleanly instead of finding a half-written
+// grant. Exported for tests.
+
+export function grantToolPurchase({ server_id, buyer_id, gross_cents }) {
+  if (!server_id || !buyer_id) return { granted: false, reason: "missing server_id or buyer_id" };
+
+  const grossCents = Number(gross_cents) || 0;
+  const feeCents = Math.round(grossCents * PLATFORM_FEE_PCT);
+
+  db.transaction(() => {
+    // installs is UNIQUE(server_id, user_id) — a buyer who already had this tool
+    // installed for free must not blow up the sale row that pays the publisher.
+    // Same INSERT OR IGNORE + counter pattern as POST /api/servers/:slug/install,
+    // so a paid install counts toward adoption exactly once.
+    const inserted = db.prepare(
+      "INSERT OR IGNORE INTO installs (id, server_id, user_id) VALUES (?, ?, ?)"
+    ).run(uuid(), server_id, buyer_id).changes;
+    if (inserted > 0) {
+      db.prepare("UPDATE servers SET installs = installs + 1 WHERE id = ?").run(server_id);
+    }
+
+    if (grossCents > 0) {
+      db.prepare(
+        "INSERT INTO sales (id, server_id, buyer_id, gross_cents, fee_cents, payment_method) VALUES (?, ?, ?, ?, ?, 'stripe')"
+      ).run(uuid(), server_id, buyer_id, grossCents, feeCents);
+    }
+  })();
+
+  return { granted: true, gross_cents: grossCents, fee_cents: feeCents };
+}
+
 // ─── POST /api/payments/stripe/webhook ───────────────────────────────────────
 // Handles both platform (subscription) and Connect (account) events.
 // Body is raw Buffer — express.raw() applied in app.js before express.json().
@@ -346,16 +545,25 @@ router.post("/stripe/webhook", async (req, res) => {
     return res.status(400).json({ error: `Webhook signature invalid: ${err.message}` });
   }
 
-  const alreadyProcessed = db.prepare("SELECT event_id FROM processed_events WHERE event_id = ?").get(event.id);
-  if (alreadyProcessed) {
+  // Claim the event so two concurrent deliveries can't both run the handler.
+  // The claim is *released* below if the handler throws — otherwise a transient
+  // failure would be permanent: we'd 500, Stripe would retry, and the retry
+  // would short-circuit as a duplicate with the money taken and nothing granted.
+  const claimed = db.prepare(
+    "INSERT INTO processed_events (event_id, event_type) VALUES (?, ?) ON CONFLICT(event_id) DO NOTHING"
+  ).run(event.id, event.type).changes;
+
+  if (!claimed) {
     return res.json({ received: true, duplicate: true });
   }
-  db.prepare("INSERT INTO processed_events (event_id, event_type) VALUES (?, ?)").run(event.id, event.type);
 
   try {
     switch (event.type) {
 
-      // ── Platform subscription purchased ───────────────────────────────────
+      // ── Platform subscription purchased / paid tool bought ────────────────
+      // async_payment_succeeded carries the same session shape and lands here
+      // when a delayed-notification method (e.g. bank debit) finally clears.
+      case "checkout.session.async_payment_succeeded":
       case "checkout.session.completed": {
         const session = event.data.object;
         const userId  = session.client_reference_id;
@@ -378,32 +586,38 @@ router.post("/stripe/webhook", async (req, res) => {
             break;
           }
 
-          if (tier) {
+          // One transaction: the tier bump and the subscription row land together
+          // or not at all, so a released retry can't leave a user upgraded with no
+          // subscription row (or cancel their old one for nothing).
+          const expiresAt = periodEndISO(stripeSub);
+          db.transaction(() => {
             db.prepare("UPDATE users SET stripe_customer_id = ?, tier = ?, updated_at = datetime('now') WHERE id = ?")
               .run(session.customer, tier, userId);
             db.prepare("UPDATE subscriptions SET status = 'cancelled' WHERE user_id = ? AND status = 'active'")
               .run(userId);
-            const expiresAt = periodEndISO(stripeSub);
             db.prepare(
               "INSERT INTO subscriptions (id, user_id, tier, status, stripe_subscription_id, expires_at) VALUES (?, ?, ?, 'active', ?, ?)"
             ).run(uuid(), userId, tier, session.subscription, expiresAt);
-          }
+          })();
         }
 
         if (session.mode === "payment") {
-          // Tool purchase — record the install and the sale (for real revenue).
-          const { server_id } = session.metadata || {};
-          if (server_id) {
-            db.prepare("INSERT INTO installs (id, server_id, user_id) VALUES (?, ?, ?)")
-              .run(uuid(), server_id, userId);
-            const grossCents = Number(session.amount_total) || 0;
-            if (grossCents > 0) {
-              const feeCents = Math.round(grossCents * PLATFORM_FEE_PCT);
-              db.prepare(
-                "INSERT INTO sales (id, server_id, buyer_id, gross_cents, fee_cents, payment_method) VALUES (?, ?, ?, ?, ?, 'stripe')"
-              ).run(uuid(), server_id, userId, grossCents, feeCents);
-            }
+          // Tool purchase — unlock the install and record the sale (real revenue).
+          // Only grant once the money is actually in: a card checkout arrives here
+          // already paid, but a delayed-notification method completes the session
+          // while still unpaid and clears later via async_payment_succeeded.
+          if (session.payment_status !== "paid") {
+            console.log(
+              `[stripe] session ${session.id} completed but payment_status=` +
+              `${session.payment_status} — deferring grant`
+            );
+            break;
           }
+          grantToolPurchase({
+            server_id: session.metadata?.server_id,
+            buyer_id: userId,
+            gross_cents: session.amount_total,
+          });
         }
         break;
       }
@@ -427,22 +641,32 @@ router.post("/stripe/webhook", async (req, res) => {
         break;
       }
 
-      // ── Connect: publisher completed onboarding ───────────────────────────
+      // ── Connect: publisher payout readiness changed ───────────────────────
       // Fired when a connected account's requirements change (including first-time
-      // submission). Mark the publisher as ready to receive payouts.
+      // submission). Mirror Stripe's own verdict on whether this publisher can be
+      // paid — including revoking readiness when Stripe restricts the account.
       case "account.updated": {
         const account = event.data.object;
-        if (account.details_submitted) {
-          db.prepare(
-            "UPDATE users SET stripe_onboarding_done = 1, updated_at = datetime('now') WHERE stripe_account_id = ?"
-          ).run(account.id);
-          console.log(`[stripe] Publisher onboarding complete for account ${account.id}`);
-        }
+        const readiness = payoutReadiness(account);
+        db.prepare(
+          "UPDATE users SET stripe_onboarding_done = ?, stripe_payouts_status = ?, updated_at = datetime('now') WHERE stripe_account_id = ?"
+        ).run(readiness.ready ? 1 : 0, readiness.status, account.id);
+        console.log(
+          `[stripe] Account ${account.id} payout status: ${readiness.status}` +
+          (readiness.disabled_reason ? ` (${readiness.disabled_reason})` : "")
+        );
         break;
       }
     }
   } catch (err) {
-    console.error("[stripe] webhook handler error:", err.message);
+    // Release the claim so Stripe's retry is actually reprocessed. Guarded: a
+    // failing release must not replace the 500 that tells Stripe to retry.
+    try {
+      db.prepare("DELETE FROM processed_events WHERE event_id = ?").run(event.id);
+    } catch (releaseErr) {
+      console.error("[stripe] failed to release event claim:", releaseErr.message);
+    }
+    console.error(`[stripe] webhook handler error (${event.type} ${event.id}):`, err.message);
     return res.status(500).json({ error: "Webhook handler failed" });
   }
 
@@ -518,6 +742,11 @@ router.post("/solana/request", requireAuth, (req, res) => {
   if (!server) return res.status(404).json({ error: "Server not found" });
   if (server.price_type !== "paid" || !server.price_amount) {
     return res.status(400).json({ error: "This tool is free" });
+  }
+  // Already owned — don't open a pending purchase the buyer would pay on-chain,
+  // where there is no chargeback to undo it.
+  if (hasPurchased(server.id, req.user.id)) {
+    return res.json({ already_purchased: true, server_slug });
   }
   if (!server.solana_wallet || !isValidPubkey(server.solana_wallet)) {
     return res.status(402).json({ error: "Publisher has not set a Solana payout wallet" });

@@ -139,6 +139,16 @@ function StatCard({ icon: Icon, label, value, sub, color = "#22d3ee" }) {
   );
 }
 
+// What Stripe says is standing between this publisher and getting paid. Shown
+// instead of a bare "Connect Stripe" prompt to someone who already connected —
+// submitting details is not the same as being payable, and the difference is
+// otherwise invisible until a sale fails.
+const PAYOUT_STATUS_NOTE = {
+  pending: "Stripe Connect started · finish onboarding to receive payouts",
+  verifying: "Stripe is verifying your details · payouts enable automatically once cleared",
+  restricted: "Stripe needs more information before it can pay you · open your dashboard to resolve",
+};
+
 export default function Dashboard() {
   const { user, loading: authLoading } = useAuth();
   const [tools, setTools] = useState([]);
@@ -146,6 +156,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [demoMode, setDemoMode] = useState(false);
   const [stripeLoading, setStripeLoading] = useState(false);
+  // Stripe's own verdict on why payouts aren't live yet (null once enabled).
+  const payoutStatus = user?.stripe_payouts_status || null;
   const [solanaWalletInput, setSolanaWalletInput] = useState(user?.solana_wallet || "");
   const [solanaWalletSaving, setSolanaWalletSaving] = useState(false);
   const [solanaWalletMsg, setSolanaWalletMsg] = useState("");
@@ -654,12 +666,18 @@ export default function Dashboard() {
           onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(34, 211, 238,0.08)")}
         >
           <CreditCard size={14} />
-          {stripeLoading ? (stripeConnected ? "Opening…" : "Connecting…") : (stripeConnected ? "Open Stripe Dashboard" : "Connect Stripe for Payouts")}
+          {stripeLoading
+            ? (stripeConnected ? "Opening…" : "Connecting…")
+            : stripeConnected
+              ? "Open Stripe Dashboard"
+              : payoutStatus && payoutStatus !== "pending"
+                ? "Continue Stripe Setup"
+                : "Connect Stripe for Payouts"}
         </button>
         <p style={{ fontSize: "11px", color: stripeConnected ? "#10b981" : "var(--text-muted)", textAlign: "center", marginTop: "10px", fontFamily: "var(--font-mono)" }}>
           {stripeConnected
             ? "Stripe Connect linked · Payouts every 1st of the month"
-            : "Powered by Stripe Connect · Payouts every 1st of the month"}
+            : PAYOUT_STATUS_NOTE[payoutStatus] || "Powered by Stripe Connect · Payouts every 1st of the month"}
         </p>
 
         <div style={{ marginTop: "22px", paddingTop: "20px", borderTop: "1px solid #1d1d2b" }}>

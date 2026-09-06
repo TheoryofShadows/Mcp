@@ -36,6 +36,16 @@ if (userCount === 0) {
   }
 }
 
+// Audit the money path at boot. These misconfigurations all leave a *healthy*
+// server — the health check passes and the site loads; the failure only shows up
+// as a buyer who paid and got nothing. Loud at startup beats silent in Stripe.
+{
+  const { paymentsConfigWarnings } = await import("./routes/payments.js");
+  for (const warning of paymentsConfigWarnings()) {
+    logger.warn(`[payments] ${warning}`);
+  }
+}
+
 const app = createApp();
 
 // Serve static files in production

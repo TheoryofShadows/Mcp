@@ -670,7 +670,14 @@ export default function ToolDetail() {
                   setCheckoutLoading(true);
                   setCheckoutErr("");
                   try {
-                    await toolCheckout(tool.slug);
+                    // Resolves to data (not a redirect) when the tool is already
+                    // owned — unlock it rather than charging for it twice.
+                    const result = await toolCheckout(tool.slug);
+                    if (result?.already_purchased) {
+                      setUnlocked(true);
+                      setInstallMsg(true);
+                      setActiveTab("Install");
+                    }
                   } catch (err) {
                     setCheckoutErr(
                       /onboard/i.test(err.message)
@@ -743,6 +750,13 @@ export default function ToolDetail() {
                           setCheckoutErr("");
                           try {
                             const req = await solanaToolRequest(tool.slug);
+                            if (req?.already_purchased) {
+                              setSolanaMsg("Already purchased · tool unlocked");
+                              setUnlocked(true);
+                              setInstallMsg(true);
+                              setActiveTab("Install");
+                              return;
+                            }
                             const { signature } = await payWithPhantom({
                               cluster: req.cluster,
                               recipient: req.recipient,
