@@ -79,6 +79,7 @@
     "browserslist": "^4.28.7",
     "postcss": "^8.5.23",
     "shell-quote": "^1.9.0",
-    "@humanfs/node": "^0.16.8"
+    "@humanfs/node": "^0.16.8",
+    "uuid": "$uuid"
   }
 }
