@@ -48,12 +48,12 @@
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
-    "lucide-react": "^0.575.0",
+    "lucide-react": "^1.41.0",
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "react-router-dom": "^7.18.1",
+    "react-router-dom": "^7.18.3",
     "stripe": "^22.3.0",
     "uuid": "^14.0.1"
   },
@@ -73,6 +73,11 @@
     "vitest": "^4.1.10"
   },
   "overrides": {
-    "js-cookie": "^3.0.8"
+    "js-cookie": "^3.0.8",
+    "qs": "^6.16.0",
+    "browserslist": "^4.28.7",
+    "postcss": "^8.5.23",
+    "shell-quote": "^1.9.0",
+    "@humanfs/node": "^0.16.8"
   }
 }
