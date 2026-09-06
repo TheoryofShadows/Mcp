@@ -148,6 +148,10 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [demoMode, setDemoMode] = useState(false);
   const [stripeLoading, setStripeLoading] = useState(false);
+  const [stripeConnected, setStripeConnected] = useState(!!user?.stripe_connected || !!user?.stripe_onboarding_done);
+  useEffect(() => {
+    setStripeConnected(!!user?.stripe_connected || !!user?.stripe_onboarding_done);
+  }, [user?.stripe_connected, user?.stripe_onboarding_done]);
   const [verifyTool, setVerifyTool] = useState(null);
   const [earnings, setEarnings] = useState(null);
 
@@ -486,6 +490,7 @@ export default function Dashboard() {
             setStripeLoading(true);
             try {
               const data = await connectStripe();
+              if (data?.onboarding_done || data?.dashboard_url) setStripeConnected(true);
               if (data?.onboarding_url) window.location.href = data.onboarding_url;
               else if (data?.dashboard_url) window.location.href = data.dashboard_url;
             } catch (err) {
@@ -498,10 +503,12 @@ export default function Dashboard() {
           onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(34, 211, 238,0.08)")}
         >
           <CreditCard size={14} />
-          {stripeLoading ? "Connecting…" : "Connect Stripe for Payouts"}
+          {stripeLoading ? (stripeConnected ? "Opening…" : "Connecting…") : (stripeConnected ? "Open Stripe Dashboard" : "Connect Stripe for Payouts")}
         </button>
-        <p style={{ fontSize: "11px", color: "var(--text-muted)", textAlign: "center", marginTop: "10px", fontFamily: "var(--font-mono)" }}>
-          Powered by Stripe Connect · Payouts every 1st of the month
+        <p style={{ fontSize: "11px", color: stripeConnected ? "#10b981" : "var(--text-muted)", textAlign: "center", marginTop: "10px", fontFamily: "var(--font-mono)" }}>
+          {stripeConnected
+            ? "Stripe Connect linked · Payouts every 1st of the month"
+            : "Powered by Stripe Connect · Payouts every 1st of the month"}
         </p>
       </div>
 
