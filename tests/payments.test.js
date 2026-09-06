@@ -370,17 +370,30 @@ describe("Solana Pay HTTP", () => {
       .set("Authorization", `Bearer ${publisherToken}`)
       .send({ solana_wallet: PUBLISHER_WALLET });
 
+    // A *second* buyer: the one above already owns the tool, and the
+    // double-purchase guard now (correctly) refuses to open another purchase
+    // for an owner instead of charging them twice.
+    const suffix = `${Date.now().toString(36)}b`;
+    const second = await request(app).post("/api/auth/register").send({
+      email: `solana-buyer2-${suffix}@example.com`,
+      username: `solanabuyer2${suffix}`,
+      password: "testpassword1",
+    });
+    expect(second.status).toBe(201);
+    const secondToken = second.body.token;
+
     const req = await request(app)
       .post("/api/payments/solana/request")
-      .set("Authorization", `Bearer ${buyerToken}`)
+      .set("Authorization", `Bearer ${secondToken}`)
       .send({ server_slug: paidSlug });
     expect(req.status).toBe(200);
+    expect(req.body.purchase_id).toBeTruthy();
 
     setSolanaVerifyImpl(async () => ({ ok: false, error: "Publisher amount mismatch" }));
 
     const conf = await request(app)
       .post("/api/payments/solana/confirm")
-      .set("Authorization", `Bearer ${buyerToken}`)
+      .set("Authorization", `Bearer ${secondToken}`)
       .send({ purchase_id: req.body.purchase_id, signature: `sig2${Date.now()}${"b".repeat(60)}` });
     expect(conf.status).toBe(402);
     expect(conf.body.error).toMatch(/mismatch/i);

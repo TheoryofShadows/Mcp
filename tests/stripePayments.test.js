@@ -2,16 +2,21 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import request from "supertest";
 import { cleanup, backdateUser, db } from "./setup.js";
 import { createApp } from "../server/app.js";
+import { Keypair } from "@solana/web3.js";
 import {
   stripeKeyMode,
   payoutReadiness,
   grantToolPurchase,
+  hasPurchased,
 } from "../server/routes/payments.js";
 
 const app = createApp();
 
 let buyerId;
+let buyerToken;
+let publisherId;
 let serverId;
+let serverSlug;
 
 beforeAll(async () => {
   const pub = await request(app).post("/api/auth/register").send({
@@ -19,6 +24,7 @@ beforeAll(async () => {
     username: "stripepub",
     password: "stripepubpass1",
   });
+  publisherId = pub.body.user.id;
   backdateUser("stripepub@example.com");
 
   const buyer = await request(app).post("/api/auth/register").send({
@@ -27,6 +33,7 @@ beforeAll(async () => {
     password: "stripebuyerpass1",
   });
   buyerId = buyer.body.user.id;
+  buyerToken = buyer.body.token;
 
   const created = await request(app)
     .post("/api/servers")
@@ -41,6 +48,7 @@ beforeAll(async () => {
     });
   expect(created.status).toBe(201);
   serverId = created.body.id;
+  serverSlug = created.body.slug;
 });
 
 afterAll(cleanup);
@@ -195,6 +203,82 @@ describe("GET /api/payments/stripe/config", () => {
       label: "Not configured",
     });
     expect(JSON.stringify(res.body)).not.toMatch(/sk_|rk_|whsec_/);
+  });
+});
+
+describe("hasPurchased", () => {
+  it("is false for a buyer with no sale, true once one is recorded", async () => {
+    const fresh = await request(app).post("/api/auth/register").send({
+      email: "ownercheck@example.com",
+      username: "ownercheck",
+      password: "ownercheckpass1",
+    });
+    const freshId = fresh.body.user.id;
+
+    expect(hasPurchased(serverId, freshId)).toBe(false);
+    grantToolPurchase({ server_id: serverId, buyer_id: freshId, gross_cents: 2000 });
+    expect(hasPurchased(serverId, freshId)).toBe(true);
+  });
+
+  it("is false when either side is missing", () => {
+    expect(hasPurchased(null, buyerId)).toBe(false);
+    expect(hasPurchased(serverId, null)).toBe(false);
+  });
+});
+
+describe("double-purchase guard", () => {
+  const TREASURY = Keypair.generate().publicKey.toBase58();
+  const PUBLISHER_WALLET = Keypair.generate().publicKey.toBase58();
+
+  beforeAll(() => {
+    process.env.SOLANA_TREASURY_WALLET = TREASURY;
+    process.env.SOLANA_CLUSTER = "devnet";
+    process.env.SOLANA_USD_PER_SOL = "150";
+    db.prepare("UPDATE users SET solana_wallet = ? WHERE id = ?").run(PUBLISHER_WALLET, publisherId);
+  });
+
+  afterAll(() => {
+    delete process.env.SOLANA_TREASURY_WALLET;
+  });
+
+  it("refuses to open a Solana purchase for a tool the buyer already owns", async () => {
+    // buyerId already has a sale for serverId from the grant tests above.
+    expect(hasPurchased(serverId, buyerId)).toBe(true);
+    const before = db
+      .prepare("SELECT COUNT(*) AS c FROM solana_purchases WHERE buyer_id = ?")
+      .get(buyerId).c;
+
+    const res = await request(app)
+      .post("/api/payments/solana/request")
+      .set("Authorization", `Bearer ${buyerToken}`)
+      .send({ server_slug: serverSlug });
+
+    expect(res.status).toBe(200);
+    expect(res.body.already_purchased).toBe(true);
+    // No pending purchase created — an on-chain payment has no chargeback.
+    expect(res.body.reference).toBeUndefined();
+    const after = db
+      .prepare("SELECT COUNT(*) AS c FROM solana_purchases WHERE buyer_id = ?")
+      .get(buyerId).c;
+    expect(after).toBe(before);
+  });
+
+  it("still opens a purchase for a buyer who does not own the tool", async () => {
+    const other = await request(app).post("/api/auth/register").send({
+      email: "firsttimebuyer@example.com",
+      username: "firsttimebuyer",
+      password: "firsttimepass1",
+    });
+
+    const res = await request(app)
+      .post("/api/payments/solana/request")
+      .set("Authorization", `Bearer ${other.body.token}`)
+      .send({ server_slug: serverSlug });
+
+    expect(res.status).toBe(200);
+    expect(res.body.already_purchased).toBeUndefined();
+    expect(res.body.reference).toBeTruthy();
+    expect(res.body.recipient).toBe(PUBLISHER_WALLET);
   });
 });
 

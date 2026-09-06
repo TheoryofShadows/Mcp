@@ -107,6 +107,18 @@ export function periodEndISO(subscription) {
   return end ? new Date(end * 1000).toISOString() : null;
 }
 
+// A recorded sale *is* ownership — it's what unlocks the install command
+// (servers.js) and what pays the publisher. Checking it before opening any
+// checkout stops a buyer paying twice for a tool they already own, whichever
+// rail they use. Duplicate charges mean refunds, and refunds against a
+// destination charge are clawed back from the publisher's balance.
+export function hasPurchased(serverId, buyerId) {
+  if (!serverId || !buyerId) return false;
+  return !!db.prepare(
+    "SELECT 1 AS ok FROM sales WHERE server_id = ? AND buyer_id = ? LIMIT 1"
+  ).get(serverId, buyerId);
+}
+
 function requireStripe(res) {
   if (!stripe) {
     res.status(501).json({ error: "Stripe is not configured (STRIPE_SECRET_KEY missing)" });
@@ -259,6 +271,14 @@ router.post("/stripe/tool-checkout", requireAuth, async (req, res) => {
   if (!server) return res.status(404).json({ error: "Server not found" });
   if (server.price_type !== "paid" || !server.price_amount) {
     return res.status(400).json({ error: "This tool is free" });
+  }
+  // Already owned — hand back access instead of opening a second checkout.
+  // Not an error: the caller asked for access to this tool and access exists.
+  // Checked before the publisher gate because ownership is a fact about the
+  // buyer: someone who already paid keeps their access even if the publisher's
+  // payouts have since been restricted.
+  if (hasPurchased(server.id, req.user.id)) {
+    return res.json({ already_purchased: true, checkout_url: null, server_slug });
   }
   if (!server.stripe_account_id || !server.stripe_onboarding_done) {
     return res.status(402).json({ error: "Publisher has not completed Stripe onboarding" });
@@ -661,6 +681,11 @@ router.post("/solana/request", requireAuth, (req, res) => {
   if (!server) return res.status(404).json({ error: "Server not found" });
   if (server.price_type !== "paid" || !server.price_amount) {
     return res.status(400).json({ error: "This tool is free" });
+  }
+  // Already owned — don't open a pending purchase the buyer would pay on-chain,
+  // where there is no chargeback to undo it.
+  if (hasPurchased(server.id, req.user.id)) {
+    return res.json({ already_purchased: true, server_slug });
   }
   if (!server.solana_wallet || !isValidPubkey(server.solana_wallet)) {
     return res.status(402).json({ error: "Publisher has not set a Solana payout wallet" });

@@ -157,6 +157,12 @@ A `label` of `Live (mainnet money)` means the key is live *and*
   receives the charge, `application_fee_amount` (15%) is retained by the platform.
   Publishers keep 85%.
 
+A buyer is never charged twice for the same tool: a recorded sale *is* ownership,
+so both checkout rails hand back existing access rather than opening a second
+payment. This matters most on Solana, where an on-chain payment has no chargeback
+to undo it, and on Stripe, where refunding a destination charge claws the money
+back out of the publisher's balance.
+
 A paid listing is only offered for sale once its publisher's connected account is
 genuinely payable — Stripe reports `details_submitted`, `charges_enabled`,
 `payouts_enabled`, **and** an `active` transfers capability. Anything short of
