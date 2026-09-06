@@ -28,6 +28,8 @@ create table if not exists users (
   -- Stripe Connect: publisher payout account
   stripe_account_id      text,
   stripe_onboarding_done boolean default false,
+  -- Solana Pay: publisher payout pubkey (base58)
+  solana_wallet            text,
   created_at             timestamptz default now(),
   updated_at             timestamptz default now()
 );
@@ -167,9 +169,32 @@ create table if not exists sales (
   buyer_id    uuid references users(id) on delete set null,
   gross_cents integer not null,
   fee_cents   integer not null,
+  payment_method text default 'stripe',
   created_at  timestamptz default now()
 );
 create index if not exists idx_sales_server on sales(server_id);
+
+-- Solana Pay pending/completed purchases (verified on-chain before unlock)
+create table if not exists solana_purchases (
+  id                 uuid primary key default gen_random_uuid(),
+  buyer_id           uuid not null references users(id),
+  server_id          uuid not null references servers(id) on delete cascade,
+  reference          text not null unique,
+  recipient          text not null,
+  platform_recipient text not null,
+  gross_cents        integer not null,
+  fee_cents          integer not null,
+  publisher_lamports bigint not null,
+  platform_lamports  bigint not null,
+  cluster            text not null,
+  status             text not null default 'pending'
+                     check (status in ('pending','completed','expired')),
+  signature          text,
+  created_at         timestamptz default now(),
+  completed_at       timestamptz
+);
+create index if not exists idx_solana_purchases_buyer on solana_purchases(buyer_id, status);
+
 
 -- ─── Audit events (server-managed; no client RLS access) ─────────────────────
 -- Persistent trail of admin actions, auth failures and safety-sensitive writes.

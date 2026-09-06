@@ -105,6 +105,7 @@ router.get("/", (req, res) => {
       s.*,
       u.username as author_username,
       u.display_name as author_display_name,
+      CASE WHEN u.solana_wallet IS NOT NULL AND length(trim(u.solana_wallet)) > 0 THEN 1 ELSE 0 END as publisher_has_solana_wallet,
       c.label as category_label,
       (SELECT COUNT(*) FROM flags f WHERE f.server_id = s.id AND f.status = 'open' AND f.user_id IS NOT NULL) as open_flags
     FROM servers s
@@ -135,6 +136,7 @@ router.get("/:slug", (req, res) => {
       s.*,
       u.username as author_username,
       u.display_name as author_display_name,
+      CASE WHEN u.solana_wallet IS NOT NULL AND length(trim(u.solana_wallet)) > 0 THEN 1 ELSE 0 END as publisher_has_solana_wallet,
       c.label as category_label,
       (SELECT COUNT(*) FROM flags f WHERE f.server_id = s.id AND f.status = 'open' AND f.user_id IS NOT NULL) as open_flags
     FROM servers s
@@ -640,6 +642,7 @@ function formatServer(row) {
     price: row.price_label,
     price_type: row.price_type,
     price_amount: row.price_amount,
+    publisher_has_solana_wallet: !!row.publisher_has_solana_wallet,
     verified: !!row.verified,
     trending: !!row.trending,
     gradient: row.gradient,

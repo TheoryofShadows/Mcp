@@ -193,3 +193,16 @@ npm run build
 NODE_ENV=production npm start
 ```
 </content>
+
+## Solana Pay (optional)
+
+Set these Railway / host env vars to enable Phantom checkout for paid tools:
+
+| Variable | Required | Notes |
+|----------|----------|-------|
+| `SOLANA_TREASURY_WALLET` | ✅ | Platform fee recipient (base58). Enables the feature. |
+| `SOLANA_CLUSTER` | — | `devnet` (default) \| `mainnet-beta` \| `testnet` |
+| `SOLANA_RPC_URL` | — | Custom RPC; otherwise public cluster URL |
+| `SOLANA_USD_PER_SOL` | — | FX stub for USD→lamports (default `150`) |
+
+Publishers must also save a Solana wallet under Dashboard → Payouts.

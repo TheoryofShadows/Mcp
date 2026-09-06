@@ -20,6 +20,14 @@ import { Router } from "express";
 import { v4 as uuid } from "uuid";
 import db from "../db.js";
 import { requireAuth } from "../middleware/auth.js";
+import {
+  getSolanaConfig,
+  isValidPubkey,
+  centsToLamports,
+  splitLamports,
+  newReferencePubkey,
+  verifyPurchaseTransaction,
+} from "../lib/solanaPay.js";
 
 const router = Router();
 
@@ -392,7 +400,7 @@ router.post("/stripe/webhook", async (req, res) => {
             if (grossCents > 0) {
               const feeCents = Math.round(grossCents * PLATFORM_FEE_PCT);
               db.prepare(
-                "INSERT INTO sales (id, server_id, buyer_id, gross_cents, fee_cents) VALUES (?, ?, ?, ?, ?)"
+                "INSERT INTO sales (id, server_id, buyer_id, gross_cents, fee_cents, payment_method) VALUES (?, ?, ?, ?, ?, 'stripe')"
               ).run(uuid(), server_id, userId, grossCents, feeCents);
             }
           }
@@ -441,12 +449,224 @@ router.post("/stripe/webhook", async (req, res) => {
   res.json({ received: true });
 });
 
-// ─── Solana Pay ───────────────────────────────────────────────────────────────
+// ─── Solana Pay (paid tools — Phantom / Wallet Standard) ─────────────────────
 
-router.post("/solana/request", async (_req, res) => {
-  res.status(501).json({
-    error: "Solana Pay integration coming soon",
-    docs: "https://docs.solanapay.com",
+function requireSolana(res) {
+  const cfg = getSolanaConfig();
+  if (!cfg.enabled) {
+    res.status(501).json({
+      error: "Solana Pay is not configured (set SOLANA_TREASURY_WALLET)",
+      cluster: cfg.cluster,
+      docs: "https://docs.solanapay.com",
+    });
+    return null;
+  }
+  return cfg;
+}
+
+// GET /api/payments/solana/config — public readiness (no secrets)
+router.get("/solana/config", (_req, res) => {
+  const cfg = getSolanaConfig();
+  res.json({
+    enabled: cfg.enabled,
+    cluster: cfg.cluster,
+    currency: cfg.currency,
+    currency_label: cfg.currency_label,
+    fx_note: cfg.fx_note,
+    usd_per_sol: cfg.usdPerSol,
+    platform_fee_pct: PLATFORM_FEE_PCT * 100,
+    label: cfg.enabled
+      ? (cfg.cluster === "mainnet-beta" ? "Live (mainnet)" : `Live (${cfg.cluster})`)
+      : "Coming soon",
+  });
+});
+
+// PUT /api/payments/solana/wallet — publisher saves payout pubkey
+router.put("/solana/wallet", requireAuth, (req, res) => {
+  const { solana_wallet } = req.body || {};
+  if (!solana_wallet || !isValidPubkey(solana_wallet)) {
+    return res.status(400).json({ error: "solana_wallet must be a valid base58 Solana pubkey" });
+  }
+  db.prepare(
+    "UPDATE users SET solana_wallet = ?, updated_at = datetime('now') WHERE id = ?"
+  ).run(solana_wallet, req.user.id);
+  res.json({ solana_wallet, saved: true });
+});
+
+// DELETE /api/payments/solana/wallet — clear publisher wallet
+router.delete("/solana/wallet", requireAuth, (req, res) => {
+  db.prepare(
+    "UPDATE users SET solana_wallet = NULL, updated_at = datetime('now') WHERE id = ?"
+  ).run(req.user.id);
+  res.json({ cleared: true });
+});
+
+// POST /api/payments/solana/request — create pending purchase + return pay params
+router.post("/solana/request", requireAuth, (req, res) => {
+  const cfg = requireSolana(res);
+  if (!cfg) return;
+
+  const { server_slug } = req.body || {};
+  if (!server_slug) return res.status(400).json({ error: "server_slug required" });
+
+  const server = db.prepare(`
+    SELECT s.*, u.solana_wallet
+    FROM servers s JOIN users u ON u.id = s.author_id
+    WHERE s.slug = ? AND s.status = 'active'
+  `).get(server_slug);
+
+  if (!server) return res.status(404).json({ error: "Server not found" });
+  if (server.price_type !== "paid" || !server.price_amount) {
+    return res.status(400).json({ error: "This tool is free" });
+  }
+  if (!server.solana_wallet || !isValidPubkey(server.solana_wallet)) {
+    return res.status(402).json({ error: "Publisher has not set a Solana payout wallet" });
+  }
+
+  const grossCents = server.price_amount;
+  const feeCents = Math.round(grossCents * PLATFORM_FEE_PCT);
+  const totalLamports = centsToLamports(grossCents, cfg.usdPerSol);
+  const { publisher_lamports, platform_lamports } = splitLamports(totalLamports);
+  const reference = newReferencePubkey();
+  const purchaseId = uuid();
+
+  db.prepare(`
+    INSERT INTO solana_purchases (
+      id, buyer_id, server_id, reference, recipient, platform_recipient,
+      gross_cents, fee_cents, publisher_lamports, platform_lamports, cluster, status
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+  `).run(
+    purchaseId,
+    req.user.id,
+    server.id,
+    reference,
+    server.solana_wallet,
+    cfg.treasury,
+    grossCents,
+    feeCents,
+    publisher_lamports,
+    platform_lamports,
+    cfg.cluster,
+  );
+
+  res.json({
+    purchase_id: purchaseId,
+    reference,
+    recipient: server.solana_wallet,
+    platform_recipient: cfg.treasury,
+    publisher_amount: publisher_lamports,
+    platform_amount: platform_lamports,
+    publisher_lamports,
+    platform_lamports,
+    gross_cents: grossCents,
+    fee_cents: feeCents,
+    spl_token: null,
+    currency: cfg.currency,
+    currency_label: cfg.currency_label,
+    fx_note: cfg.fx_note,
+    usd_per_sol: cfg.usdPerSol,
+    cluster: cfg.cluster,
+    label: cfg.cluster === "mainnet-beta" ? "Live (mainnet)" : `Live (${cfg.cluster})`,
+    server_slug,
+    server_name: server.name,
+  });
+});
+
+// POST /api/payments/solana/confirm — verify on-chain tx, unlock tool (same as Stripe)
+router.post("/solana/confirm", requireAuth, async (req, res) => {
+  const cfg = requireSolana(res);
+  if (!cfg) return;
+
+  const { purchase_id, signature } = req.body || {};
+  if (!purchase_id || !signature) {
+    return res.status(400).json({ error: "purchase_id and signature required" });
+  }
+
+  const purchase = db.prepare(
+    "SELECT * FROM solana_purchases WHERE id = ? AND buyer_id = ?"
+  ).get(purchase_id, req.user.id);
+
+  if (!purchase) return res.status(404).json({ error: "Purchase not found" });
+
+  if (purchase.status === "completed") {
+    return res.json({
+      status: "completed",
+      purchase_id,
+      signature: purchase.signature,
+      duplicate: true,
+    });
+  }
+
+  if (purchase.status !== "pending") {
+    return res.status(400).json({ error: `Purchase is ${purchase.status}` });
+  }
+
+  // Reject reused signatures across purchases
+  const sigTaken = db.prepare(
+    "SELECT id FROM solana_purchases WHERE signature = ? AND id != ?"
+  ).get(signature, purchase_id);
+  if (sigTaken) {
+    return res.status(409).json({ error: "Signature already used for another purchase" });
+  }
+
+  const verified = await verifyPurchaseTransaction({
+    signature,
+    reference: purchase.reference,
+    recipient: purchase.recipient,
+    platformRecipient: purchase.platform_recipient,
+    publisherLamports: purchase.publisher_lamports,
+    platformLamports: purchase.platform_lamports,
+  });
+
+  if (!verified.ok) {
+    return res.status(402).json({ error: verified.error || "On-chain verification failed" });
+  }
+
+  // Grant access the same way Stripe webhook does: install + sales row
+  const unlock = db.transaction(() => {
+    db.prepare(
+      "UPDATE solana_purchases SET status = 'completed', signature = ?, completed_at = datetime('now') WHERE id = ? AND status = 'pending'"
+    ).run(signature, purchase_id);
+
+    try {
+      db.prepare("INSERT INTO installs (id, server_id, user_id) VALUES (?, ?, ?)")
+        .run(uuid(), purchase.server_id, req.user.id);
+    } catch {
+      // Unique (server, user) — already installed is fine
+    }
+
+    db.prepare(
+      "INSERT INTO sales (id, server_id, buyer_id, gross_cents, fee_cents, payment_method) VALUES (?, ?, ?, ?, ?, 'solana')"
+    ).run(uuid(), purchase.server_id, req.user.id, purchase.gross_cents, purchase.fee_cents);
+  });
+
+  try {
+    unlock();
+  } catch (err) {
+    console.error("[solana] unlock error:", err.message);
+    return res.status(500).json({ error: "Failed to record purchase" });
+  }
+
+  console.log(`[solana] Purchase ${purchase_id} confirmed sig=${signature.slice(0, 16)}…`);
+  res.json({ status: "completed", purchase_id, signature });
+});
+
+// GET /api/payments/solana/status/:purchase_id — poll
+router.get("/solana/status/:purchase_id", requireAuth, (req, res) => {
+  const purchase = db.prepare(
+    "SELECT id, status, signature, cluster, created_at, completed_at, gross_cents, fee_cents FROM solana_purchases WHERE id = ? AND buyer_id = ?"
+  ).get(req.params.purchase_id, req.user.id);
+
+  if (!purchase) return res.status(404).json({ error: "Purchase not found" });
+  res.json({
+    purchase_id: purchase.id,
+    status: purchase.status,
+    signature: purchase.signature,
+    cluster: purchase.cluster,
+    created_at: purchase.created_at,
+    completed_at: purchase.completed_at,
+    gross_cents: purchase.gross_cents,
+    fee_cents: purchase.fee_cents,
   });
 });
 

@@ -442,7 +442,7 @@ export default function Home() {
             {
               icon: CreditCard, color: "#22d3ee",
               title: "Builders get paid (85%)",
-              body: "List a paid tool, connect Stripe once, and keep 85% of every sale. Monthly Connect payouts are live today. Solana Pay is on the roadmap — labeled Coming soon, not sold as ready.",
+              body: "List a paid tool, connect Stripe once, and keep 85% of every sale. Monthly Connect payouts are live today. Solana Pay with Phantom is available for paid tools on the configured cluster (default: Live (devnet)).",
             },
             {
               icon: Bot, color: "#7dd3fc",

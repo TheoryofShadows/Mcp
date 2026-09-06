@@ -9,7 +9,7 @@ import PriceTag from "../components/PriceTag";
 import VerifyRepoModal from "../components/VerifyRepoModal";
 import { SEED_TOOLS } from "../data/seed";
 import { supabase } from "../lib/supabase";
-import { fetchServers, getMe, connectStripe, fetchEarnings } from "../api/client";
+import { fetchServers, getMe, connectStripe, fetchEarnings, saveSolanaWallet } from "../api/client";
 
 // Mock dashboard data for demo / no-auth mode
 const MOCK_TOOLS = SEED_TOOLS.filter((t) => ["github-mcp", "filesystem-mcp", "postgres-mcp"].includes(t.slug));
@@ -148,10 +148,17 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [demoMode, setDemoMode] = useState(false);
   const [stripeLoading, setStripeLoading] = useState(false);
+  const [solanaWalletInput, setSolanaWalletInput] = useState(user?.solana_wallet || "");
+  const [solanaWalletSaving, setSolanaWalletSaving] = useState(false);
+  const [solanaWalletMsg, setSolanaWalletMsg] = useState("");
   const [stripeConnected, setStripeConnected] = useState(!!user?.stripe_connected || !!user?.stripe_onboarding_done);
   useEffect(() => {
     setStripeConnected(!!user?.stripe_connected || !!user?.stripe_onboarding_done);
   }, [user?.stripe_connected, user?.stripe_onboarding_done]);
+
+  useEffect(() => {
+    if (user?.solana_wallet) setSolanaWalletInput(user.solana_wallet);
+  }, [user?.solana_wallet]);
   const [verifyTool, setVerifyTool] = useState(null);
   const [earnings, setEarnings] = useState(null);
 
@@ -510,6 +517,69 @@ export default function Dashboard() {
             ? "Stripe Connect linked · Payouts every 1st of the month"
             : "Powered by Stripe Connect · Payouts every 1st of the month"}
         </p>
+
+        <div style={{ marginTop: "22px", paddingTop: "20px", borderTop: "1px solid #1d1d2b" }}>
+          <div style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--text-muted)", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            Solana Pay wallet
+          </div>
+          <p style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "10px", lineHeight: 1.5 }}>
+            Required before buyers can pay with Phantom. Same 85/15 split as Stripe (on-chain dual transfer). Default cluster is <strong style={{ color: "var(--text-primary)" }}>devnet</strong> until mainnet is enabled.
+          </p>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            <input
+              type="text"
+              value={solanaWalletInput}
+              onChange={(e) => setSolanaWalletInput(e.target.value.trim())}
+              placeholder="Base58 Solana pubkey"
+              style={{
+                flex: "1 1 220px",
+                padding: "10px 12px",
+                background: "#0d0d15",
+                border: "1px solid #1d1d2b",
+                borderRadius: "8px",
+                color: "var(--text-primary)",
+                fontFamily: "var(--font-mono)",
+                fontSize: "12px",
+              }}
+            />
+            <button
+              type="button"
+              disabled={solanaWalletSaving || !solanaWalletInput}
+              onClick={async () => {
+                if (!user) { window.location.href = "/login"; return; }
+                setSolanaWalletSaving(true);
+                setSolanaWalletMsg("");
+                try {
+                  const data = await saveSolanaWallet(solanaWalletInput);
+                  setSolanaWalletMsg("Saved");
+                  setSolanaWalletInput(data.solana_wallet);
+                } catch (err) {
+                  setSolanaWalletMsg(err.message || "Save failed");
+                } finally {
+                  setSolanaWalletSaving(false);
+                }
+              }}
+              style={{
+                padding: "10px 16px",
+                background: "rgba(153,69,255,0.15)",
+                border: "1px solid rgba(153,69,255,0.35)",
+                borderRadius: "8px",
+                color: "#e9d5ff",
+                fontSize: "13px",
+                fontWeight: 600,
+                cursor: solanaWalletSaving ? "not-allowed" : "pointer",
+                opacity: solanaWalletSaving || !solanaWalletInput ? 0.6 : 1,
+              }}
+            >
+              {solanaWalletSaving ? "Saving…" : "Save wallet"}
+            </button>
+          </div>
+          {solanaWalletMsg && (
+            <p style={{ fontSize: "11px", color: solanaWalletMsg === "Saved" ? "#10b981" : "#f87171", marginTop: "8px", fontFamily: "var(--font-mono)" }}>
+              {solanaWalletMsg}
+            </p>
+          )}
+        </div>
       </div>
 
       {verifyTool && (

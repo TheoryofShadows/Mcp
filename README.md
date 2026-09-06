@@ -230,7 +230,7 @@ Full architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - [x] `npx mcpx install <slug>` — trust-enforcing CLI installer ([`cli/`](cli/))
 - [x] Repo ownership verification (`.mcpx-verify`) + source-scan-aware Trust Score
 - [x] Reference MCP server: [`@mcpx/railway`](railway-mcp/)
-- [ ] Solana Pay — crypto-native payments (stubbed, coming soon)
+- [x] Solana Pay — Phantom checkout for paid tools (devnet default, 85/15 on-chain)
 - [ ] GitHub OAuth login (Supabase — optional, configurable)
 - [ ] Server versioning and changelogs
 - [ ] MCP stacks — shareable collections of tools
