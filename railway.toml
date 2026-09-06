@@ -1,5 +1,8 @@
 # Railway deployment configuration
 # https://docs.railway.app/reference/config-as-code
+#
+# Install-phase deps are controlled by nixpacks.toml (must include
+# devDependencies so vite is available). Keep buildCommand as compile-only.
 
 [build]
 builder = "nixpacks"

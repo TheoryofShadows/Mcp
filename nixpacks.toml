@@ -1,0 +1,20 @@
+# Nixpacks config for Railway
+# https://nixpacks.com/docs/configuration/file
+#
+# Railway sets NODE_ENV=production, which makes the default `npm ci` omit
+# devDependencies. vite lives in devDependencies, so builds fail with
+# "vite: not found". Force a full install (including vite) at install time.
+# Do NOT re-run npm ci in the build phase — Railway mounts a cache at
+# node_modules/.cache and a second npm ci hits EBUSY.
+
+[phases.setup]
+nixPkgs = ["nodejs_20", "npm-9_x"]
+
+[phases.install]
+cmds = ["npm ci --include=dev"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "npm start"
