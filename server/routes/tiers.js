@@ -65,16 +65,16 @@ const REVENUE_PROJECTIONS = [
   { label: "Publisher share", value: "85%", note: "Stripe Connect · live today", highlight: true },
   { label: "Platform fee", value: "15%", note: "Only on paid tool sales", highlight: false },
   { label: "Payouts", value: "Monthly", note: "1st of each month · $0 minimum", highlight: false },
-  { label: "Solana Pay", value: "Soon", note: "Stubbed API · not sold as live", highlight: false },
+  { label: "Solana Pay", value: "Live (devnet)", note: "Phantom checkout · matches /api/payments/solana/config", highlight: false },
 ];
 
 const TECH_STACK = [
   { icon: "\u25B3", title: "Frontend", tech: "React + Vite", desc: "Fast SPA build, served by the Express API on Railway. One service, automatic deploys from GitHub.", cost: "$0", color: "#4DFFB4" },
-  { icon: "\u25C8", title: "Database + Auth", tech: "Supabase", desc: "Postgres database with built-in auth, real-time subscriptions, and storage.", cost: "$0", color: "#4D9FFF" },
-  { icon: "\u2261", title: "Payments", tech: "Stripe Connect", desc: "Split payments between marketplace and publishers. Automatic payouts.", cost: "$0*", color: "#9B6DFF" },
-  { icon: "\u25A3", title: "MCP Registry", tech: "GitHub + npm", desc: "Version control and package distribution. Leverage existing infrastructure.", cost: "$0", color: "#FF6DB4" },
-  { icon: "\u2315", title: "Search & Discovery", tech: "Meilisearch Cloud", desc: "Typo-tolerant, instant search across all MCP servers and documentation.", cost: "$0", color: "#FFAA4D" },
-  { icon: "\u25CE", title: "Analytics", tech: "Plausible + PostHog", desc: "Privacy-first web analytics plus product analytics and feature flags.", cost: "$0", color: "#4DFFB4" },
+  { icon: "\u25C8", title: "Database + Auth", tech: "SQLite + JWT", desc: "better-sqlite3 on a Railway volume (DB_PATH). Email/password auth with signed JWTs — optional Supabase OAuth when configured.", cost: "$0", color: "#4D9FFF" },
+  { icon: "\u2261", title: "Payments", tech: "Stripe Connect + Solana Pay", desc: "Stripe Connect for fiat (publishers keep 85%). Solana Pay with Phantom live on the configured cluster (default: devnet).", cost: "$0*", color: "#9B6DFF" },
+  { icon: "\u25A3", title: "Hosting", tech: "Railway", desc: "Single Node service for API + static SPA. Volume-backed SQLite; GitHub auto-deploys.", cost: "$5+", color: "#FF6DB4" },
+  { icon: "\u2315", title: "Search & Discovery", tech: "SQLite FTS / API filters", desc: "Marketplace search and filters run in-process against SQLite — no Meilisearch dependency.", cost: "$0", color: "#FFAA4D" },
+  { icon: "\u25CE", title: "Observability", tech: "Pino + Sentry (optional)", desc: "Structured server logs via pino; optional Sentry when SENTRY_DSN is set.", cost: "$0", color: "#4DFFB4" },
 ];
 
 // GET /api/tiers

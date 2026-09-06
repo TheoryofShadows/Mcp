@@ -188,7 +188,7 @@ export default function ToolDetail() {
   useEffect(() => {
     fetchSolanaConfig()
       .then(setSolanaCfg)
-      .catch(() => setSolanaCfg({ enabled: false, label: "Coming soon" }));
+      .catch(() => setSolanaCfg({ enabled: false, label: "Unavailable" }));
   }, []);
 
   if (loading) {
@@ -676,7 +676,7 @@ export default function ToolDetail() {
                   </div>
                 ) : (
                   <p style={{ fontSize: "10px", color: "#fbbf24", fontFamily: "var(--font-mono)", letterSpacing: "0.04em" }}>
-                    Solana Pay · {solanaCfg?.enabled ? "Publisher wallet not set" : (solanaCfg?.label || "Coming soon")}
+                    Solana Pay · {solanaCfg?.enabled ? "Publisher wallet not set" : (solanaCfg?.label || "Unavailable")}
                   </p>
                 )}
               </div>

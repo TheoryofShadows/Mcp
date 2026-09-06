@@ -28,6 +28,23 @@ describe("GET /api/tiers", () => {
     expect(Array.isArray(res.body.tech_stack)).toBe(true);
   });
 
+
+  it("reports Solana Pay as Live (devnet), not stubbed", async () => {
+    const res = await request(app).get("/api/tiers");
+    const solana = res.body.revenue_projections.find((r) => /solana/i.test(r.label));
+    expect(solana).toBeDefined();
+    expect(solana.value).toMatch(/Live \(devnet\)/i);
+    expect(String(solana.note || "")).not.toMatch(/stubbed/i);
+  });
+
+  it("lists the real stack (SQLite/Railway), not Meilisearch fiction", async () => {
+    const res = await request(app).get("/api/tiers");
+    const techs = res.body.tech_stack.map((x) => x.tech).join(" | ");
+    expect(techs).toMatch(/SQLite/i);
+    expect(techs).toMatch(/Railway/i);
+    expect(techs).not.toMatch(/Meilisearch/i);
+  });
+
   it("includes free starter tier", async () => {
     const res = await request(app).get("/api/tiers");
     const starter = res.body.tiers.find((t) => t.id === "starter");
@@ -84,3 +101,4 @@ describe("POST /api/tiers/subscribe", () => {
     expect(res.body.error).toMatch(/invalid tier/i);
   });
 });
+

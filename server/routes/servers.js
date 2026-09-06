@@ -640,6 +640,7 @@ function formatServer(row) {
     rating: row.rating,
     rating_count: row.rating_count,
     price: row.price_label,
+    price_label: row.price_label,
     price_type: row.price_type,
     price_amount: row.price_amount,
     publisher_has_solana_wallet: !!row.publisher_has_solana_wallet,
