@@ -67,9 +67,19 @@ See [`.env.example`](../.env.example) for the annotated source of truth. Summary
 | `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` | optional | Server-side Supabase (never expose service role to the browser) |
 | `VITE_DESCOPE_PROJECT_ID` / `DESCOPE_PROJECT_ID` | admin panel | Enable Descope admin auth |
 | `VITE_DESCOPE_ADMIN_PERMISSION` / `DESCOPE_ADMIN_PERMISSION` | admin panel | Permission id required for admin routes |
+| `BACKUP_S3_BUCKET` | backups | Enables off-box uploads (+ in-process daily scheduler). Aliases: `BUCKET`, `AWS_S3_BUCKET_NAME` |
+| `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | backups | S3 credentials (Railway: `${{mcpx-backups.ACCESS_KEY_ID}}` / `SECRET_ACCESS_KEY`) |
+| `AWS_ENDPOINT_URL` / `AWS_REGION` | backups | S3 endpoint + region (Railway: `${{mcpx-backups.ENDPOINT}}` / `REGION`) |
+| `BACKUP_DIR` | backups | Local snapshot dir (default `<db dir>/backups`; prod: `/data/backups`) |
+| `BACKUP_ENABLED` | backups | `1` forces scheduler on (local-only); `0` forces off |
+| `BACKUP_KEEP_LOCAL` | backups | Local retention count (default `3`) |
+| `SOLANA_TREASURY_WALLET` | Solana Pay | Platform fee recipient (base58). Enables Phantom checkout |
+| `SOLANA_CLUSTER` | Solana Pay | `devnet` (default) \| `mainnet-beta` \| `testnet` |
+| `SOLANA_RPC_URL` | Solana Pay | Custom RPC; otherwise public cluster URL |
+| `SOLANA_USD_PER_SOL` | Solana Pay | FX stub for USD→lamports (default `150`) |
 
 > The app runs with **none** of the optional integrations — Stripe, Supabase,
-> and Descope each light up only when their keys are present.
+> Descope, and S3 backups each light up only when their keys are present.
 
 ---
 
@@ -135,19 +145,49 @@ Full details in [GITHUB_PAGES.md](GITHUB_PAGES.md).
 
 ## Database backups
 
-SQLite lives in the mounted volume (`/data/mcpx.db`). Take consistent, online
-snapshots with the built-in script (uses better-sqlite3's `.backup()` — safe while
-the app is running):
+SQLite lives in the mounted volume (`/data/mcpx.db`). Volume snapshots alone are
+**not** disaster recovery — ship copies off-box to a Railway Storage Bucket (or
+any S3-compatible store).
+
+### Manual / CLI
 
 ```bash
 BACKUP_DIR=/data/backups npm run backup:db    # → /data/backups/mcpx-<timestamp>.db
+# If BACKUP_S3_BUCKET (+ AWS_* creds) are set, also uploads to:
+#   s3://$BACKUP_S3_BUCKET/mcpx/YYYY/mm/dd/mcpx-<timestamp>.db
 ```
 
-- **Schedule it** as a Railway cron service (e.g. daily) and **ship the output
-  off-box** (object storage) — a volume snapshot in the same project is not a
-  disaster-recovery backup.
-- **Restore:** stop the service, copy a chosen `mcpx-*.db` to the path in `DB_PATH`,
-  redeploy. (Validate a backup periodically by restoring it into a scratch service.)
+Local retention keeps the newest **3** `mcpx-*.db` files (`BACKUP_KEEP_LOCAL`).
+
+### In-process daily scheduler
+
+On boot the API starts a lightweight checker (no `node-cron`): every ~1h it looks
+at `BACKUP_DIR` mtimes and runs a backup if the newest file is missing or older
+than ~23h. **Quiet in local dev** unless you set `BACKUP_S3_BUCKET` (or Railway
+`BUCKET` / `AWS_S3_BUCKET_NAME`) **or** `BACKUP_ENABLED=1`.
+
+### Railway Buckets wiring
+
+1. Create a bucket (e.g. display name `mcpx-backups`) in the same project.
+2. On the **Mcp** service, add variable references (AWS SDK names):
+
+```text
+BACKUP_S3_BUCKET=${{mcpx-backups.BUCKET}}
+AWS_ACCESS_KEY_ID=${{mcpx-backups.ACCESS_KEY_ID}}
+AWS_SECRET_ACCESS_KEY=${{mcpx-backups.SECRET_ACCESS_KEY}}
+AWS_ENDPOINT_URL=${{mcpx-backups.ENDPOINT}}
+AWS_REGION=${{mcpx-backups.REGION}}
+BACKUP_DIR=/data/backups
+```
+
+(Also accepted without remapping: bare `BUCKET` / `ACCESS_KEY_ID` / `SECRET_ACCESS_KEY` /
+`ENDPOINT` / `REGION` from the bucket.)
+
+3. Redeploy. Check logs for `[backup] scheduler enabled` / `[backup] completed`.
+
+**Restore:** stop the service, copy a chosen `mcpx-*.db` (from local retention or
+downloaded from the bucket) to the path in `DB_PATH`, redeploy. Validate backups
+periodically in a scratch service.
 
 ## Source scanning & sandboxing
 
@@ -192,7 +232,6 @@ Production build on any Node host:
 npm run build
 NODE_ENV=production npm start
 ```
-</content>
 
 ## Solana Pay (optional)
 
