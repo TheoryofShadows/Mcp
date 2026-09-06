@@ -1,6 +1,8 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Zap } from "lucide-react";
 import GithubIcon from "../icons/GithubIcon";
+import { fetchStats } from "../../api/client";
 
 const LINKS = {
   Product: [
@@ -33,7 +35,41 @@ const linkStyle = {
   display: "block",
 };
 
+function formatCount(n) {
+  const v = Number(n) || 0;
+  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`;
+  if (v >= 1_000) return `${(v / 1_000).toFixed(v >= 10_000 ? 0 : 1)}K`;
+  return String(v);
+}
+
 export default function Footer() {
+  // Live catalog counts only — never hardcode installs/server vanity numbers.
+  const [live, setLive] = useState({ servers: null, installs: null });
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchStats()
+      .then((s) => {
+        if (cancelled) return;
+        setLive({
+          servers: s.server_count ?? 0,
+          installs: s.total_installs ?? 0,
+        });
+      })
+      .catch(() => {
+        // Keep null → show product facts only (no fake fallbacks).
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  const strip = [
+    live.servers != null ? { label: "MCP Servers", value: formatCount(live.servers) } : null,
+    live.installs != null ? { label: "Total Installs", value: formatCount(live.installs) } : null,
+    { label: "Publisher Cut", value: "85%" },
+    { label: "Platform Fee", value: "15%" },
+    { label: "Stack", value: "React + Express + SQLite" },
+  ].filter(Boolean);
+
   return (
     <footer
       role="contentinfo"
@@ -136,13 +172,7 @@ export default function Footer() {
             marginBottom: "32px",
           }}
         >
-          {[
-            { label: "MCP Servers", value: "35+" },
-            { label: "Total Installs", value: "1.6M+" },
-            { label: "Publisher Cut", value: "85%" },
-            { label: "Platform Fee", value: "15%" },
-            { label: "Stack", value: "React + Express + SQLite" },
-          ].map(({ label, value }) => (
+          {strip.map(({ label, value }) => (
             <div key={label}>
               <div style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--text-muted)", letterSpacing: "0.05em", marginBottom: "3px" }}>{label}</div>
               <div style={{ fontSize: "14px", fontWeight: 700, fontFamily: "var(--font-heading)", color: "var(--text-primary)" }}>{value}</div>
