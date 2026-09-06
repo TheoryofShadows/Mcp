@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Zap, ArrowRight, Package, Download, DollarSign, Users, ShieldCheck, Bot } from "lucide-react";
+import { Search, Zap, ArrowRight, Package, Download, DollarSign, Users, ShieldCheck, Bot, CreditCard } from "lucide-react";
 import ToolCard from "../components/ToolCard";
 import CategoryCard from "../components/CategoryCard";
 import { SEED_TOOLS, SEED_CATEGORIES, SEED_STATS } from "../data/seed";
@@ -59,11 +59,25 @@ async function loadHomeData() {
 
 const DISPLAY_CATEGORIES = SEED_CATEGORIES.filter((c) => c.id !== "all");
 
+function formatCount(v) {
+  const n = Number(v) || 0;
+  if (n >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
+  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}K`;
+  return n.toLocaleString();
+}
+
+function formatRevenue(v) {
+  const n = Number(v) || 0;
+  if (n <= 0) return "$0";
+  if (n >= 1000) return `$${(n / 1000).toFixed(1)}K`;
+  return `$${n.toLocaleString()}`;
+}
+
 const STAT_ITEMS = [
-  { icon: Package,   key: "total_tools",     label: "Tools Published",  format: (v) => v.toLocaleString() },
-  { icon: Download,  key: "total_installs",   label: "Total Installs",   format: (v) => (v >= 1e6 ? `${(v / 1e6).toFixed(1)}M+` : `${(v / 1000).toFixed(0)}K+`) },
-  { icon: DollarSign,key: "total_revenue",    label: "Creator Revenue",  format: (v) => `$${(v / 1000).toFixed(1)}K/mo` },
-  { icon: Users,     key: "total_developers", label: "Developers",       format: (v) => `${v.toLocaleString()}+` },
+  { icon: Package,    key: "total_tools",      label: "Tools listed",      format: (v) => formatCount(v) },
+  { icon: Download,   key: "total_installs",    label: "Installs tracked",  format: (v) => formatCount(v) },
+  { icon: DollarSign, key: "total_revenue",     label: "Publisher payouts", format: (v) => `${formatRevenue(v)}/mo` },
+  { icon: Users,      key: "total_developers",  label: "Publishers",        format: (v) => formatCount(v) },
 ];
 
 export default function Home() {
@@ -117,7 +131,7 @@ export default function Home() {
           }}
         />
 
-        <div style={{ position: "relative", maxWidth: "720px", margin: "0 auto" }}>
+        <div style={{ position: "relative", maxWidth: "760px", margin: "0 auto" }}>
           {/* Live badge */}
           <div
             style={{
@@ -149,7 +163,7 @@ export default function Home() {
                 letterSpacing: "0.06em",
               }}
             >
-              {stats.total_tools || SEED_TOOLS.length} MCP TOOLS &amp; GROWING
+              TRUST SCORE · 85% PAYOUTS · ONE-CLICK INSTALL
             </span>
           </div>
 
@@ -157,15 +171,15 @@ export default function Home() {
           <h1
             style={{
               fontFamily: "var(--font-heading)",
-              fontSize: "clamp(40px, 7vw, 76px)",
+              fontSize: "clamp(36px, 6.5vw, 68px)",
               fontWeight: 800,
-              lineHeight: 1.06,
-              letterSpacing: "-2.5px",
+              lineHeight: 1.08,
+              letterSpacing: "-2.2px",
               marginBottom: "20px",
               color: "var(--text-primary)",
             }}
           >
-            The App Store for{" "}
+            The trusted marketplace for{" "}
             <span
               style={{
                 background: "linear-gradient(135deg, #a5f3fc 0%, #22d3ee 50%, #14b8a6 100%)",
@@ -173,7 +187,7 @@ export default function Home() {
                 WebkitTextFillColor: "transparent",
               }}
             >
-              AI Agents
+              MCP tools
             </span>
           </h1>
 
@@ -183,17 +197,17 @@ export default function Home() {
               color: "var(--text-secondary)",
               lineHeight: 1.7,
               marginBottom: "40px",
-              maxWidth: "520px",
+              maxWidth: "560px",
               margin: "0 auto 40px",
             }}
           >
-            Discover, install, and monetize MCP tools. Build integrations for Claude and
-            earn revenue — we handle the marketplace.{" "}
-            <span style={{ color: "#67e8f9" }}>15% fee model.</span>
+            Every listing gets a <strong style={{ color: "var(--text-primary)", fontWeight: 600 }}>computed Trust Score</strong> — not a vanity badge.
+            Install into Claude, Cursor, or VS Code in one click. Publishers keep{" "}
+            <span style={{ color: "#67e8f9" }}>85%</span> via Stripe Connect.
           </p>
 
           {/* Search */}
-          <form onSubmit={handleSearch} style={{ display: "flex", gap: "0", maxWidth: "520px", margin: "0 auto 28px" }}>
+          <form onSubmit={handleSearch} style={{ display: "flex", gap: "0", maxWidth: "520px", margin: "0 auto 20px" }} className="hero-search">
             <div style={{ position: "relative", flex: 1 }}>
               <Search
                 size={16}
@@ -248,6 +262,64 @@ export default function Home() {
               Search <ArrowRight size={14} />
             </button>
           </form>
+
+          {/* Primary CTAs */}
+          <div style={{ display: "flex", justifyContent: "center", gap: "10px", flexWrap: "wrap", marginBottom: "28px" }}>
+            <a
+              href="/marketplace"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "11px 20px",
+                background: "linear-gradient(135deg, #22d3ee, #14b8a6)",
+                borderRadius: "10px",
+                color: "#fff",
+                fontSize: "14px",
+                fontWeight: 600,
+                textDecoration: "none",
+                boxShadow: "0 0 20px rgba(34, 211, 238,0.25)",
+              }}
+            >
+              Browse marketplace <ArrowRight size={14} />
+            </a>
+            <a
+              href="/submit"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "11px 20px",
+                background: "transparent",
+                border: "1px solid rgba(34, 211, 238,0.35)",
+                borderRadius: "10px",
+                color: "#a5f3fc",
+                fontSize: "14px",
+                fontWeight: 500,
+                textDecoration: "none",
+              }}
+            >
+              Publish a tool — keep 85%
+            </a>
+            <a
+              href="/pricing"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "11px 20px",
+                background: "transparent",
+                border: "1px solid #2e2e44",
+                borderRadius: "10px",
+                color: "var(--text-secondary)",
+                fontSize: "14px",
+                fontWeight: 500,
+                textDecoration: "none",
+              }}
+            >
+              See pricing
+            </a>
+          </div>
 
           {/* Quick links */}
           <div style={{ display: "flex", justifyContent: "center", gap: "8px", flexWrap: "wrap" }}>
@@ -344,6 +416,9 @@ export default function Home() {
             </div>
           ))}
         </div>
+        <p style={{ textAlign: "center", marginTop: "14px", fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--text-muted)" }}>
+          Live catalog stats — no vanity metrics
+        </p>
       </section>
 
       {/* ─── Why MCPX (trust-first value prop) ─────────────────────────────────── */}
@@ -352,9 +427,9 @@ export default function Home() {
           <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "30px", letterSpacing: "-0.5px", marginBottom: "10px" }}>
             Why MCPX
           </h2>
-          <p style={{ fontSize: "15px", color: "var(--text-muted)", maxWidth: "560px", margin: "0 auto", lineHeight: 1.6 }}>
-            The trust-first marketplace for MCP — where safety is <em>computed</em>, not claimed,
-            and builders actually get paid.
+          <p style={{ fontSize: "15px", color: "var(--text-muted)", maxWidth: "580px", margin: "0 auto", lineHeight: 1.6 }}>
+            Three things no generic MCP directory gives you: <em>computed</em> trust,
+            real payouts, and install configs that just work.
           </p>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" }}>
@@ -362,17 +437,17 @@ export default function Home() {
             {
               icon: ShieldCheck, color: "#10b981",
               title: "Trust you can verify",
-              body: "Every server gets a transparent Trust Score (0–100) computed from real signals — source, license, adoption, reviews, and capability risk — with every point explained. Not a badge someone toggled.",
+              body: "Every server gets a transparent Trust Score (0–100) from real signals — source, license, adoption, reviews, and capability risk — with every point explained. Not a badge someone toggled.",
             },
             {
-              icon: DollarSign, color: "#22d3ee",
-              title: "Builders get paid",
-              body: "List a paid tool and keep 85%. Real Stripe payouts to publishers, not just exposure — monetization is built in, not bolted on.",
+              icon: CreditCard, color: "#22d3ee",
+              title: "Builders get paid (85%)",
+              body: "List a paid tool, connect Stripe once, and keep 85% of every sale. Monthly Connect payouts are live today. Solana Pay is on the roadmap — labeled Coming soon, not sold as ready.",
             },
             {
               icon: Bot, color: "#7dd3fc",
-              title: "Built for agents",
-              body: "Machine-readable trust at /api/servers/:slug/trust and a live discovery feed, so an agent can vet a tool before it installs — plus one-click install for Claude, Cursor, and VS Code.",
+              title: "One-click for agents & IDEs",
+              body: "Copy-ready configs for Claude Desktop, Cursor, and VS Code — plus machine-readable trust at /api/servers/:slug/trust so an agent can vet a tool before it installs.",
             },
           ].map(({ icon: Icon, color, title, body }) => (
             <div key={title} style={{ background: "#12121c", border: "1px solid #1d1d2b", borderRadius: "16px", padding: "24px" }}>
@@ -451,7 +526,7 @@ export default function Home() {
               Featured Tools
             </h2>
             <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>
-              Top-rated MCP integrations this week
+              Top installs this week — each with a computed Trust Score
             </p>
           </div>
           <a
@@ -529,12 +604,12 @@ export default function Home() {
             fontSize: "15px",
             color: "var(--text-secondary)",
             marginBottom: "28px",
-            maxWidth: "400px",
+            maxWidth: "440px",
             margin: "0 auto 28px",
             lineHeight: 1.65,
           }}
         >
-          Join 847+ developers earning revenue from their MCP tools. 85% goes straight to you.
+          Free to list. Paid tools keep 85%. Connect Stripe once — payouts land in your account on the 1st of each month.
         </p>
         <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
           <a
@@ -571,7 +646,7 @@ export default function Home() {
               textDecoration: "none",
             }}
           >
-            View Dashboard
+            Open Dashboard
           </a>
         </div>
       </section>

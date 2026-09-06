@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Check, Zap, Building2, Users, ArrowRight, AlertCircle, CheckCircle } from "lucide-react";
+import { Check, Zap, Building2, Users, ArrowRight, AlertCircle, CheckCircle, CreditCard, ShieldCheck, Clock } from "lucide-react";
 import { useState } from "react";
 import { useTiers } from "../hooks/useTiers";
 import { subscribeTier } from "../api/client";
@@ -14,15 +14,19 @@ const FAQ = [
   },
   {
     q: "When do I get paid?",
-    a: "Payouts go directly to your connected Stripe account on the 1st of each month, automatically. No minimums, no manual requests.",
+    a: "Connect Stripe once from your Dashboard. Payouts go to your connected Stripe account on the 1st of each month, automatically. No minimums, no manual requests.",
   },
   {
     q: "Can I list free tools on any plan?",
     a: "Yes. Free tools can be listed on any plan including Starter. The 15% fee only applies to paid tool transactions.",
   },
   {
-    q: "What's the difference between Pro and Enterprise?",
-    a: "Pro is for individual publishers who want priority listing, unlimited servers, and revenue analytics. Enterprise adds team management, a private marketplace, SSO/SAML, dedicated support, and SLA guarantees.",
+    q: "What's live on Pro vs Enterprise?",
+    a: "Pro (live today): unlimited servers, priority listing, revenue analytics, and webhooks. Enterprise is for teams that need contracts, dedicated support, and a private catalog — SSO/SAML and private marketplace features are available on request and may require a custom rollout. Contact us via GitHub if you're evaluating Enterprise.",
+  },
+  {
+    q: "Is Solana Pay available?",
+    a: "Not yet. Solana Pay is stubbed on the API and labeled Coming soon in the product. Stripe Connect is the live payment path for publisher payouts and tool purchases.",
   },
   {
     q: "Can I cancel anytime?",
@@ -30,7 +34,25 @@ const FAQ = [
   },
   {
     q: "What is an MCP server?",
-    a: "A Model Context Protocol server is a tool that AI agents like Claude connect to in order to access real-world capabilities — databases, APIs, browsers, file systems, and more. MCPX is the marketplace where they're discovered and installed.",
+    a: "A Model Context Protocol server is a tool that AI agents like Claude connect to in order to access real-world capabilities — databases, APIs, browsers, file systems, and more. MCPX is the marketplace where they're discovered, scored for trust, and installed.",
+  },
+];
+
+const GET_PAID_STEPS = [
+  {
+    icon: ShieldCheck,
+    title: "Publish with a Trust Score",
+    body: "Submit your MCP server. We compute a transparent Trust Score from source, license, identity, and usage — buyers see why they can trust it.",
+  },
+  {
+    icon: CreditCard,
+    title: "Connect Stripe once",
+    body: "From Dashboard → Payouts, link Stripe Connect. When linked, you'll see Open Stripe Dashboard. That's the live path.",
+  },
+  {
+    icon: CheckCircle,
+    title: "Keep 85% every month",
+    body: "Buyers pay via Stripe. You keep 85%; MCPX takes 15%. Automatic payouts on the 1st — no minimums.",
   },
 ];
 
@@ -64,19 +86,43 @@ export default function Pricing() {
     <main id="main-content" style={{ padding: "80px 24px", maxWidth: "1100px", margin: "0 auto" }}>
 
       {/* Header */}
-      <div style={{ textAlign: "center", marginBottom: "64px" }}>
+      <div style={{ textAlign: "center", marginBottom: "48px" }}>
         <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "5px 14px", background: "rgba(34, 211, 238,0.08)", border: "1px solid rgba(34, 211, 238,0.2)", borderRadius: "100px", marginBottom: "24px" }}>
           <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "#67e8f9", letterSpacing: "0.06em" }}>PRICING</span>
         </div>
         <h1 style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "clamp(36px, 5vw, 58px)", letterSpacing: "-1.5px", marginBottom: "16px", lineHeight: 1.1 }}>
-          Simple, transparent pricing
+          Simple, honest pricing
         </h1>
-        <p style={{ fontSize: "17px", color: "var(--text-secondary)", maxWidth: "480px", margin: "0 auto 12px", lineHeight: 1.7 }}>
-          List free. Publish paid tools. Keep 85% of every sale. Upgrade when your business needs it.
+        <p style={{ fontSize: "17px", color: "var(--text-secondary)", maxWidth: "520px", margin: "0 auto 12px", lineHeight: 1.7 }}>
+          List free. Publish paid tools. Keep 85% of every sale via Stripe Connect. Upgrade only when you need Pro or Enterprise.
         </p>
         <p style={{ fontSize: "13px", fontFamily: "var(--font-mono)", color: "var(--text-muted)" }}>
-          No hidden fees · Cancel anytime · Payouts via Stripe Connect
+          No hidden fees · Cancel anytime · Stripe live · Solana Pay coming soon
         </p>
+      </div>
+
+      {/* How publishers get paid */}
+      <div style={{ marginBottom: "64px" }}>
+        <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "22px", letterSpacing: "-0.4px", marginBottom: "8px", textAlign: "center" }}>
+          How publishers get paid
+        </h2>
+        <p style={{ fontSize: "14px", color: "var(--text-muted)", textAlign: "center", marginBottom: "24px", maxWidth: "480px", marginLeft: "auto", marginRight: "auto", lineHeight: 1.6 }}>
+          The wedge isn't ads — it's Trust Score + Connect payouts. Three steps, no theater.
+        </p>
+        <div className="pricing-steps" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "14px" }}>
+          {GET_PAID_STEPS.map(({ icon: Icon, title, body }, i) => (
+            <div key={title} style={{ background: "#12121c", border: "1px solid #1d1d2b", borderRadius: "14px", padding: "22px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
+                <div style={{ width: 32, height: 32, borderRadius: "8px", background: "rgba(34,211,238,0.12)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-mono)", fontSize: "12px", color: "#67e8f9", fontWeight: 700 }}>
+                  {i + 1}
+                </div>
+                <Icon size={16} color="#22d3ee" />
+                <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "15px" }}>{title}</div>
+              </div>
+              <p style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.65, margin: 0 }}>{body}</p>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Feedback */}
@@ -95,7 +141,7 @@ export default function Pricing() {
       {loading ? (
         <div style={{ textAlign: "center", color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: "13px", padding: "40px" }}>Loading…</div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "20px", marginBottom: "80px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "20px", marginBottom: "48px" }}>
           {tiers.map((tier) => {
             const Icon = TIER_ICONS[tier.id] || Zap;
             return (
@@ -169,7 +215,7 @@ export default function Pricing() {
                   onMouseEnter={(e) => { if (subscribing !== tier.id && !tier.popular) e.currentTarget.style.background = `${tier.accent}18`; }}
                   onMouseLeave={(e) => { if (!tier.popular) e.currentTarget.style.background = "transparent"; }}
                 >
-                  {subscribing === tier.id ? "Processing…" : tier.price_amount === 0 ? "Get Started — Free" : `Subscribe to ${tier.name}`}
+                  {subscribing === tier.id ? "Processing…" : tier.price_amount === 0 ? "Get Started — Free" : tier.id === "enterprise" ? `Talk about ${tier.name}` : `Subscribe to ${tier.name}`}
                   {subscribing !== tier.id && <ArrowRight size={14} />}
                 </button>
               </div>
@@ -178,29 +224,45 @@ export default function Pricing() {
         </div>
       )}
 
-      {/* Publisher split callout */}
-      <div style={{ background: "#12121c", border: "1px solid #1d1d2b", borderRadius: "18px", padding: "40px", marginBottom: "80px", display: "flex", gap: "40px", alignItems: "center", flexWrap: "wrap" }}>
-        <div style={{ flex: 1, minWidth: "240px" }}>
+      {/* Solana honesty + publisher split */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px", marginBottom: "80px" }}>
+        <div style={{ background: "#12121c", border: "1px solid #1d1d2b", borderRadius: "18px", padding: "28px" }}>
           <div style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--text-muted)", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: "12px" }}>Publisher Revenue Split</div>
-          <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "32px", letterSpacing: "-1px", marginBottom: "12px" }}>
+          <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "28px", letterSpacing: "-1px", marginBottom: "12px" }}>
             You keep <span style={{ color: "#10b981" }}>85%</span>
           </h2>
-          <p style={{ fontSize: "14px", color: "var(--text-secondary)", lineHeight: 1.7, maxWidth: "380px" }}>
-            For every paid tool sale, 85% lands in your Stripe account. MCPX takes 15% to keep the marketplace running, improve discovery, and pay for infrastructure.
+          <p style={{ fontSize: "14px", color: "var(--text-secondary)", lineHeight: 1.7, marginBottom: "20px" }}>
+            For every paid tool sale, 85% lands in your Stripe account. MCPX takes 15% for discovery, Trust Scores, and infrastructure.
           </p>
+          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+            {[
+              { label: "Publisher", value: "85%", color: "#10b981" },
+              { label: "MCPX fee", value: "15%", color: "#22d3ee" },
+              { label: "Payout", value: "Monthly", color: "#7dd3fc" },
+              { label: "Minimum", value: "$0", color: "#fbbf24" },
+            ].map(({ label, value, color }) => (
+              <div key={label} style={{ textAlign: "center", padding: "12px 14px", background: "#0d0d15", borderRadius: "10px", border: "1px solid #1d1d2b", minWidth: "72px" }}>
+                <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "18px", color, marginBottom: "2px" }}>{value}</div>
+                <div style={{ fontSize: "10px", fontFamily: "var(--font-mono)", color: "var(--text-muted)" }}>{label}</div>
+              </div>
+            ))}
+          </div>
         </div>
-        <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
-          {[
-            { label: "Publisher gets", value: "85%", color: "#10b981" },
-            { label: "MCPX fee", value: "15%", color: "#22d3ee" },
-            { label: "Payout", value: "Monthly", color: "#7dd3fc" },
-            { label: "Minimum", value: "$0", color: "#fbbf24" },
-          ].map(({ label, value, color }) => (
-            <div key={label} style={{ textAlign: "center", padding: "16px 20px", background: "#0d0d15", borderRadius: "12px", border: "1px solid #1d1d2b", minWidth: "90px" }}>
-              <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "22px", color, marginBottom: "4px" }}>{value}</div>
-              <div style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--text-muted)" }}>{label}</div>
-            </div>
-          ))}
+
+        <div style={{ background: "#12121c", border: "1px dashed rgba(251,191,36,0.35)", borderRadius: "18px", padding: "28px" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "4px 10px", background: "rgba(251,191,36,0.1)", border: "1px solid rgba(251,191,36,0.25)", borderRadius: "100px", marginBottom: "14px" }}>
+            <Clock size={12} color="#fbbf24" />
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "#fbbf24", letterSpacing: "0.05em" }}>COMING SOON</span>
+          </div>
+          <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "22px", letterSpacing: "-0.5px", marginBottom: "10px" }}>
+            Solana Pay
+          </h2>
+          <p style={{ fontSize: "14px", color: "var(--text-secondary)", lineHeight: 1.7, marginBottom: "14px" }}>
+            Crypto-native checkout is on the roadmap. The API stub returns Coming soon — it is <strong style={{ color: "var(--text-primary)", fontWeight: 600 }}>not</strong> live for purchases or payouts.
+          </p>
+          <p style={{ fontSize: "13px", fontFamily: "var(--font-mono)", color: "var(--text-muted)", lineHeight: 1.6 }}>
+            Live today: Stripe Connect for publisher payouts and tool subscriptions.
+          </p>
         </div>
       </div>
 

@@ -4,6 +4,13 @@ import { TrendingUp, Star, Download } from "lucide-react";
 import VerifiedBadge from "./VerifiedBadge";
 import PriceTag from "./PriceTag";
 
+function formatInstalls(n) {
+  const v = Number(n) || 0;
+  if (v >= 1e6) return `${(v / 1e6).toFixed(1)}M`;
+  if (v >= 1000) return `${(v / 1000).toFixed(v >= 10000 ? 0 : 1)}K`;
+  return v.toLocaleString();
+}
+
 const ToolCard = memo(function ToolCard({ tool, index = 0 }) {
   return (
     <Link
@@ -209,8 +216,24 @@ const ToolCard = memo(function ToolCard({ tool, index = 0 }) {
               }}
             >
               <Download size={10} />
-              {(tool.installs / 1000).toFixed(1)}K
+              {formatInstalls(tool.installs)}
             </div>
+            {tool.trust?.score != null && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "11px",
+                  color: "#67e8f9",
+                }}
+                title={`Trust Score ${tool.trust.score}/100`}
+              >
+                <span aria-hidden="true" style={{ width: 6, height: 6, borderRadius: "50%", background: "#22d3ee" }} />
+                {tool.trust.score}
+              </div>
+            )}
             <div
               style={{
                 display: "flex",

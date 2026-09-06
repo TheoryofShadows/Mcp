@@ -64,19 +64,19 @@ export default function RevenueSection({ onAuthClick }) {
             marginBottom: "var(--space-sm)",
           }}
         >
-          Revenue{" "}
-          <span style={{ color: "var(--accent-purple)" }}>Model</span>
+          Get paid to{" "}
+          <span style={{ color: "var(--accent-purple)" }}>publish</span>
         </h2>
         <p
           style={{
             color: "var(--text-secondary)",
             fontSize: "var(--font-lg)",
-            maxWidth: "500px",
+            maxWidth: "540px",
             margin: "0 auto",
           }}
         >
-          Publishers earn 85% of every transaction. We take 15% to keep the
-          lights on and the marketplace growing.
+          Keep 85% of every paid sale via Stripe Connect. Trust Scores make your
+          tool discoverable. Solana Pay is coming soon — not live yet.
         </p>
       </div>
 
