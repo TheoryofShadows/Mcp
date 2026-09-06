@@ -228,6 +228,7 @@ router.get("/stripe/connect", requireAuth, async (req, res) => {
       .get(req.user.id);
 
     let accountId = user?.stripe_account_id;
+    let onboardingDone = !!user?.stripe_onboarding_done;
 
     if (!accountId) {
       // Create an Express connected account per the SaaS quickstart:
@@ -249,7 +250,25 @@ router.get("/stripe/connect", requireAuth, async (req, res) => {
       console.log(`[stripe] Created Connect account ${accountId} for user ${req.user.id}`);
     }
 
-    if (user?.stripe_onboarding_done) {
+    // Connected-account webhooks are easy to miss in Dashboard config. Always
+    // reconcile against Stripe so a completed Express KYC marks the publisher
+    // ready even if account.updated never arrived.
+    if (accountId && !onboardingDone) {
+      try {
+        const live = await stripe.accounts.retrieve(accountId);
+        if (live?.details_submitted) {
+          db.prepare(
+            "UPDATE users SET stripe_onboarding_done = 1, updated_at = datetime('now') WHERE id = ?"
+          ).run(req.user.id);
+          onboardingDone = true;
+          console.log(`[stripe] Synced onboarding complete for ${accountId} (user ${req.user.id})`);
+        }
+      } catch (syncErr) {
+        console.error("[stripe] onboarding sync error:", syncErr.message);
+      }
+    }
+
+    if (onboardingDone) {
       // Already onboarded — return Express dashboard login link
       const loginLink = await stripe.accounts.createLoginLink(accountId);
       return res.json({ dashboard_url: loginLink.url, onboarding_done: true });
