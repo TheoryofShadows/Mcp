@@ -24,3 +24,15 @@ export function formatPriceLabel(tool = {}) {
     : dollars.toFixed(2).replace(/\.?0+$/, "");
   return `$${formatted}/mo`;
 }
+
+
+/**
+ * Marketplace / detail price chip label.
+ * Unpurchasable paid tools must not imply "buy now".
+ */
+export function formatPriceTagLabel(tool = {}) {
+  if (tool?.price_type === "paid" && tool?.purchasable === false) {
+    return "Unavailable";
+  }
+  return formatPriceLabel(tool);
+}

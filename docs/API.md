@@ -177,6 +177,8 @@ Query parameters (all optional):
   "price": "free",
   "price_type": "free",
   "price_amount": 0,
+  "purchasable": true,
+  "purchase_blocked_reason": null,
   "verified": true,
   "trending": false,
   "gradient": "linear-gradient(…)",
@@ -191,6 +193,8 @@ Query parameters (all optional):
   "trust": { /* see /servers/:slug/trust */ }
 }
 ```
+
+Paid listings set `purchasable` from the publisher's Stripe Connect status (`stripe_account_id` + `stripe_onboarding_done`). When `purchasable` is `false`, `purchase_blocked_reason` explains why checkout is unavailable (typically `"Publisher payouts not enabled"`). Clients must not show a working Subscribe CTA in that state — keep install locked and surface the blocked reason instead.
 
 ### `GET /servers/:slug`
 

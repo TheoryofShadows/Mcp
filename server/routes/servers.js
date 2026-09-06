@@ -7,6 +7,7 @@ import { computeTrust } from "../lib/trustScore.js";
 import { auditLog } from "../lib/audit.js";
 import { scheduleScan, latestScanTier } from "../lib/scanService.js";
 import { readProofToken, VERIFY_FILENAME } from "../lib/provenance.js";
+import { computePurchasable } from "../lib/purchasable.js";
 
 const router = Router();
 
@@ -119,6 +120,8 @@ router.get("/", (req, res) => {
       u.username as author_username,
       u.display_name as author_display_name,
       CASE WHEN u.solana_wallet IS NOT NULL AND length(trim(u.solana_wallet)) > 0 THEN 1 ELSE 0 END as publisher_has_solana_wallet,
+      u.stripe_account_id as stripe_account_id,
+      u.stripe_onboarding_done as stripe_onboarding_done,
       c.label as category_label,
       (SELECT COUNT(*) FROM flags f WHERE f.server_id = s.id AND f.status = 'open' AND f.user_id IS NOT NULL) as open_flags
     FROM servers s
@@ -150,6 +153,8 @@ router.get("/:slug", (req, res) => {
       u.username as author_username,
       u.display_name as author_display_name,
       CASE WHEN u.solana_wallet IS NOT NULL AND length(trim(u.solana_wallet)) > 0 THEN 1 ELSE 0 END as publisher_has_solana_wallet,
+      u.stripe_account_id as stripe_account_id,
+      u.stripe_onboarding_done as stripe_onboarding_done,
       c.label as category_label,
       (SELECT COUNT(*) FROM flags f WHERE f.server_id = s.id AND f.status = 'open' AND f.user_id IS NOT NULL) as open_flags
     FROM servers s
@@ -374,6 +379,9 @@ router.post("/", requireAuth, (req, res) => {
 
   const row = db.prepare(`
     SELECT s.*, u.username as author_username, u.display_name as author_display_name,
+      u.stripe_account_id as stripe_account_id,
+      u.stripe_onboarding_done as stripe_onboarding_done,
+      CASE WHEN u.solana_wallet IS NOT NULL AND length(trim(u.solana_wallet)) > 0 THEN 1 ELSE 0 END as publisher_has_solana_wallet,
     c.label as category_label
     FROM servers s
     JOIN users u ON s.author_id = u.id
@@ -466,6 +474,9 @@ router.patch("/:slug", requireAuth, (req, res) => {
 
   const row = db.prepare(`
     SELECT s.*, u.username as author_username, u.display_name as author_display_name,
+           u.stripe_account_id as stripe_account_id,
+           u.stripe_onboarding_done as stripe_onboarding_done,
+           CASE WHEN u.solana_wallet IS NOT NULL AND length(trim(u.solana_wallet)) > 0 THEN 1 ELSE 0 END as publisher_has_solana_wallet,
            c.label as category_label,
            (SELECT COUNT(*) FROM flags f WHERE f.server_id = s.id AND f.status = 'open' AND f.user_id IS NOT NULL) as open_flags
     FROM servers s JOIN users u ON s.author_id = u.id JOIN categories c ON s.category_id = c.id
@@ -691,6 +702,7 @@ function formatServer(row) {
     price_label: row.price_label,
     price_type: row.price_type,
     price_amount: row.price_amount,
+    ...computePurchasable(row),
     publisher_has_solana_wallet: !!row.publisher_has_solana_wallet,
     verified: !!row.verified,
     trending: !!row.trending,

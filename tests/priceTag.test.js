@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatPriceLabel } from "../src/lib/formatPrice.js";
+import { formatPriceLabel, formatPriceTagLabel } from "../src/lib/formatPrice.js";
 
 describe("formatPriceLabel", () => {
   it("returns Free for free tools", () => {
@@ -43,5 +43,28 @@ describe("formatPriceLabel", () => {
     expect(
       formatPriceLabel({ price_type: "paid", price_amount: 99 })
     ).toBe("$0.99/mo");
+  });
+});
+
+describe("formatPriceTagLabel", () => {
+  it("shows Unavailable for paid tools that are not purchasable", () => {
+    expect(
+      formatPriceTagLabel({
+        price_type: "paid",
+        price_amount: 1600,
+        price_label: "$16/mo",
+        purchasable: false,
+      })
+    ).toBe("Unavailable");
+  });
+
+  it("keeps normal paid label when purchasable", () => {
+    expect(
+      formatPriceTagLabel({
+        price_type: "paid",
+        price_label: "$16/mo",
+        purchasable: true,
+      })
+    ).toBe("$16/mo");
   });
 });
