@@ -26,6 +26,16 @@ if (userCount === 0) {
   backfillInstallCommands(db);
 }
 
+// Zero inflated seed-catalog social proof (installs/ratings/revenue/reviews).
+// Idempotent; never touches user-published tools outside the seed slug map.
+{
+  const { resetSeedSocialProof } = await import("./lib/seedSocialProofReset.js");
+  const { serversUpdated, reviewsDeleted } = resetSeedSocialProof(db);
+  if (serversUpdated > 0 || reviewsDeleted > 0) {
+    logger.info({ serversUpdated, reviewsDeleted }, "[boot] seed social proof reset applied");
+  }
+}
+
 const app = createApp();
 
 // Serve static files in production

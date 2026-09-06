@@ -7,17 +7,15 @@ import {
 import { useAuth } from "../hooks/useAuth";
 import PriceTag from "../components/PriceTag";
 import VerifyRepoModal from "../components/VerifyRepoModal";
-import { SEED_TOOLS } from "../data/seed";
 import { supabase } from "../lib/supabase";
 import { fetchServers, getMe, connectStripe, fetchEarnings, saveSolanaWallet, patchServer } from "../api/client";
 
-// Mock dashboard data for demo / no-auth mode
-const MOCK_TOOLS = SEED_TOOLS.filter((t) => ["github-mcp", "filesystem-mcp", "postgres-mcp"].includes(t.slug));
+// Honest empty defaults for demo / no-auth mode — no vanity installs/revenue.
 const MOCK_STATS = {
-  monthly_revenue: 580,
-  total_installs: 89400,
-  avg_rating: 4.7,
-  tools_count: 3,
+  monthly_revenue: 0,
+  total_installs: 0,
+  avg_rating: null,
+  tools_count: 0,
 };
 
 // Compute the last 6 calendar months ending at the current month
@@ -50,7 +48,7 @@ function getNextPayoutDate() {
 }
 
 async function loadDashboard(user) {
-  if (!user) return { tools: MOCK_TOOLS, stats: MOCK_STATS };
+  if (!user) return { tools: [], stats: MOCK_STATS };
 
   // Supabase mode
   if (supabase) {
@@ -61,7 +59,7 @@ async function loadDashboard(user) {
         .eq("author_id", user.id)
         .order("created_at", { ascending: false });
 
-      if (!tools?.length) return { tools: MOCK_TOOLS, stats: MOCK_STATS };
+      if (!tools?.length) return { tools: [], stats: { ...MOCK_STATS, tools_count: 0 } };
 
       const totalInstalls = tools.reduce((s, t) => s + (t.installs || 0), 0);
       const monthlyRevenue = tools
@@ -80,7 +78,7 @@ async function loadDashboard(user) {
         },
       };
     } catch {
-      return { tools: MOCK_TOOLS, stats: MOCK_STATS };
+      return { tools: [], stats: MOCK_STATS };
     }
   }
 
@@ -187,7 +185,7 @@ export default function Dashboard() {
     if (authLoading) return;
     if (!user) {
       setDemoMode(true);
-      setTools(MOCK_TOOLS);
+      setTools([]);
       setStats(MOCK_STATS);
       setLoading(false);
       return;
