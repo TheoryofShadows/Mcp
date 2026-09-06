@@ -1,11 +1,12 @@
 # Railway deployment configuration
 # https://docs.railway.app/reference/config-as-code
+#
+# Install-phase deps are controlled by nixpacks.toml (must include
+# devDependencies so vite is available). Keep buildCommand as compile-only.
 
 [build]
 builder = "nixpacks"
-# NODE_ENV=production makes plain `npm ci` skip devDependencies (vite lives there).
-# Reinstall with --include=dev for the build step, then compile the SPA.
-buildCommand = "npm ci --include=dev && npm run build"
+buildCommand = "npm run build"
 
 [deploy]
 startCommand = "npm start"
