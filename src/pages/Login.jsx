@@ -46,7 +46,10 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   // Email/password form state (used when Supabase not configured)
-  const [mode, setMode] = useState("login");
+  const [mode, setMode] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return ["signup", "register"].includes(params.get("mode") || "") ? "register" : "login";
+  });
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");

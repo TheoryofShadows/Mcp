@@ -1,5 +1,5 @@
-import { lazy, Suspense } from "react";
-import { Routes, Route } from "react-router-dom";
+import { lazy, Suspense, useEffect } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/sections/Footer";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -13,6 +13,9 @@ const Login        = lazy(() => import("./pages/Login"));
 const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 const Admin        = lazy(() => import("./pages/Admin"));
 const Pricing      = lazy(() => import("./pages/Pricing"));
+
+const DOCS_README_URL =
+  "https://github.com/TheoryofShadows/Mcp/blob/main/docs/README.md";
 
 function PageLoader() {
   return (
@@ -29,6 +32,27 @@ function PageLoader() {
       }}
     >
       Loading…
+    </div>
+  );
+}
+
+function DocsRedirect() {
+  useEffect(() => {
+    window.location.replace(DOCS_README_URL);
+  }, []);
+  return (
+    <div
+      style={{
+        minHeight: "40vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "var(--text-muted)",
+        fontFamily: "var(--font-mono)",
+        fontSize: "13px",
+      }}
+    >
+      Redirecting to docs…
     </div>
   );
 }
@@ -54,6 +78,8 @@ export default function App() {
             <Route path="/submit"      element={<Submit />} />
             <Route path="/dashboard"      element={<Dashboard />} />
             <Route path="/login"          element={<Login />} />
+            <Route path="/signup"         element={<Navigate to="/login?mode=signup" replace />} />
+            <Route path="/docs"           element={<DocsRedirect />} />
             <Route path="/auth/callback"  element={<AuthCallback />} />
             <Route path="/admin"          element={<Admin />} />
             <Route path="/pricing"        element={<Pricing />} />

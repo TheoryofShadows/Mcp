@@ -120,7 +120,7 @@ export default function Submit() {
           install_command: form.install_command,
           tags,
           gradient: "linear-gradient(135deg, #22d3ee, #14b8a6)",
-          published: false, // pending review
+          published: true, // Express path publishes active immediately; Supabase path marks published
         });
         if (error) throw error;
       } else {
@@ -233,7 +233,7 @@ export default function Submit() {
     <main id="main-content" style={{ maxWidth: "680px", margin: "0 auto", padding: "48px 24px 80px" }}>
       <div style={{ marginBottom: "36px" }}>
         <h1 style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "28px", marginBottom: "8px", letterSpacing: "-0.5px" }}>
-          Submit an MCP Tool
+          Publish an MCP Tool
         </h1>
         <p style={{ fontSize: "14px", color: "var(--text-muted)" }}>
           Publish your MCP server to the marketplace. Earn 85% of subscription revenue.
@@ -495,7 +495,7 @@ export default function Submit() {
           }}
         >
           {submitting ? <Loader size={16} style={{ animation: "spin 1s linear infinite" }} /> : <ArrowRight size={16} />}
-          {submitting ? "Submitting…" : "Submit Tool for Review"}
+          {submitting ? "Publishing…" : "Publish Tool"}
         </button>
       </form>
     </main>
