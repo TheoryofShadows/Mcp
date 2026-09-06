@@ -217,6 +217,64 @@ describe("POST /api/servers/:slug/install", () => {
   });
 });
 
+
+describe("PATCH /api/servers/:slug status (unpublish)", () => {
+  let pubToken, pubSlug;
+  beforeAll(async () => {
+    const reg = await request(app).post("/api/auth/register").send({
+      email: "publisher-status@example.com",
+      username: "publisherstatus",
+      password: "publisherpass1",
+    });
+    pubToken = reg.body.token;
+    const s = await request(app).post("/api/servers").set("Authorization", `Bearer ${pubToken}`)
+      .send({
+        name: "Unpublishable Server",
+        category_id: "dev-tools",
+        description: "A server used to test author unpublish via status.",
+      });
+    pubSlug = s.body.slug;
+  });
+
+  it("lets the author set status to inactive", async () => {
+    const res = await request(app)
+      .patch(`/api/servers/${pubSlug}`)
+      .set("Authorization", `Bearer ${pubToken}`)
+      .send({ status: "inactive" });
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe("inactive");
+    const list = await request(app).get(`/api/servers?search=Unpublishable`);
+    expect(list.status).toBe(200);
+    expect(list.body.servers.find((s) => s.slug === pubSlug)).toBeUndefined();
+  });
+
+  it("lets the author republish with status active", async () => {
+    const res = await request(app)
+      .patch(`/api/servers/${pubSlug}`)
+      .set("Authorization", `Bearer ${pubToken}`)
+      .send({ status: "active" });
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe("active");
+  });
+
+  it("rejects invalid status values", async () => {
+    const res = await request(app)
+      .patch(`/api/servers/${pubSlug}`)
+      .set("Authorization", `Bearer ${pubToken}`)
+      .send({ status: "pending" });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/status/i);
+  });
+
+  it("rejects status updates by a non-author", async () => {
+    const res = await request(app)
+      .patch(`/api/servers/${pubSlug}`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ status: "inactive" });
+    expect(res.status).toBe(403);
+  });
+});
+
 describe("DELETE /api/servers/:slug", () => {
   let delToken, delSlug;
   beforeAll(async () => {

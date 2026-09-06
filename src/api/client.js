@@ -79,6 +79,13 @@ export async function fetchServers(params = {}) {
   return request(`/servers?${qs.toString()}`);
 }
 
+export async function patchServer(slug, fields) {
+  return request(`/servers/${encodeURIComponent(slug)}`, {
+    method: "PATCH",
+    body: JSON.stringify(fields),
+  });
+}
+
 export async function fetchServer(slug) {
   return request(`/servers/${encodeURIComponent(slug)}`);
 }

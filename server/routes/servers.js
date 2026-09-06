@@ -44,6 +44,19 @@ router.get("/", (req, res) => {
   let where = ["s.status = 'active'"];
   const params = [];
 
+  // Authors listing their own catalog can ask for inactive (unpublished) tools.
+  // Public marketplace searches never see inactive rows.
+  if (
+    String(req.query.include_inactive) === "true" &&
+    author &&
+    req.user?.id
+  ) {
+    const me = db.prepare("SELECT username FROM users WHERE id = ?").get(req.user.id);
+    if (me && me.username === author) {
+      where = ["s.status IN ('active', 'inactive')"];
+    }
+  }
+
   if (category && category !== "all") {
     where.push("s.category_id = ?");
     params.push(category);
@@ -363,9 +376,10 @@ router.patch("/:slug", requireAuth, (req, res) => {
     return res.status(403).json({ error: "You can only update your own servers" });
   }
 
-  const allowed = ["description", "long_description", "repo_url", "tags", "license", "install_command"];
+  const allowed = ["description", "long_description", "repo_url", "tags", "license", "install_command", "status"];
   const updates = [];
   const values = [];
+  let statusChanged = null;
 
   for (const field of allowed) {
     if (req.body[field] !== undefined) {
@@ -383,6 +397,15 @@ router.patch("/:slug", requireAuth, (req, res) => {
         if (installErr) return res.status(400).json({ error: installErr });
         updates.push("install_command = ?");
         values.push(req.body.install_command ? String(req.body.install_command).trim() : null);
+      } else if (field === "status") {
+        // Authors may unpublish (inactive) or republish (active). Pending stays admin-only.
+        const next = String(req.body.status);
+        if (next !== "active" && next !== "inactive") {
+          return res.status(400).json({ error: "status must be 'active' or 'inactive'" });
+        }
+        updates.push("status = ?");
+        values.push(next);
+        statusChanged = next;
       } else if (field === "description") {
         const desc = String(req.body.description);
         if (desc.length < 10 || desc.length > 500) {
@@ -414,6 +437,14 @@ router.patch("/:slug", requireAuth, (req, res) => {
   values.push(server.id);
 
   db.prepare(`UPDATE servers SET ${updates.join(", ")} WHERE id = ?`).run(...values);
+
+  if (statusChanged !== null) {
+    auditLog(statusChanged === "inactive" ? "server.unpublish" : "server.republish", req.user.id, {
+      server_id: server.id,
+      slug: req.params.slug,
+      status: statusChanged,
+    });
+  }
 
   if (repoChanged) scheduleScan(server.id, String(req.body.repo_url || ""));
 
@@ -538,6 +569,7 @@ router.delete("/:slug", requireAuth, (req, res) => {
     return res.status(403).json({ error: "You can only delete your own servers" });
   }
   db.prepare("DELETE FROM servers WHERE id = ?").run(server.id); // cascades reviews/installs/flags
+  auditLog("server.delete", req.user.id, { server_id: server.id, slug: req.params.slug });
   res.json({ success: true });
 });
 
