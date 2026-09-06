@@ -155,6 +155,8 @@ router.post("/login", async (req, res) => {
       display_name: user.display_name,
       tier: user.tier,
       created_at: user.created_at,
+      stripe_onboarding_done: !!user.stripe_onboarding_done,
+      stripe_connected: !!user.stripe_onboarding_done && !!user.stripe_account_id,
     },
   });
 });
