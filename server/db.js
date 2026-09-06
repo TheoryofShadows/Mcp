@@ -218,6 +218,7 @@ for (const sql of [
   "ALTER TABLE users ADD COLUMN stripe_customer_id TEXT",
   "ALTER TABLE users ADD COLUMN stripe_account_id TEXT",        // Connect: publisher payout account
   "ALTER TABLE users ADD COLUMN stripe_onboarding_done INTEGER DEFAULT 0",
+  "ALTER TABLE users ADD COLUMN stripe_payouts_status TEXT",    // Connect: pending | verifying | restricted | enabled
   "ALTER TABLE users ADD COLUMN solana_wallet TEXT",            // Solana Pay: publisher payout pubkey (base58)
   "ALTER TABLE subscriptions ADD COLUMN stripe_subscription_id TEXT",
   "ALTER TABLE servers ADD COLUMN license TEXT",                // Trust Score: license-clarity signal

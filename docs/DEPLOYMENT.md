@@ -99,6 +99,74 @@ aligned schema with row-level-security policies and triggers.
 
 ---
 
+## Going live with Stripe
+
+Money only moves for real when **every** item below is true. Nothing in the code
+can switch this on by itself — the live key and the Connect activation come from
+your Stripe Dashboard.
+
+### Verify from outside
+
+```bash
+curl -s https://www.mcpx.digital/api/payments/stripe/config
+```
+
+`mode` is derived from the secret key's prefix and is the answer to "are we live?":
+
+| `mode` | Meaning |
+|--------|---------|
+| `live` | `sk_live_`/`rk_live_` key — real charges, real payouts |
+| `test` | `sk_test_`/`rk_test_` key — sandbox only, **no real money moves** |
+| `unset` | `STRIPE_SECRET_KEY` missing — every Stripe endpoint returns `501` |
+
+A `label` of `Live (mainnet money)` means the key is live *and*
+`STRIPE_WEBHOOK_SECRET` is set. The endpoint never returns key material.
+
+### Checklist
+
+1. **Live secret key** — `STRIPE_SECRET_KEY=sk_live_…` in Railway. A restricted
+   key (`rk_live_…`) also works, but it must carry write access to Checkout
+   Sessions, Products, Prices, Customers, Subscriptions, **and Connect accounts +
+   account links** — Connect is easy to leave unchecked, and without it publisher
+   onboarding fails at `POST /v1/accounts`.
+2. **Live webhook endpoint** — Stripe Dashboard → Developers → Webhooks → add
+   `https://www.mcpx.digital/api/payments/stripe/webhook` **in live mode** (test
+   and live endpoints are separate), then put its `whsec_…` into
+   `STRIPE_WEBHOOK_SECRET`. Send these events:
+   - `checkout.session.completed`
+   - `checkout.session.async_payment_succeeded`
+   - `customer.subscription.updated`
+   - `customer.subscription.deleted`
+   - `account.updated` — **check "listen to Connect events"**, or publisher
+     onboarding never gets marked complete from the webhook.
+3. **Connect activated in live mode** — Dashboard → Connect → complete the
+   platform profile. Until this is done, `stripe.accounts.create` fails and no
+   publisher can onboard.
+4. **Your own payout details** — Dashboard → Settings → Bank accounts and
+   scheduling. Platform subscription revenue and the 15% application fee land in
+   *your* Stripe balance and pay out on that schedule.
+5. **`APP_URL=https://www.mcpx.digital`** — Checkout success/cancel and Connect
+   return links are built from it. Left at the localhost default, buyers get
+   bounced to a dead URL after paying.
+
+### Who gets paid what
+
+- **Platform subscriptions** (Pro $29, Enterprise $499) — Checkout in
+  `subscription` mode, straight to the platform balance.
+- **Paid tool sales** — destination charges: the publisher's connected account
+  receives the charge, `application_fee_amount` (15%) is retained by the platform.
+  Publishers keep 85%.
+
+A paid listing is only offered for sale once its publisher's connected account is
+genuinely payable — Stripe reports `details_submitted`, `charges_enabled`,
+`payouts_enabled`, **and** an `active` transfers capability. Anything short of
+that shows as "Publisher payouts not enabled" rather than taking money that
+couldn't be paid out. `GET /api/payments/stripe/connect` re-syncs a publisher's
+status from Stripe on every visit, so a missed `account.updated` webhook is
+self-healing in both directions.
+
+---
+
 ## Advanced: split frontend + API
 
 Only worth it if you specifically want the SPA on a separate static/CDN host
