@@ -1,6 +1,6 @@
 # MCPX Launch Kit
 
-Ready-to-paste posts for the soft launch. Tone: honest premium — Trust Score, **85% Stripe payouts**, one-click install. No fake user counts.
+Ready-to-paste posts for the soft launch. Tone: honest premium — Trust Score, **85% Stripe payouts**, one-click install. Soft launch with **honest zeros** for seed social proof (no fake installs/users/revenue).
 
 **Live:** https://www.mcpx.digital  
 **GitHub:** https://github.com/TheoryofShadows/Mcp  
@@ -20,11 +20,11 @@ MCP (Model Context Protocol) is how agents talk to real tools — GitHub, Postgr
 
 MCPX fixes three gaps:
 
-1. **Trust Score (0–100)** — computed from provenance, license, adoption, reviews, maturity, and capability risk. Not a badge someone toggled.
-2. **One-click install** — copy-ready configs for Claude Desktop, Cursor, and VS Code.
-3. **Publisher payouts** — list free or paid. Connect Stripe once. You keep **85%**; platform takes 15%.
+1. **Trust Score (0–100)** — computed from provenance, license, adoption, reviews, maturity, and capability risk. New listings start low on adoption/reviews — we don’t invent traction.
+2. **One-click install** — copy-ready configs for Claude Desktop, Cursor, and VS Code. Free tools install without purchase.
+3. **Publisher payouts** — list free or paid. Connect Stripe once. You keep **85%**; platform takes 15%. Paid listings without Connect show **Unavailable** (not a fake Subscribe).
 
-Soft-launch ready today: browse the catalog, copy an install command for free, or publish and connect Stripe.
+Soft launch today — honest zeros on seed social proof, no vanity user/install counts. Browse the catalog, install free tools, or publish and onboard Stripe Connect.
 
 Try it: https://www.mcpx.digital  
 Publish: https://www.mcpx.digital/submit  
@@ -34,21 +34,32 @@ Source: https://github.com/TheoryofShadows/Mcp
 
 Hey Product Hunt 👋
 
-I’m the maker of MCPX. I built this because I kept installing MCP servers from random lists with no idea which ones were safe — and friends building great MCP tools had no clean path to charge for them.
+I’m the maker of **MCPX** (https://www.mcpx.digital).
 
-What’s live today:
+I built it for two gaps that kept biting me:
 
-- Marketplace with computed Trust Scores (API included: `/api/servers/:slug/trust`)
-- One-click install commands for Claude / Cursor / VS Code
-- Stripe Connect for publishers (keep 85%)
-- Solana Pay labeled **Live (devnet)** — not mainnet yet, on purpose
+1. **Trust** — I was installing MCP servers from flat lists with no signal on provenance, license, or risk.
+2. **Monetization** — friends shipping solid MCP tools had no clean way to get paid without standing up their own checkout.
 
-I’d love feedback from:
+So MCPX is a marketplace: discover MCP servers, install them in one click for Claude / Cursor / VS Code, and let publishers keep **85%** via Stripe Connect.
 
-- People using Claude/Cursor who want safer installs
-- MCP authors who want to list (free) or sell (paid)
+**What’s live TODAY (honest soft launch):**
 
-Happy to answer anything in the comments. Link: https://www.mcpx.digital
+- **Computed Trust Scores (0–100)** — provenance, license, adoption, reviews, maturity, capability risk. API: `/api/servers/:slug/trust`. New listings start **low** on adoption/reviews — we won’t fake installs or stars.
+- **One-click install for free tools** — works without purchase or account gymnastics. Copy the config for Claude Desktop, Cursor, or VS Code.
+- **Paid catalog honesty** — if a publisher hasn’t finished Stripe Connect, the listing shows **Unavailable** (not a fake Subscribe button).
+- **Stripe Connect 85%** — live for publishers who onboard. You keep 85%; platform takes 15%.
+- **Solana Pay: Live (devnet) only** — labeled on purpose; not mainnet yet.
+- **Seed social proof = honest zeros** — no invented user/install/revenue counts for launch day.
+
+Catalog demos may show **Unavailable** until the publisher completes Connect. Trust Scores won’t inflate adoption to look “hot.”
+
+**Two asks for feedback today:**
+
+1. **Buyers / Claude–Cursor users:** try a free install — what’s missing before you’d trust a paid tool?
+2. **MCP authors:** publish at https://www.mcpx.digital/submit — is Connect onboarding clear, and would you list free vs paid first?
+
+I’ll be in the comments all day. Link: https://www.mcpx.digital · Submit: https://www.mcpx.digital/submit · GitHub: https://github.com/TheoryofShadows/Mcp
 
 ---
 
@@ -71,7 +82,7 @@ What we ship:
 - Stripe Connect: publishers keep 85% of paid sales
 - Open catalog API + agent discover feed at `/api/discover`
 
-Soft launch — honest about what’s ready (Stripe Connect ~85% live path; Solana Pay is labeled Live/devnet, not mainnet).
+Soft launch — honest zeros on seed social proof; free installs work without purchase; paid tools without Connect show Unavailable; Stripe Connect 85% live for onboarded publishers; Solana Pay is labeled Live/devnet, not mainnet. Trust Scores won’t fake adoption.
 
 Source: https://github.com/TheoryofShadows/Mcp  
 Feedback welcome, especially from people who’ve been burned by shady MCP installs.
@@ -84,25 +95,31 @@ Feedback welcome, especially from people who’ve been burned by shady MCP insta
 
 We built MCPX → https://www.mcpx.digital
 
+Soft launch. Honest zeros on seed social proof — no fake installs or user counts.
+
 2/ Every listing gets a **computed Trust Score (0–100)** — provenance, license, adoption, reviews, maturity, capability risk. Not a vanity badge.
+
+New listings start low on adoption/reviews. We don’t invent traction.
 
 Agents can query it: `/api/servers/:slug/trust`
 
-3/ Install in one click. Copy the exact config for Claude Desktop, Cursor, or VS Code. Free tools don’t require an account.
+3/ Free tools: one-click install works without purchase. Copy the exact config for Claude Desktop, Cursor, or VS Code.
 
 Marketplace: https://www.mcpx.digital/marketplace
 
 4/ Publishers: list free or set a price. Connect Stripe once. You keep **85%**. Platform fee is 15%.
 
+Paid catalog tools without Connect show **Unavailable** — not a fake Subscribe button.
+
 Publish: https://www.mcpx.digital/submit
 
-5/ Soft launch today. Stripe Connect payouts are the primary rail. Solana Pay is available and labeled **Live (devnet)** — we won’t pretend it’s mainnet.
+5/ Soft launch today. Stripe Connect 85% is live for publishers who onboard. Solana Pay is labeled **Live (devnet)** only — not mainnet.
 
 6/ Open source. API + docs in the repo. If you maintain an MCP server, listing takes minutes.
 
 GitHub: https://github.com/TheoryofShadows/Mcp
 
-7/ If this is useful: try an install, star the repo, or publish a tool. Feedback > vanity metrics.
+7/ If this is useful: try a free install, publish a tool, or tell us what’s missing. Feedback > vanity metrics.
 
 Try it → https://www.mcpx.digital
 
