@@ -5,20 +5,21 @@ import GithubIcon from "../icons/GithubIcon";
 const LINKS = {
   Product: [
     { label: "Marketplace", to: "/marketplace" },
-    { label: "Submit a Tool", to: "/submit" },
+    { label: "Publish", to: "/submit" },
     { label: "Pricing", to: "/pricing" },
-    { label: "Dashboard", to: "/dashboard" },
+    { label: "Docs", to: "/docs" },
+    { label: "New here?", to: "/start" },
   ],
   Developers: [
     { label: "API Reference", href: "https://github.com/TheoryofShadows/Mcp/blob/main/docs/API.md" },
     { label: "Publishing Guide", href: "https://github.com/TheoryofShadows/Mcp/blob/main/docs/PUBLISHING.md" },
     { label: "Trust & Security", href: "https://github.com/TheoryofShadows/Mcp/blob/main/docs/TRUST.md" },
-    { label: "Architecture", href: "https://github.com/TheoryofShadows/Mcp/blob/main/docs/ARCHITECTURE.md" },
+    { label: "Launch kit", href: "https://github.com/TheoryofShadows/Mcp/blob/main/docs/LAUNCH.md" },
   ],
   Company: [
     { label: "GitHub", href: "https://github.com/TheoryofShadows/Mcp" },
     { label: "Changelog", href: "https://github.com/TheoryofShadows/Mcp/blob/main/CHANGELOG.md" },
-    { label: "Trust & Security", href: "https://github.com/TheoryofShadows/Mcp/blob/main/docs/TRUST.md" },
+    { label: "Dashboard", to: "/dashboard" },
     { label: "Solana Pay — Live (devnet)", href: "https://github.com/TheoryofShadows/Mcp/blob/main/docs/PUBLISHING.md" },
   ],
 };

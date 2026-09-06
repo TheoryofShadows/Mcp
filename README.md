@@ -8,7 +8,9 @@
 
 > **Discover, install, publish, and get paid for Model Context Protocol servers** — the tools that give Claude, Cursor, and VS Code real-world capabilities.
 
-**[www.mcpx.digital](https://www.mcpx.digital)** · [Demo (GitHub Pages)](https://theoryofshadows.github.io/Mcp/) · [Docs](docs/README.md)
+**[Try it → www.mcpx.digital](https://www.mcpx.digital)** · **[Publish & earn 85%](https://www.mcpx.digital/submit)** · [Marketplace](https://www.mcpx.digital/marketplace) · [Pricing](https://www.mcpx.digital/pricing) · [Docs](docs/README.md) · [Launch kit](docs/LAUNCH.md)
+
+Live: [www.mcpx.digital](https://www.mcpx.digital) · Demo: [GitHub Pages](https://theoryofshadows.github.io/Mcp/) · Source: [TheoryofShadows/Mcp](https://github.com/TheoryofShadows/Mcp)
 
 ---
 

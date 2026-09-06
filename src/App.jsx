@@ -73,6 +73,7 @@ export default function App() {
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/"            element={<Home />} />
+            <Route path="/start"       element={<Navigate to={{ pathname: "/", hash: "new-here" }} replace />} />
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/tool/:slug"  element={<ToolDetail />} />
             <Route path="/submit"      element={<Submit />} />

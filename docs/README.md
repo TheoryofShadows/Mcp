@@ -78,6 +78,7 @@ Full details in [Architecture](ARCHITECTURE.md).
 - [DEPLOYMENT.md](DEPLOYMENT.md) — running your own instance
 - [TRUST.md](TRUST.md) — the Trust Score and security model
 - [FAQ.md](FAQ.md) — frequently asked questions
+- [LAUNCH.md](LAUNCH.md) — Product Hunt / HN / social paste kit + directory checklist
 - [GITHUB_PAGES.md](GITHUB_PAGES.md) — about the demo site & how it's published
 - [../CONTRIBUTING.md](../CONTRIBUTING.md) — contributor workflow
 - [../SECURITY.md](../SECURITY.md) — vulnerability reporting
