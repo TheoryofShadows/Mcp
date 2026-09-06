@@ -77,19 +77,9 @@ function encodeTransferData(lamports) {
 
 function mockLegacyTx({ accountKeys, preBalances, postBalances, transfers, err = null }) {
   const systemId = SystemProgram.programId.toBase58();
-  const instructions = transfers.map(({ from, to, lamports }) => {
-    const keys = [...accountKeys];
-    if (!keys.includes(systemId)) keys.push(systemId);
-    return {
-      programIdIndex: keys.indexOf(systemId),
-      accounts: [accountKeys.indexOf(from), accountKeys.indexOf(to)],
-      data: encodeTransferData(lamports),
-    };
-  });
   // Ensure system program is in accountKeys for programIdIndex
   const keys = [...accountKeys];
   if (!keys.includes(systemId)) keys.push(systemId);
-  // Recompute indexes with final keys
   const ixs = transfers.map(({ from, to, lamports }) => ({
     programIdIndex: keys.indexOf(systemId),
     accounts: [keys.indexOf(from), keys.indexOf(to)],
