@@ -226,6 +226,10 @@ export default function ToolDetail() {
   const isPaid = tool.price_type === "paid";
   const canInstall = !isPaid || unlocked;
   const showSolanaPay = isPaid && solanaCfg?.enabled && tool.publisher_has_solana_wallet;
+  // API marks paid tools purchasable only when publisher Stripe Connect is ready.
+  const isPurchasable = tool.purchasable !== false;
+  const purchaseBlocked = isPaid && !isPurchasable && !unlocked;
+  const blockedReason = tool.purchase_blocked_reason || "Publisher payouts not enabled";
 
   return (
     <main id="main-content" style={{ maxWidth: "1000px", margin: "0 auto", padding: "32px 24px 80px" }}>
@@ -463,29 +467,33 @@ export default function ToolDetail() {
                   </div>
                   <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, textAlign: "center", background: "rgba(8,8,13,0.55)" }}>
                     <p style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "16px", marginBottom: 8 }}>
-                      Install unlocks after purchase
+                      {purchaseBlocked ? "Unavailable for purchase" : "Install unlocks after purchase"}
                     </p>
-                    <p style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.55, maxWidth: 420, marginBottom: 14 }}>
-                      Subscribe with Stripe (primary) to unlock one-click configs for Claude, Cursor, and VS Code.
+                    <p style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.55, maxWidth: 420, marginBottom: purchaseBlocked ? 0 : 14 }}>
+                      {purchaseBlocked
+                        ? `${blockedReason}. Install stays locked until the publisher enables payouts.`
+                        : "Subscribe with Stripe (primary) to unlock one-click configs for Claude, Cursor, and VS Code."}
                     </p>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        document.getElementById("tool-checkout")?.scrollIntoView({ behavior: "smooth", block: "center" });
-                      }}
-                      style={{
-                        padding: "10px 18px",
-                        background: "linear-gradient(135deg, #22d3ee, #14b8a6)",
-                        border: "none",
-                        borderRadius: "10px",
-                        color: "#fff",
-                        fontSize: "13px",
-                        fontWeight: 600,
-                        cursor: "pointer",
-                      }}
-                    >
-                      Go to checkout
-                    </button>
+                    {!purchaseBlocked && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          document.getElementById("tool-checkout")?.scrollIntoView({ behavior: "smooth", block: "center" });
+                        }}
+                        style={{
+                          padding: "10px 18px",
+                          background: "linear-gradient(135deg, #22d3ee, #14b8a6)",
+                          border: "none",
+                          borderRadius: "10px",
+                          color: "#fff",
+                          fontSize: "13px",
+                          fontWeight: 600,
+                          cursor: "pointer",
+                        }}
+                      >
+                        Go to checkout
+                      </button>
+                    )}
                   </div>
                 </div>
               ) : (
@@ -594,10 +602,17 @@ export default function ToolDetail() {
               <PriceTag tool={tool} size="lg" />
               {tool.price_type === "paid" && (
                 <>
-                  <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "8px", fontFamily: "var(--font-mono)" }}>
-                    per month · cancel anytime
-                  </p>
-                  {!canInstall && (
+                  {!purchaseBlocked && (
+                    <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "8px", fontFamily: "var(--font-mono)" }}>
+                      per month · cancel anytime
+                    </p>
+                  )}
+                  {purchaseBlocked && (
+                    <p style={{ fontSize: "12px", color: "#fbbf24", marginTop: "8px", lineHeight: 1.5 }}>
+                      {blockedReason}. Unavailable for purchase.
+                    </p>
+                  )}
+                  {!canInstall && !purchaseBlocked && (
                     <p style={{ fontSize: "12px", color: "#a5f3fc", marginTop: "8px", lineHeight: 1.5 }}>
                       Install command unlocks after purchase.
                     </p>
@@ -611,6 +626,28 @@ export default function ToolDetail() {
               )}
             </div>
 
+            {purchaseBlocked ? (
+              <button
+                id="tool-checkout"
+                type="button"
+                disabled
+                aria-disabled="true"
+                style={{
+                  width: "100%",
+                  padding: "13px",
+                  background: "#1d1d2b",
+                  border: "1px solid #2e2e44",
+                  borderRadius: "10px",
+                  color: "#94a3b8",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  cursor: "not-allowed",
+                  marginBottom: "10px",
+                }}
+              >
+                Unavailable for purchase
+              </button>
+            ) : (
             <button
               id="tool-checkout"
               style={{
@@ -654,6 +691,7 @@ export default function ToolDetail() {
             >
               {checkoutLoading ? "Redirecting…" : tool.price_type === "free" ? "Install Tool" : `Subscribe — ${tool.price_label || tool.price}`}
             </button>
+            )}
 
             {checkoutErr && (
               <p role="alert" style={{ fontSize: "12px", color: "#f87171", textAlign: "center", lineHeight: 1.5, marginBottom: "8px" }}>
@@ -668,9 +706,11 @@ export default function ToolDetail() {
             )}
             {tool.price_type === "paid" && (
               <div style={{ textAlign: "center", marginBottom: "4px" }}>
+                {!purchaseBlocked && (
                 <p style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "var(--font-mono)", marginBottom: "4px" }}>
                   Secure payment via Stripe · Publishers keep 85%
                 </p>
+                )}
                 {showSolanaPay ? (
                   <div style={{ marginTop: "10px" }}>
                     {!phantom.publicKey ? (
@@ -806,7 +846,7 @@ export default function ToolDetail() {
                 <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>Category</span>
                 <span style={{ fontSize: "12px", fontFamily: "var(--font-mono)", color: "var(--text-secondary)", textTransform: "capitalize" }}>{tool.category_id}</span>
               </div>
-              {tool.price_type === "paid" && (
+              {tool.price_type === "paid" && !purchaseBlocked && (
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>Platform fee</span>
                   <span style={{ fontSize: "12px", fontFamily: "var(--font-mono)", color: "var(--text-secondary)" }}>15%</span>
@@ -835,8 +875,10 @@ export default function ToolDetail() {
                   <p aria-hidden="true" style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "#374151", filter: "blur(4px)", userSelect: "none", margin: 0 }}>
                     npx -y ••••••••••••••
                   </p>
-                  <p style={{ margin: "10px 0 0", fontSize: "12px", color: "#a5f3fc", lineHeight: 1.5 }}>
-                    Unlock after Stripe checkout — install configs appear here once you purchase.
+                  <p style={{ margin: "10px 0 0", fontSize: "12px", color: purchaseBlocked ? "#fbbf24" : "#a5f3fc", lineHeight: 1.5 }}>
+                    {purchaseBlocked
+                      ? `${blockedReason}. Install stays locked.`
+                      : "Unlock after Stripe checkout — install configs appear here once you purchase."}
                   </p>
                 </div>
               </div>

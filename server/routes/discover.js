@@ -2,6 +2,7 @@ import { Router } from "express";
 import db from "../db.js";
 import { computeTrust } from "../lib/trustScore.js";
 import { latestScanTier } from "../lib/scanService.js";
+import { computePurchasable } from "../lib/purchasable.js";
 
 const router = Router();
 const SITE = (process.env.APP_URL || "https://www.mcpx.digital").replace(/\/$/, "");
@@ -26,6 +27,8 @@ router.get("/", (req, res) => {
 
   const rows = db.prepare(`
     SELECT s.*, u.username AS author_username, c.label AS category_label,
+      u.stripe_account_id AS stripe_account_id,
+      u.stripe_onboarding_done AS stripe_onboarding_done,
       (SELECT COUNT(*) FROM flags f WHERE f.server_id = s.id AND f.status = 'open' AND f.user_id IS NOT NULL) AS open_flags
     FROM servers s
     JOIN users u ON s.author_id = u.id
@@ -52,6 +55,7 @@ router.get("/", (req, res) => {
       description: r.description,
       author: r.author_username,
       price_type: r.price_type,
+      ...computePurchasable(r),
       installs: r.installs,
       rating: r.rating,
       verified: !!r.verified,
