@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Github, Loader, AlertCircle, CheckCircle, CreditCard, ArrowRight, Info } from "lucide-react";
+import { Loader, AlertCircle, CheckCircle, CreditCard, ArrowRight, Info } from "lucide-react";
+import GithubIcon from "../components/icons/GithubIcon";
 import { useAuth } from "../hooks/useAuth";
 import { supabase } from "../lib/supabase";
 import { createServer } from "../api/client";
@@ -242,7 +243,7 @@ export default function Submit() {
       {/* GitHub URL fetch */}
       <div style={{ background: "#12121c", border: "1px solid #1d1d2b", borderRadius: "14px", padding: "24px", marginBottom: "20px" }}>
         <label style={labelStyle}>
-          <Github size={12} style={{ display: "inline", marginRight: "5px" }} />
+          <GithubIcon size={12} style={{ display: "inline", marginRight: "5px" }} />
           GitHub Repository URL
         </label>
         <div style={{ display: "flex", gap: "10px" }}>

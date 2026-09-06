@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Github, Loader, AlertCircle, Zap, Shield, CheckCircle } from "lucide-react";
+import { Loader, AlertCircle, Zap, Shield, CheckCircle } from "lucide-react";
+import GithubIcon from "../components/icons/GithubIcon";
 import { useAuth } from "../hooks/useAuth";
 import { supabase, isSupabaseEnabled } from "../lib/supabase";
 
@@ -216,7 +217,7 @@ export default function Login() {
                 {loading ? (
                   <Loader size={18} style={{ animation: "spin 1s linear infinite" }} />
                 ) : (
-                  <Github size={18} />
+                  <GithubIcon size={18} />
                 )}
                 {loading ? "Redirecting to GitHub…" : "Continue with GitHub"}
               </button>

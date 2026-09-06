@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { Github, Zap } from "lucide-react";
+import { Zap } from "lucide-react";
+import GithubIcon from "../icons/GithubIcon";
 
 const LINKS = {
   Product: [
@@ -75,7 +76,7 @@ export default function Footer() {
                 onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#2e2e44"; e.currentTarget.style.color = "var(--text-muted)"; }}
                 aria-label="GitHub"
               >
-                <Github size={15} />
+                <GithubIcon size={15} />
               </a>
               <div style={{ display: "flex", alignItems: "center", gap: "6px", padding: "5px 12px", background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.15)", borderRadius: "100px" }}>
                 <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#10b981", display: "inline-block" }} />

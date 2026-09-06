@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
-  ArrowLeft, Star, Download, Github, ExternalLink,
+  ArrowLeft, Star, Download, ExternalLink,
   Copy, Check, TrendingUp, AlertCircle
 } from "lucide-react";
+import GithubIcon from "../components/icons/GithubIcon";
 import VerifiedBadge from "../components/VerifiedBadge";
 import TrustScore from "../components/TrustScore";
 import PriceTag from "../components/PriceTag";
@@ -343,7 +344,7 @@ export default function ToolDetail() {
                     fontFamily: "var(--font-mono)",
                   }}
                 >
-                  <Github size={13} />
+                  <GithubIcon size={13} />
                   View Source
                   <ExternalLink size={11} />
                 </a>
