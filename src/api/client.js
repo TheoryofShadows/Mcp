@@ -217,3 +217,39 @@ export async function adminDeleteServer(id) {
 export async function adminFetchUsers() {
   return request("/admin/users");
 }
+
+// ─── Solana Pay ───
+
+/** Public Solana Pay readiness (cluster, enabled, FX stub label). */
+export async function fetchSolanaConfig() {
+  return request("/payments/solana/config");
+}
+
+/** Publisher: save Solana payout pubkey (base58). */
+export async function saveSolanaWallet(solanaWallet) {
+  return request("/payments/solana/wallet", {
+    method: "PUT",
+    body: JSON.stringify({ solana_wallet: solanaWallet }),
+  });
+}
+
+/** Create a pending Solana purchase; returns pay params for Phantom. */
+export async function solanaToolRequest(serverSlug) {
+  return request("/payments/solana/request", {
+    method: "POST",
+    body: JSON.stringify({ server_slug: serverSlug }),
+  });
+}
+
+/** Confirm on-chain payment; server verifies tx then unlocks the tool. */
+export async function solanaToolConfirm(purchaseId, signature) {
+  return request("/payments/solana/confirm", {
+    method: "POST",
+    body: JSON.stringify({ purchase_id: purchaseId, signature }),
+  });
+}
+
+/** Poll purchase status. */
+export async function solanaPurchaseStatus(purchaseId) {
+  return request(`/payments/solana/status/${encodeURIComponent(purchaseId)}`);
+}

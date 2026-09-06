@@ -19,7 +19,7 @@ const LINKS = {
     { label: "GitHub", href: "https://github.com/TheoryofShadows/Mcp" },
     { label: "Changelog", href: "https://github.com/TheoryofShadows/Mcp/blob/main/CHANGELOG.md" },
     { label: "Trust & Security", href: "https://github.com/TheoryofShadows/Mcp/blob/main/docs/TRUST.md" },
-    { label: "Solana Pay — Coming soon", href: "https://github.com/TheoryofShadows/Mcp/blob/main/README.md" },
+    { label: "Solana Pay — Live (devnet)", href: "https://github.com/TheoryofShadows/Mcp/blob/main/docs/PUBLISHING.md" },
   ],
 };
 
@@ -158,7 +158,7 @@ export default function Footer() {
             Payments by{" "}
             <a href="https://stripe.com" target="_blank" rel="noopener noreferrer" style={{ color: "#67e8f9", textDecoration: "none" }}>Stripe Connect</a>
             {" "}· Solana Pay{" "}
-            <span style={{ color: "#fbbf24" }}>Coming soon</span>
+            <span style={{ color: "#14F195" }}>Live (devnet)</span>
             {" "}· MCP by{" "}
             <a href="https://modelcontextprotocol.io" target="_blank" rel="noopener noreferrer" style={{ color: "#67e8f9", textDecoration: "none" }}>Anthropic + Linux Foundation</a>
           </p>

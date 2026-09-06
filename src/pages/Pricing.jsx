@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Check, Zap, Building2, Users, ArrowRight, AlertCircle, CheckCircle, CreditCard, ShieldCheck, Clock } from "lucide-react";
+import { Check, Zap, Building2, Users, ArrowRight, AlertCircle, CheckCircle, CreditCard, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { useTiers } from "../hooks/useTiers";
 import { subscribeTier } from "../api/client";
@@ -26,7 +26,7 @@ const FAQ = [
   },
   {
     q: "Is Solana Pay available?",
-    a: "Not yet. Solana Pay is stubbed on the API and labeled Coming soon in the product. Stripe Connect is the live payment path for publisher payouts and tool purchases.",
+    a: "Yes for paid tools on the configured Solana cluster (default: devnet). Buyers pay with Phantom; publishers set a Solana wallet in Dashboard → Payouts. Stripe remains the primary fiat path. Amounts use a documented SOL FX stub until USDC is wired.",
   },
   {
     q: "Can I cancel anytime?",
@@ -97,7 +97,7 @@ export default function Pricing() {
           List free. Publish paid tools. Keep 85% of every sale via Stripe Connect. Upgrade only when you need Pro or Enterprise.
         </p>
         <p style={{ fontSize: "13px", fontFamily: "var(--font-mono)", color: "var(--text-muted)" }}>
-          No hidden fees · Cancel anytime · Stripe live · Solana Pay coming soon
+          No hidden fees · Cancel anytime · Stripe live · Solana Pay with Phantom (devnet)
         </p>
       </div>
 
@@ -249,19 +249,19 @@ export default function Pricing() {
           </div>
         </div>
 
-        <div style={{ background: "#12121c", border: "1px dashed rgba(251,191,36,0.35)", borderRadius: "18px", padding: "28px" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "4px 10px", background: "rgba(251,191,36,0.1)", border: "1px solid rgba(251,191,36,0.25)", borderRadius: "100px", marginBottom: "14px" }}>
-            <Clock size={12} color="#fbbf24" />
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "#fbbf24", letterSpacing: "0.05em" }}>COMING SOON</span>
+        <div style={{ background: "#12121c", border: "1px solid rgba(153,69,255,0.35)", borderRadius: "18px", padding: "28px" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "4px 10px", background: "rgba(20,241,149,0.1)", border: "1px solid rgba(20,241,149,0.25)", borderRadius: "100px", marginBottom: "14px" }}>
+            <CheckCircle size={12} color="#14F195" />
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "#14F195", letterSpacing: "0.05em" }}>LIVE (DEVNET)</span>
           </div>
           <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "22px", letterSpacing: "-0.5px", marginBottom: "10px" }}>
-            Solana Pay
+            Solana Pay · Phantom
           </h2>
           <p style={{ fontSize: "14px", color: "var(--text-secondary)", lineHeight: 1.7, marginBottom: "14px" }}>
-            Crypto-native checkout is on the roadmap. The API stub returns Coming soon — it is <strong style={{ color: "var(--text-primary)", fontWeight: 600 }}>not</strong> live for purchases or payouts.
+            Alternate checkout for <strong style={{ color: "var(--text-primary)", fontWeight: 600 }}>paid tools</strong>. Buyer signs one transaction with an atomic 85/15 split (publisher + platform treasury). Requires <code style={{ fontFamily: "var(--font-mono)", fontSize: "12px" }}>SOLANA_TREASURY_WALLET</code> and a publisher Solana wallet.
           </p>
           <p style={{ fontSize: "13px", fontFamily: "var(--font-mono)", color: "var(--text-muted)", lineHeight: 1.6 }}>
-            Live today: Stripe Connect for publisher payouts and tool subscriptions.
+            Stripe remains primary for fiat. SOL amounts use a documented FX stub (not a live oracle).
           </p>
         </div>
       </div>

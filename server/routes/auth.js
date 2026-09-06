@@ -157,6 +157,7 @@ router.post("/login", async (req, res) => {
       created_at: user.created_at,
       stripe_onboarding_done: !!user.stripe_onboarding_done,
       stripe_connected: !!user.stripe_onboarding_done && !!user.stripe_account_id,
+      solana_wallet: user.solana_wallet || null,
     },
   });
 });
@@ -164,7 +165,7 @@ router.post("/login", async (req, res) => {
 // GET /api/auth/me
 router.get("/me", requireAuth, (req, res) => {
   const user = db.prepare(
-    "SELECT id, email, username, display_name, tier, created_at, stripe_onboarding_done, stripe_account_id FROM users WHERE id = ?"
+    "SELECT id, email, username, display_name, tier, created_at, stripe_onboarding_done, stripe_account_id, solana_wallet FROM users WHERE id = ?"
   ).get(req.user.id);
 
   if (!user) {
@@ -180,6 +181,7 @@ router.get("/me", requireAuth, (req, res) => {
     ...user,
     stripe_onboarding_done: !!user.stripe_onboarding_done,
     stripe_connected: !!user.stripe_onboarding_done && !!user.stripe_account_id,
+    solana_wallet: user.solana_wallet || null,
     server_count: serverCount,
     total_installs: totalInstalls,
   });

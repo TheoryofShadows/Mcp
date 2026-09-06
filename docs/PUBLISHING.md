@@ -117,8 +117,25 @@ completed Stripe onboarding"* — buyers can't be charged until you're set up.
 - Payouts and dispute handling run through Stripe; the platform covers Stripe
   processing fees and payment disputes on connected accounts.
 
-> Crypto: a **Solana Pay** flow is stubbed for the future
-> (`/api/payments/solana/request` currently returns *"coming soon"*).
+### Solana Pay (alternate checkout)
+
+Stripe stays the primary fiat path. For paid tools, buyers can also pay with
+**Phantom** on the configured Solana cluster (default **`devnet`**).
+
+1. Set platform env: `SOLANA_TREASURY_WALLET` (required), optional
+   `SOLANA_CLUSTER`, `SOLANA_RPC_URL`, `SOLANA_USD_PER_SOL` (FX stub).
+2. In **Dashboard → Payouts**, save your Solana payout pubkey (base58).
+3. Buyers on the tool page: **Connect Phantom → Pay with Solana**.
+4. One transaction sends **85%** to you and **15%** to the platform treasury.
+   The API verifies the signature on-chain before unlocking (same
+   `installs` + `sales` path as Stripe).
+
+Amounts are paid in **native SOL** using a documented fixed USD→SOL rate
+(`SOLANA_USD_PER_SOL`, default `150`) — labeled **SOL (FX stub)**, not a live
+oracle. USDC can replace this later.
+
+Until `SOLANA_TREASURY_WALLET` is set, Solana checkout stays disabled
+(`501` / “Coming soon” in the UI).
 
 ---
 

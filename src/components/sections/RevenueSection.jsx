@@ -76,7 +76,7 @@ export default function RevenueSection({ onAuthClick }) {
           }}
         >
           Keep 85% of every paid sale via Stripe Connect. Trust Scores make your
-          tool discoverable. Solana Pay is coming soon — not live yet.
+          tool discoverable. Solana Pay with Phantom is live on the configured cluster (default: devnet).
         </p>
       </div>
 

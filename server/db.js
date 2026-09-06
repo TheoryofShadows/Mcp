@@ -126,7 +126,28 @@ db.exec(`
     buyer_id    TEXT REFERENCES users(id),
     gross_cents INTEGER NOT NULL,
     fee_cents   INTEGER NOT NULL,
+    payment_method TEXT DEFAULT 'stripe',
     created_at  TEXT DEFAULT (datetime('now'))
+  );
+
+  -- Pending/completed Solana Pay tool purchases (verified on-chain before unlock).
+  CREATE TABLE IF NOT EXISTS solana_purchases (
+    id                   TEXT PRIMARY KEY,
+    buyer_id             TEXT NOT NULL REFERENCES users(id),
+    server_id            TEXT NOT NULL REFERENCES servers(id) ON DELETE CASCADE,
+    reference            TEXT NOT NULL UNIQUE,
+    recipient            TEXT NOT NULL,
+    platform_recipient   TEXT NOT NULL,
+    gross_cents          INTEGER NOT NULL,
+    fee_cents            INTEGER NOT NULL,
+    publisher_lamports   INTEGER NOT NULL,
+    platform_lamports    INTEGER NOT NULL,
+    cluster              TEXT NOT NULL,
+    status               TEXT NOT NULL DEFAULT 'pending'
+                         CHECK(status IN ('pending','completed','expired')),
+    signature            TEXT,
+    created_at           TEXT DEFAULT (datetime('now')),
+    completed_at         TEXT
   );
 
   -- Latest source-code scan per server (see server/lib/repoScan.js). One row per
@@ -174,6 +195,8 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_events(created_at);
   CREATE INDEX IF NOT EXISTS idx_revoked_expires ON revoked_tokens(expires_at);
   CREATE INDEX IF NOT EXISTS idx_sales_server ON sales(server_id);
+  CREATE INDEX IF NOT EXISTS idx_solana_purchases_buyer ON solana_purchases(buyer_id, status);
+  CREATE INDEX IF NOT EXISTS idx_solana_purchases_ref ON solana_purchases(reference);
 `);
 
 // Adoption integrity: enforce one *counted* install per (server, authenticated
@@ -195,11 +218,13 @@ for (const sql of [
   "ALTER TABLE users ADD COLUMN stripe_customer_id TEXT",
   "ALTER TABLE users ADD COLUMN stripe_account_id TEXT",        // Connect: publisher payout account
   "ALTER TABLE users ADD COLUMN stripe_onboarding_done INTEGER DEFAULT 0",
+  "ALTER TABLE users ADD COLUMN solana_wallet TEXT",            // Solana Pay: publisher payout pubkey (base58)
   "ALTER TABLE subscriptions ADD COLUMN stripe_subscription_id TEXT",
   "ALTER TABLE servers ADD COLUMN license TEXT",                // Trust Score: license-clarity signal
   "ALTER TABLE servers ADD COLUMN install_command TEXT",        // Verifiable install spec (CLI + web)
   "ALTER TABLE servers ADD COLUMN repo_verified INTEGER DEFAULT 0", // Proven repo ownership → full provenance
   "ALTER TABLE servers ADD COLUMN verify_token TEXT",           // Per-server .mcpx-verify challenge token
+  "ALTER TABLE sales ADD COLUMN payment_method TEXT DEFAULT 'stripe'",
 ]) {
   try { db.prepare(sql).run(); } catch { /* column already exists */ }
 }

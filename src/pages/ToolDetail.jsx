@@ -12,7 +12,9 @@ import InstallCommand from "../components/InstallCommand";
 import InstallButtons from "../components/InstallButtons";
 import CapabilitiesWarning from "../components/CapabilitiesWarning";
 import { SEED_TOOLS, SEED_REVIEWS } from "../data/seed";
-import { fetchServer, toolCheckout, recordInstall, reportServer } from "../api/client";
+import { fetchServer, toolCheckout, recordInstall, reportServer, fetchSolanaConfig, solanaToolRequest, solanaToolConfirm } from "../api/client";
+import { usePhantom } from "../hooks/usePhantom";
+import { payWithPhantom } from "../lib/solanaPay";
 
 // Normalize the API server shape to the fields this page/seed expect.
 function normalize(s) {
@@ -148,6 +150,10 @@ export default function ToolDetail() {
   const [installMsg, setInstallMsg] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutErr, setCheckoutErr] = useState("");
+  const [solanaCfg, setSolanaCfg] = useState(null);
+  const [solanaLoading, setSolanaLoading] = useState(false);
+  const [solanaMsg, setSolanaMsg] = useState("");
+  const phantom = usePhantom();
   const [reportOpen, setReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState("security");
   const [reportDetail, setReportDetail] = useState("");
@@ -178,6 +184,12 @@ export default function ToolDetail() {
       setLoading(false);
     });
   }, [slug]);
+
+  useEffect(() => {
+    fetchSolanaConfig()
+      .then(setSolanaCfg)
+      .catch(() => setSolanaCfg({ enabled: false, label: "Coming soon" }));
+  }, []);
 
   if (loading) {
     return (
@@ -580,9 +592,93 @@ export default function ToolDetail() {
                 <p style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "var(--font-mono)", marginBottom: "4px" }}>
                   Secure payment via Stripe · Publishers keep 85%
                 </p>
-                <p style={{ fontSize: "10px", color: "#fbbf24", fontFamily: "var(--font-mono)", letterSpacing: "0.04em" }}>
-                  Solana Pay · Coming soon
-                </p>
+                {solanaCfg?.enabled && tool.publisher_has_solana_wallet ? (
+                  <div style={{ marginTop: "10px" }}>
+                    {!phantom.publicKey ? (
+                      <button
+                        type="button"
+                        disabled={phantom.connecting || solanaLoading}
+                        onClick={() => phantom.connect()}
+                        style={{
+                          width: "100%",
+                          padding: "10px",
+                          background: "rgba(153,69,255,0.12)",
+                          border: "1px solid rgba(153,69,255,0.35)",
+                          borderRadius: "10px",
+                          color: "#e9d5ff",
+                          fontSize: "13px",
+                          fontWeight: 600,
+                          cursor: "pointer",
+                          marginBottom: "6px",
+                        }}
+                      >
+                        {phantom.connecting ? "Connecting…" : "Connect Phantom"}
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled={solanaLoading}
+                        onClick={async () => {
+                          setSolanaLoading(true);
+                          setSolanaMsg("");
+                          setCheckoutErr("");
+                          try {
+                            const req = await solanaToolRequest(tool.slug);
+                            const { signature } = await payWithPhantom({
+                              cluster: req.cluster,
+                              recipient: req.recipient,
+                              platformRecipient: req.platform_recipient,
+                              publisherLamports: req.publisher_lamports,
+                              platformLamports: req.platform_lamports,
+                              reference: req.reference,
+                            });
+                            await solanaToolConfirm(req.purchase_id, signature);
+                            setSolanaMsg("Payment confirmed · tool unlocked");
+                            setInstallMsg(true);
+                            setActiveTab("Install");
+                          } catch (err) {
+                            if (err.code === "NO_WALLET") {
+                              setCheckoutErr("Install Phantom to pay with Solana");
+                            } else {
+                              setCheckoutErr(err.message || "Solana payment failed");
+                            }
+                          } finally {
+                            setSolanaLoading(false);
+                          }
+                        }}
+                        style={{
+                          width: "100%",
+                          padding: "10px",
+                          background: "linear-gradient(135deg, #9945FF, #14F195)",
+                          border: "none",
+                          borderRadius: "10px",
+                          color: "#0b0b12",
+                          fontSize: "13px",
+                          fontWeight: 700,
+                          cursor: solanaLoading ? "not-allowed" : "pointer",
+                          opacity: solanaLoading ? 0.7 : 1,
+                          marginBottom: "6px",
+                        }}
+                      >
+                        {solanaLoading ? "Confirming on-chain…" : `Pay with Solana · ${solanaCfg.label || "Live (devnet)"}`}
+                      </button>
+                    )}
+                    <p style={{ fontSize: "10px", color: "var(--text-muted)", fontFamily: "var(--font-mono)", lineHeight: 1.45 }}>
+                      Atomic 85/15 split · {solanaCfg.currency_label || "SOL (FX stub)"}
+                      {phantom.publicKey ? ` · ${phantom.publicKey.slice(0, 4)}…${phantom.publicKey.slice(-4)}` : ""}
+                    </p>
+                    {solanaMsg && (
+                      <p style={{ fontSize: "12px", color: "#10b981", marginTop: "6px" }}>{solanaMsg}</p>
+                    )}
+                    {phantom.error && (
+                      <p style={{ fontSize: "11px", color: "#f87171", marginTop: "4px" }}>{phantom.error}</p>
+                    )}
+                  </div>
+                ) : (
+                  <p style={{ fontSize: "10px", color: "#fbbf24", fontFamily: "var(--font-mono)", letterSpacing: "0.04em" }}>
+                    Solana Pay · {solanaCfg?.enabled ? "Publisher wallet not set" : (solanaCfg?.label || "Coming soon")}
+                  </p>
+                )}
               </div>
             )}
 
