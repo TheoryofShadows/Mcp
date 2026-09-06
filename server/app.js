@@ -14,6 +14,7 @@ import earningsRoutes from "./routes/earnings.js";
 import adminRoutes from "./routes/admin.js";
 import discoverRoutes from "./routes/discover.js";
 import scanRoutes from "./routes/scan.js";
+import sitemapRoutes from "./routes/sitemap.js";
 
 export function createApp() {
   const app = express();
@@ -125,6 +126,10 @@ export function createApp() {
   app.use("/api/payments", paymentRoutes);
   app.use("/api/earnings", earningsRoutes);
   app.use("/api/admin", adminRoutes);
+
+  // Public SEO: dynamic sitemap with marketing routes + active /tool/:slug pages.
+  // Registered on the app (not under /api) so crawlers hit /sitemap.xml directly.
+  app.use("/sitemap.xml", sitemapRoutes);
 
   // Liveness + readiness: confirm the process is up AND the database answers a
   // trivial query. A failing DB returns 503 so Railway's healthcheck restarts

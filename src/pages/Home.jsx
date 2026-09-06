@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Zap, ArrowRight, Package, Download, DollarSign, Users, ShieldCheck, Bot, CreditCard } from "lucide-react";
+import { Search, Zap, ArrowRight, Package, Download, DollarSign, Users, ShieldCheck, Bot, CreditCard, Terminal } from "lucide-react";
 import ToolCard from "../components/ToolCard";
 import CategoryCard from "../components/CategoryCard";
 import { SEED_TOOLS, SEED_CATEGORIES, SEED_STATS } from "../data/seed";
@@ -93,6 +93,17 @@ export default function Home() {
       if (s) setStats(s);
       setCatCounts(cc);
     });
+  }, []);
+
+  // /start → /#new-here (and deep links to #how-it-works) should land on the section.
+  useEffect(() => {
+    const hash = window.location.hash?.replace(/^#/, "");
+    if (!hash) return;
+    const el = document.getElementById(hash);
+    if (el) {
+      // Defer until layout paints so the section exists.
+      requestAnimationFrame(() => el.scrollIntoView({ behavior: "smooth", block: "start" }));
+    }
   }, []);
 
   function handleSearch(e) {
@@ -302,7 +313,7 @@ export default function Home() {
               Publish a tool — keep 85%
             </a>
             <a
-              href="/pricing"
+              href="/marketplace"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -317,7 +328,7 @@ export default function Home() {
                 textDecoration: "none",
               }}
             >
-              See pricing
+              <Terminal size={14} /> Get install command free
             </a>
           </div>
 
@@ -458,6 +469,97 @@ export default function Home() {
               <p style={{ fontSize: "14px", color: "var(--text-secondary)", lineHeight: 1.6 }}>{body}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* ─── How it works ──────────────────────────────────────────────────────── */}
+      <section id="how-it-works" style={{ padding: "64px 24px", maxWidth: "1100px", margin: "0 auto" }}>
+        <div style={{ textAlign: "center", marginBottom: "36px" }}>
+          <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "30px", letterSpacing: "-0.5px", marginBottom: "10px" }}>
+            How it works
+          </h2>
+          <p style={{ fontSize: "15px", color: "var(--text-muted)", maxWidth: "560px", margin: "0 auto", lineHeight: 1.6 }}>
+            One path for buyers, one for publishers — both end in a working tool or a payout.
+          </p>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "20px" }}>
+          <div style={{ background: "#12121c", border: "1px solid #1d1d2b", borderRadius: "16px", padding: "24px" }}>
+            <p style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "#67e8f9", letterSpacing: "0.08em", marginBottom: "16px" }}>FOR BUYERS</p>
+            {[
+              { n: "1", title: "Browse", body: "Search the marketplace. Every listing shows a computed Trust Score — not a vanity badge." },
+              { n: "2", title: "Install", body: "Copy a one-click config for Claude Desktop, Cursor, or VS Code. Free tools need no account." },
+              { n: "3", title: "Ship", body: "Your agent gets real capabilities — repos, browsers, DBs, payments — without reinventing glue code." },
+            ].map((step) => (
+              <div key={step.n} style={{ display: "flex", gap: "12px", marginBottom: "14px" }}>
+                <div style={{ width: 28, height: 28, borderRadius: "8px", background: "rgba(34,211,238,0.12)", color: "#67e8f9", fontFamily: "var(--font-mono)", fontSize: "12px", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{step.n}</div>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: "14px", marginBottom: "2px" }}>{step.title}</div>
+                  <p style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.55, margin: 0 }}>{step.body}</p>
+                </div>
+              </div>
+            ))}
+            <a href="/marketplace" style={{ display: "inline-flex", alignItems: "center", gap: "6px", marginTop: "8px", fontSize: "13px", color: "#67e8f9", textDecoration: "none", fontWeight: 600 }}>
+              Browse marketplace <ArrowRight size={13} />
+            </a>
+          </div>
+          <div style={{ background: "#12121c", border: "1px solid #1d1d2b", borderRadius: "16px", padding: "24px" }}>
+            <p style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "#10b981", letterSpacing: "0.08em", marginBottom: "16px" }}>FOR PUBLISHERS</p>
+            {[
+              { n: "1", title: "Publish", body: "Submit your MCP server in minutes. Free to list. Add a price when you’re ready." },
+              { n: "2", title: "Connect Stripe", body: "Link Stripe Connect once. Buyers check out on MCPX; money routes to you." },
+              { n: "3", title: "Get paid (85%)", body: "You keep 85% of every paid sale. Platform fee is 15%. Payouts land in your Stripe account." },
+            ].map((step) => (
+              <div key={step.n} style={{ display: "flex", gap: "12px", marginBottom: "14px" }}>
+                <div style={{ width: 28, height: 28, borderRadius: "8px", background: "rgba(16,185,129,0.12)", color: "#10b981", fontFamily: "var(--font-mono)", fontSize: "12px", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{step.n}</div>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: "14px", marginBottom: "2px" }}>{step.title}</div>
+                  <p style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.55, margin: 0 }}>{step.body}</p>
+                </div>
+              </div>
+            ))}
+            <a href="/submit" style={{ display: "inline-flex", alignItems: "center", gap: "6px", marginTop: "8px", fontSize: "13px", color: "#10b981", textDecoration: "none", fontWeight: 600 }}>
+              Publish — keep 85% <ArrowRight size={13} />
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── New here? (60-second path) ────────────────────────────────────────── */}
+      <section id="new-here" style={{ padding: "0 24px 64px", maxWidth: "1100px", margin: "0 auto" }}>
+        <div style={{ background: "#0d0d15", border: "1px solid #1d1d2b", borderRadius: "16px", padding: "28px 28px 24px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "16px", flexWrap: "wrap", marginBottom: "18px" }}>
+            <div>
+              <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "22px", marginBottom: "6px" }}>New here?</h2>
+              <p style={{ fontSize: "14px", color: "var(--text-muted)", margin: 0, lineHeight: 1.55 }}>
+                A 60-second path — pick one lane and go.
+              </p>
+            </div>
+            <a href="/start" style={{ fontSize: "12px", fontFamily: "var(--font-mono)", color: "var(--text-muted)", textDecoration: "none" }}>/start</a>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "12px" }}>
+            {[
+              { href: "/marketplace", label: "Try a free install", detail: "Open marketplace → copy install command" },
+              { href: "/submit", label: "Publish & earn 85%", detail: "List your MCP server → connect Stripe" },
+              { href: "/pricing", label: "See plans", detail: "Starter free · Pro Publisher · Enterprise" },
+            ].map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                style={{
+                  display: "block",
+                  padding: "16px",
+                  background: "#12121c",
+                  border: "1px solid #1d1d2b",
+                  borderRadius: "12px",
+                  textDecoration: "none",
+                  color: "inherit",
+                }}
+              >
+                <div style={{ fontWeight: 700, fontSize: "14px", color: "#a5f3fc", marginBottom: "4px" }}>{item.label}</div>
+                <div style={{ fontSize: "12px", color: "var(--text-muted)", lineHeight: 1.5 }}>{item.detail}</div>
+              </a>
+            ))}
+          </div>
         </div>
       </section>
 

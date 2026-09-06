@@ -1,0 +1,11 @@
+# MCPX — https://www.mcpx.digital
+User-agent: *
+Allow: /
+
+# Prefer the live marketplace over auth/admin surfaces
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /auth/
+Disallow: /api/
+
+Sitemap: https://www.mcpx.digital/sitemap.xml

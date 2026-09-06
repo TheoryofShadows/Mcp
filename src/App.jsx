@@ -3,8 +3,9 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/sections/Footer";
 import ErrorBoundary from "./components/ErrorBoundary";
+// Eager-load the landing page so first paint is not a blank "Loading…" shell.
+import Home from "./pages/Home";
 
-const Home         = lazy(() => import("./pages/Home"));
 const Marketplace  = lazy(() => import("./pages/Marketplace"));
 const ToolDetail   = lazy(() => import("./pages/ToolDetail"));
 const Submit       = lazy(() => import("./pages/Submit"));
@@ -20,18 +21,22 @@ const DOCS_README_URL =
 function PageLoader() {
   return (
     <div
+      role="status"
+      aria-live="polite"
       style={{
-        minHeight: "60vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        color: "var(--text-muted)",
-        fontFamily: "var(--font-mono)",
-        fontSize: "12px",
-        letterSpacing: "0.06em",
+        minHeight: "40vh",
+        maxWidth: "720px",
+        margin: "48px auto",
+        padding: "0 24px",
       }}
     >
-      Loading…
+      <div style={{ height: 14, width: "40%", background: "#1d1d2b", borderRadius: 8, marginBottom: 16 }} />
+      <div style={{ height: 48, width: "100%", background: "#12121c", border: "1px solid #1d1d2b", borderRadius: 12, marginBottom: 12 }} />
+      <div style={{ height: 48, width: "92%", background: "#12121c", border: "1px solid #1d1d2b", borderRadius: 12, marginBottom: 12 }} />
+      <div style={{ height: 48, width: "86%", background: "#12121c", border: "1px solid #1d1d2b", borderRadius: 12 }} />
+      <p style={{ marginTop: 18, color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.06em" }}>
+        Loading…
+      </p>
     </div>
   );
 }
@@ -73,8 +78,10 @@ export default function App() {
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/"            element={<Home />} />
+            <Route path="/start"       element={<Navigate to={{ pathname: "/", hash: "new-here" }} replace />} />
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/tool/:slug"  element={<ToolDetail />} />
+            <Route path="/tools/:slug" element={<ToolDetail />} />
             <Route path="/submit"      element={<Submit />} />
             <Route path="/dashboard"      element={<Dashboard />} />
             <Route path="/login"          element={<Login />} />

@@ -170,7 +170,23 @@ router.get("/:slug", (req, res) => {
     ORDER BY r.created_at DESC
   `).all(row.id);
 
-  res.json({ ...formatServer(row), reviews });
+  // Paid tools: install unlocks after purchase. Authenticated buyers with a
+  // sales row get access; everyone else sees install_locked (command redacted).
+  let buyer_has_access = row.price_type !== "paid";
+  if (row.price_type === "paid" && req.user?.id) {
+    const sale = db.prepare(
+      "SELECT 1 AS ok FROM sales WHERE server_id = ? AND buyer_id = ? LIMIT 1"
+    ).get(row.id, req.user.id);
+    buyer_has_access = !!sale;
+  }
+
+  const formatted = formatServer(row);
+  if (row.price_type === "paid" && !buyer_has_access) {
+    formatted.install_command = null;
+    formatted.install_locked = true;
+  }
+
+  res.json({ ...formatted, reviews, buyer_has_access });
 });
 
 // GET /api/servers/:slug/trust — machine-readable trust report.

@@ -76,19 +76,6 @@ export default function Navbar() {
         >
           MCPX
         </span>
-        <span
-          style={{
-            fontSize: "10px",
-            fontFamily: "var(--font-mono)",
-            background: "rgba(34, 211, 238,0.2)",
-            color: "#67e8f9",
-            border: "1px solid rgba(34, 211, 238,0.3)",
-            borderRadius: "5px",
-            padding: "1px 6px",
-          }}
-        >
-          BETA
-        </span>
       </Link>
 
       {/* Desktop nav */}
