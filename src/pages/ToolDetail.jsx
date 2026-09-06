@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, useSearchParams, Link } from "react-router-dom";
 import {
   ArrowLeft, Star, Download, ExternalLink,
   Copy, Check, TrendingUp, AlertCircle
@@ -143,6 +143,7 @@ function formatInstalls(n) {
 
 export default function ToolDetail() {
   const { slug } = useParams();
+  const [searchParams] = useSearchParams();
   const [tool, setTool] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -153,6 +154,8 @@ export default function ToolDetail() {
   const [solanaCfg, setSolanaCfg] = useState(null);
   const [solanaLoading, setSolanaLoading] = useState(false);
   const [solanaMsg, setSolanaMsg] = useState("");
+  // Paid tools: install UI stays locked until purchase (Stripe return, Solana confirm, or prior sale).
+  const [unlocked, setUnlocked] = useState(searchParams.get("purchased") === "1");
   const phantom = usePhantom();
   const [reportOpen, setReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState("security");
@@ -178,12 +181,19 @@ export default function ToolDetail() {
 
   useEffect(() => {
     setLoading(true);
-    loadTool(slug).then(({ tool: t, reviews: r }) => {
-      setTool(t);
+    loadTool(slug).then(({ tool: loaded, reviews: r }) => {
+      setTool(loaded);
       setReviews(r);
+      if (loaded?.buyer_has_access || loaded?.price_type !== "paid") {
+        setUnlocked(true);
+      }
       setLoading(false);
     });
   }, [slug]);
+
+  useEffect(() => {
+    if (searchParams.get("purchased") === "1") setUnlocked(true);
+  }, [searchParams]);
 
   useEffect(() => {
     fetchSolanaConfig()
@@ -193,8 +203,13 @@ export default function ToolDetail() {
 
   if (loading) {
     return (
-      <div role="status" aria-live="polite" style={{ maxWidth: "900px", margin: "60px auto", padding: "0 24px", textAlign: "center", color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: "13px" }}>
-        Loading…
+      <div role="status" aria-live="polite" style={{ maxWidth: "1000px", margin: "32px auto", padding: "0 24px 80px" }}>
+        <div style={{ height: 12, width: 160, background: "#1d1d2b", borderRadius: 6, marginBottom: 24 }} />
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: "28px" }} className="tool-detail-grid">
+          <div style={{ background: "#12121c", border: "1px solid #1d1d2b", borderRadius: 14, padding: 28, minHeight: 220 }} />
+          <div style={{ background: "#12121c", border: "1px solid #1d1d2b", borderRadius: 14, padding: 24, minHeight: 180 }} />
+        </div>
+        <p style={{ marginTop: 16, color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: "12px" }}>Loading tool…</p>
       </div>
     );
   }
@@ -207,6 +222,10 @@ export default function ToolDetail() {
       </div>
     );
   }
+
+  const isPaid = tool.price_type === "paid";
+  const canInstall = !isPaid || unlocked;
+  const showSolanaPay = isPaid && solanaCfg?.enabled && tool.publisher_has_solana_wallet;
 
   return (
     <main id="main-content" style={{ maxWidth: "1000px", margin: "0 auto", padding: "32px 24px 80px" }}>
@@ -426,26 +445,73 @@ export default function ToolDetail() {
 
           {activeTab === "Install" && (
             <div role="tabpanel" id="panel-Install" aria-labelledby="tab-Install" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <p style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.6, margin: 0 }}>
-                One-click style configs for Claude Desktop, Cursor, and VS Code. Copy, paste, restart — done.
-              </p>
-              <InstallButtons server={tool} />
-              {(tool.capabilities?.length > 0 || tool.risk_level) && (
-                <CapabilitiesWarning capabilities={tool.capabilities} riskLevel={tool.risk_level} />
+              {!canInstall ? (
+                <div
+                  style={{
+                    position: "relative",
+                    background: "#12121c",
+                    border: "1px solid rgba(34, 211, 238, 0.25)",
+                    borderRadius: "14px",
+                    padding: "28px 24px",
+                    overflow: "hidden",
+                  }}
+                >
+                  <div aria-hidden="true" style={{ filter: "blur(5px)", opacity: 0.35, pointerEvents: "none", userSelect: "none" }}>
+                    <p style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "var(--text-muted)" }}>npx -y •••••••••••••••••</p>
+                    <p style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "var(--text-muted)", marginTop: 8 }}>claude mcp add ••••• — •••••</p>
+                    <p style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "var(--text-muted)", marginTop: 8 }}>{`{ "mcpServers": { "••••": { ... } } }`}</p>
+                  </div>
+                  <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, textAlign: "center", background: "rgba(8,8,13,0.55)" }}>
+                    <p style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "16px", marginBottom: 8 }}>
+                      Install unlocks after purchase
+                    </p>
+                    <p style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.55, maxWidth: 420, marginBottom: 14 }}>
+                      Subscribe with Stripe (primary) to unlock one-click configs for Claude, Cursor, and VS Code.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        document.getElementById("tool-checkout")?.scrollIntoView({ behavior: "smooth", block: "center" });
+                      }}
+                      style={{
+                        padding: "10px 18px",
+                        background: "linear-gradient(135deg, #22d3ee, #14b8a6)",
+                        border: "none",
+                        borderRadius: "10px",
+                        color: "#fff",
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                      }}
+                    >
+                      Go to checkout
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <p style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.6, margin: 0 }}>
+                    One-click style configs for Claude Desktop, Cursor, and VS Code. Copy, paste, restart — done.
+                  </p>
+                  <InstallButtons server={tool} />
+                  {(tool.capabilities?.length > 0 || tool.risk_level) && (
+                    <CapabilitiesWarning capabilities={tool.capabilities} riskLevel={tool.risk_level} />
+                  )}
+                  <div
+                    style={{
+                      background: "#12121c",
+                      border: "1px solid #1d1d2b",
+                      borderRadius: "14px",
+                      padding: "20px",
+                    }}
+                  >
+                    <p style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "var(--font-mono)", marginBottom: "10px", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                      Quick install (legacy)
+                    </p>
+                    <InstallCommand command={tool.install_command} label="" />
+                  </div>
+                </>
               )}
-              <div
-                style={{
-                  background: "#12121c",
-                  border: "1px solid #1d1d2b",
-                  borderRadius: "14px",
-                  padding: "20px",
-                }}
-              >
-                <p style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "var(--font-mono)", marginBottom: "10px", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                  Quick install (legacy)
-                </p>
-                <InstallCommand command={tool.install_command} label="" />
-              </div>
             </div>
           )}
 
@@ -527,13 +593,26 @@ export default function ToolDetail() {
             <div style={{ marginBottom: "20px" }}>
               <PriceTag tool={tool} size="lg" />
               {tool.price_type === "paid" && (
-                <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "8px", fontFamily: "var(--font-mono)" }}>
-                  per month · cancel anytime
-                </p>
+                <>
+                  <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "8px", fontFamily: "var(--font-mono)" }}>
+                    per month · cancel anytime
+                  </p>
+                  {!canInstall && (
+                    <p style={{ fontSize: "12px", color: "#a5f3fc", marginTop: "8px", lineHeight: 1.5 }}>
+                      Install command unlocks after purchase.
+                    </p>
+                  )}
+                  {canInstall && unlocked && isPaid && (
+                    <p style={{ fontSize: "12px", color: "#10b981", marginTop: "8px", fontFamily: "var(--font-mono)" }}>
+                      Purchased · install unlocked
+                    </p>
+                  )}
+                </>
               )}
             </div>
 
             <button
+              id="tool-checkout"
               style={{
                 width: "100%",
                 padding: "13px",
@@ -592,7 +671,7 @@ export default function ToolDetail() {
                 <p style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "var(--font-mono)", marginBottom: "4px" }}>
                   Secure payment via Stripe · Publishers keep 85%
                 </p>
-                {solanaCfg?.enabled && tool.publisher_has_solana_wallet ? (
+                {showSolanaPay ? (
                   <div style={{ marginTop: "10px" }}>
                     {!phantom.publicKey ? (
                       <button
@@ -634,6 +713,7 @@ export default function ToolDetail() {
                             });
                             await solanaToolConfirm(req.purchase_id, signature);
                             setSolanaMsg("Payment confirmed · tool unlocked");
+                            setUnlocked(true);
                             setInstallMsg(true);
                             setActiveTab("Install");
                           } catch (err) {
@@ -697,11 +777,7 @@ export default function ToolDetail() {
                       <p style={{ fontSize: "11px", color: "#f87171", marginTop: "4px" }}>{phantom.error}</p>
                     )}
                   </div>
-                ) : (
-                  <p style={{ fontSize: "10px", color: "#fbbf24", fontFamily: "var(--font-mono)", letterSpacing: "0.04em" }}>
-                    Solana Pay · {solanaCfg?.enabled ? "Publisher wallet not set" : (solanaCfg?.label || "Unavailable")}
-                  </p>
-                )}
+                ) : null}
               </div>
             )}
 
@@ -739,7 +815,7 @@ export default function ToolDetail() {
             </div>
           </div>
 
-          {/* Quick install */}
+          {/* Quick install — locked for unpaid paid tools */}
           <div
             style={{
               background: "#12121c",
@@ -748,7 +824,23 @@ export default function ToolDetail() {
               padding: "20px",
             }}
           >
-            <InstallCommand command={tool.install_command} label="Quick Install" />
+            {canInstall ? (
+              <InstallCommand command={tool.install_command} label="Quick Install" />
+            ) : (
+              <div>
+                <p style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "var(--font-mono)", marginBottom: "10px", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                  Quick Install
+                </p>
+                <div style={{ position: "relative", borderRadius: 8, overflow: "hidden", background: "#0a0a0f", border: "1px solid #1a1a28", padding: "14px" }}>
+                  <p aria-hidden="true" style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "#374151", filter: "blur(4px)", userSelect: "none", margin: 0 }}>
+                    npx -y ••••••••••••••
+                  </p>
+                  <p style={{ margin: "10px 0 0", fontSize: "12px", color: "#a5f3fc", lineHeight: 1.5 }}>
+                    Unlock after Stripe checkout — install configs appear here once you purchase.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </aside>
       </div>

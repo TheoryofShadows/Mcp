@@ -1,7 +1,6 @@
 import { memo, useState, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
-import { Badge } from "../ui";
 
 const NAV_LINKS = [
   { path: "/", label: "Marketplace" },
@@ -44,7 +43,6 @@ const Navbar = memo(function Navbar({ onAuthClick }) {
         >
           MCPX
         </span>
-        <Badge>BETA</Badge>
       </Link>
 
       {/* Mobile menu toggle */}

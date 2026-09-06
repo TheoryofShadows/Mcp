@@ -212,8 +212,8 @@ router.post("/stripe/tool-checkout", requireAuth, async (req, res) => {
         application_fee_amount: appFee,
         transfer_data: { destination: server.stripe_account_id },
       },
-      success_url: `${APP_URL}/tools/${server_slug}?purchased=1`,
-      cancel_url:  `${APP_URL}/tools/${server_slug}`,
+      success_url: `${APP_URL}/tool/${server_slug}?purchased=1`,
+      cancel_url:  `${APP_URL}/tool/${server_slug}`,
       metadata: { server_slug, server_id: server.id, buyer_id: req.user.id },
     });
 
