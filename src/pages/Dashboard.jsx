@@ -9,7 +9,7 @@ import PriceTag from "../components/PriceTag";
 import VerifyRepoModal from "../components/VerifyRepoModal";
 import { SEED_TOOLS } from "../data/seed";
 import { supabase } from "../lib/supabase";
-import { fetchServers, getMe, connectStripe, fetchEarnings, saveSolanaWallet } from "../api/client";
+import { fetchServers, getMe, connectStripe, fetchEarnings, saveSolanaWallet, patchServer } from "../api/client";
 
 // Mock dashboard data for demo / no-auth mode
 const MOCK_TOOLS = SEED_TOOLS.filter((t) => ["github-mcp", "filesystem-mcp", "postgres-mcp"].includes(t.slug));
@@ -88,7 +88,7 @@ async function loadDashboard(user) {
   try {
     const [me, serversData] = await Promise.all([
       getMe(),
-      fetchServers({ author: user.username, limit: 50 }),
+      fetchServers({ author: user.username, limit: 50, include_inactive: true }),
     ]);
 
     const apiTools = (serversData.servers || []).map((s) => ({
@@ -160,6 +160,7 @@ export default function Dashboard() {
     if (user?.solana_wallet) setSolanaWalletInput(user.solana_wallet);
   }, [user?.solana_wallet]);
   const [verifyTool, setVerifyTool] = useState(null);
+  const [statusBusySlug, setStatusBusySlug] = useState(null);
   const [earnings, setEarnings] = useState(null);
 
   const chartMonths = getLastSixMonths();
@@ -198,6 +199,24 @@ export default function Dashboard() {
     // Real earned revenue (from completed sales) — best-effort.
     fetchEarnings().then(setEarnings).catch(() => setEarnings(null));
   }, [user, authLoading]);
+
+  async function togglePublish(tool) {
+    if (demoMode || statusBusySlug) return;
+    const next = tool.status === "inactive" ? "active" : "inactive";
+    const label = next === "inactive" ? "Unpublish" : "Republish";
+    if (!window.confirm(`${label} "${tool.name}"?${next === "inactive" ? " It will disappear from the marketplace until you republish." : ""}`)) {
+      return;
+    }
+    setStatusBusySlug(tool.slug);
+    try {
+      const updated = await patchServer(tool.slug, { status: next });
+      setTools((prev) => prev.map((x) => (x.slug === tool.slug ? { ...x, status: updated.status } : x)));
+    } catch (err) {
+      window.alert(err.message || `Failed to ${label.toLowerCase()}`);
+    } finally {
+      setStatusBusySlug(null);
+    }
+  }
 
   if (loading || authLoading) {
     return (
@@ -371,7 +390,12 @@ export default function Dashboard() {
                           {tool.name.charAt(0)}
                         </div>
                         <div>
-                          <div style={{ fontSize: "13px", fontWeight: 600, marginBottom: "2px" }}>{tool.name}</div>
+                          <div style={{ fontSize: "13px", fontWeight: 600, marginBottom: "2px", display: "flex", alignItems: "center", gap: "8px" }}>
+                            {tool.name}
+                            {tool.status === "inactive" && (
+                              <span style={{ fontSize: "10px", fontFamily: "var(--font-mono)", color: "#f59e0b", border: "1px solid rgba(245,158,11,0.35)", borderRadius: "999px", padding: "1px 7px" }}>Unpublished</span>
+                            )}
+                          </div>
                           <div style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>@{tool.author_name || tool.author}</div>
                         </div>
                       </div>
@@ -420,12 +444,37 @@ export default function Dashboard() {
                       )}
                     </td>
                     <td style={{ padding: "16px 20px" }}>
-                      <Link
-                        to={`/tool/${tool.slug}`}
-                        style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "12px", color: "#67e8f9", textDecoration: "none" }}
-                      >
-                        View <ExternalLink size={11} />
-                      </Link>
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                        <Link
+                          to={`/tool/${tool.slug}`}
+                          style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "12px", color: "#67e8f9", textDecoration: "none" }}
+                        >
+                          View <ExternalLink size={11} />
+                        </Link>
+                        {!demoMode && (
+                          <button
+                            type="button"
+                            onClick={() => togglePublish(tool)}
+                            disabled={statusBusySlug === tool.slug}
+                            style={{
+                              fontSize: "12px",
+                              fontFamily: "var(--font-mono)",
+                              color: tool.status === "inactive" ? "#10b981" : "#f59e0b",
+                              background: "transparent",
+                              border: "1px solid #2e2e44",
+                              borderRadius: "8px",
+                              padding: "4px 8px",
+                              cursor: statusBusySlug === tool.slug ? "wait" : "pointer",
+                            }}
+                          >
+                            {statusBusySlug === tool.slug
+                              ? "…"
+                              : tool.status === "inactive"
+                                ? "Republish"
+                                : "Unpublish"}
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

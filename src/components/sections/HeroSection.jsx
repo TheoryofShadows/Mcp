@@ -66,11 +66,11 @@ export default function HeroSection() {
         </p>
 
         <div className="hero-cta" style={{ display: "flex", gap: "14px", justifyContent: "center", flexWrap: "wrap" }}>
-          <Link to="/submit" className="btn btn-primary" style={{ textDecoration: "none" }}>
-            Publish a tool — keep 85%
+          <Link to="/marketplace" className="btn btn-primary" style={{ textDecoration: "none" }}>
+            Browse marketplace
           </Link>
-          <Link to="/marketplace" className="btn btn-secondary" style={{ textDecoration: "none" }}>
-            Browse Marketplace {"\u2192"}
+          <Link to="/submit" className="btn btn-secondary" style={{ textDecoration: "none" }}>
+            Publish a tool — keep 85%
           </Link>
         </div>
 
