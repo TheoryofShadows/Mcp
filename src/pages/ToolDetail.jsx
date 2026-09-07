@@ -821,7 +821,8 @@ export default function ToolDetail() {
                       </div>
                     )}
                     <p style={{ fontSize: "10px", color: "var(--text-muted)", fontFamily: "var(--font-mono)", lineHeight: 1.45 }}>
-                      Atomic 85/15 split · {solanaCfg.currency_label || "SOL (FX stub)"} · cluster {solanaCfg.cluster || "devnet"}
+                      Atomic 85/15 split · {solanaCfg.currency_label || "SOL"} · cluster {solanaCfg.cluster || "devnet"}
+                      {solanaCfg.usd_per_sol ? ` · $${Number(solanaCfg.usd_per_sol).toFixed(2)}/SOL` : ""}
                       {phantom.publicKey ? ` · ${phantom.publicKey.slice(0, 4)}…${phantom.publicKey.slice(-4)}` : ""}
                     </p>
                     {solanaMsg && (

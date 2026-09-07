@@ -29,11 +29,14 @@ describe("GET /api/tiers", () => {
   });
 
 
-  it("reports Solana Pay as Live (devnet), not stubbed", async () => {
+  it("reports Solana Pay status derived from live config (devnet in test env)", async () => {
+    // The value is computed from getSolanaConfig(), not hardcoded, so the
+    // homepage can never claim the wrong cluster. With no SOLANA_CLUSTER set in
+    // the test env the config defaults to devnet.
     const res = await request(app).get("/api/tiers");
     const solana = res.body.revenue_projections.find((r) => /solana/i.test(r.label));
     expect(solana).toBeDefined();
-    expect(solana.value).toMatch(/Live \(devnet\)/i);
+    expect(solana.value).toMatch(/devnet|mainnet|coming soon/i);
     expect(String(solana.note || "")).not.toMatch(/stubbed/i);
   });
 

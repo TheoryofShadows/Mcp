@@ -28,15 +28,20 @@ describe("shared/installConfig", () => {
 });
 
 describe("cli/clientConfigPath", () => {
+  // clientConfigPath uses path.join, which returns OS-native separators
+  // (backslashes on Windows). That is correct at runtime — the file is
+  // written to the user's real machine. Normalize to "/" so the test asserts
+  // path structure without being coupled to the host OS.
+  const norm = (p) => p.replace(/\\/g, "/");
   it("resolves Claude Desktop per-platform", () => {
-    expect(clientConfigPath("claude", { home: "/h", platform: "darwin" }))
+    expect(norm(clientConfigPath("claude", { home: "/h", platform: "darwin" })))
       .toBe("/h/Library/Application Support/Claude/claude_desktop_config.json");
-    expect(clientConfigPath("claude", { home: "/h", platform: "linux" }))
+    expect(norm(clientConfigPath("claude", { home: "/h", platform: "linux" })))
       .toBe("/h/.config/Claude/claude_desktop_config.json");
   });
   it("resolves Cursor under home and VS Code under cwd", () => {
-    expect(clientConfigPath("cursor", { home: "/h" })).toBe("/h/.cursor/mcp.json");
-    expect(clientConfigPath("vscode", { cwd: "/proj" })).toBe("/proj/.vscode/mcp.json");
+    expect(norm(clientConfigPath("cursor", { home: "/h" }))).toBe("/h/.cursor/mcp.json");
+    expect(norm(clientConfigPath("vscode", { cwd: "/proj" }))).toBe("/proj/.vscode/mcp.json");
   });
   it("exposes the supported client list", () => {
     expect(CLIENTS).toContain("claude");

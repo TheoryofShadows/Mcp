@@ -1,0 +1,30 @@
+# Normalize line endings to LF across all platforms.
+# The vendored-copy sync tests (tests/sharedSync.test.js) compare files
+# byte-for-byte; without this, Windows checkouts get CRLF and the tests fail.
+* text=auto eol=lf
+
+# Explicit LF for source and config so no platform rewrites them.
+*.js   text eol=lf
+*.jsx  text eol=lf
+*.mjs  text eol=lf
+*.cjs  text eol=lf
+*.ts   text eol=lf
+*.tsx  text eol=lf
+*.json text eol=lf
+*.css  text eol=lf
+*.html text eol=lf
+*.md   text eol=lf
+*.sql  text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+
+# Binaries: never touch.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.woff binary
+*.woff2 binary
+*.db   binary
+*.sqlite binary
