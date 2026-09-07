@@ -24,6 +24,23 @@ export function createApp() {
   // Structured request logging (pino-http). Skips the health probe; silent in tests.
   app.use(httpLogger);
 
+  // Canonical host redirect. Both mcpx.digital and www.mcpx.digital answer, so
+  // without this Google indexes two complete copies of the site and splits the
+  // ranking signals between them. Opt-in via CANONICAL_HOST so local dev and
+  // tests are unaffected.
+  //
+  // Deliberately skipped for /api: Stripe posts webhooks to whatever host is
+  // configured, and a 301 would turn a delivered webhook into a lost sale.
+  const canonicalHost = (process.env.CANONICAL_HOST || "").trim().replace(/^https?:\/\//, "").replace(/\/$/, "");
+  if (canonicalHost) {
+    app.use((req, res, next) => {
+      if (req.method !== "GET" && req.method !== "HEAD") return next();
+      if (req.path.startsWith("/api")) return next();
+      if (req.hostname === canonicalHost) return next();
+      return res.redirect(301, `https://${canonicalHost}${req.originalUrl}`);
+    });
+  }
+
   const allowedOrigins = process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(",")
         // Tolerate stray whitespace and angle brackets that sneak in when
