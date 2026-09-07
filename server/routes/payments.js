@@ -158,6 +158,14 @@ export function paymentsConfigWarnings(env = process.env) {
     warnings.push("Stripe is in TEST mode in a production deploy — no real money can move.");
   }
 
+  if (mode === "live" && !isProd) {
+    warnings.push(
+      "STRIPE_SECRET_KEY is a LIVE key outside production — local checkouts move real " +
+      "money, and a subscription checkout can create real products in the live Stripe " +
+      "account. Use a test key (sk_test_) for local development."
+    );
+  }
+
   if (mode === "live") {
     if (!appUrl) {
       warnings.push(

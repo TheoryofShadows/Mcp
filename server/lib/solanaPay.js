@@ -87,7 +87,6 @@ export function isValidPubkey(value) {
   if (!value || typeof value !== "string") return false;
   try {
     // Throws if not valid base58 pubkey
-    // eslint-disable-next-line no-new
     new PublicKey(value);
     return true;
   } catch {
