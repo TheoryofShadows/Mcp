@@ -88,7 +88,7 @@ the build/runtime in a way that affects deployment, update the relevant doc in
 - **Security vulnerabilities:** do **not** open a public issue — follow
   [SECURITY.md](SECURITY.md).
 
-By contributing, you agree your work is licensed under the project's
-[MIT License](LICENSE), and to abide by our
-[Code of Conduct](CODE_OF_CONDUCT.md).
+By contributing, you assign your contribution to the Owner and agree it
+becomes subject to the project's [proprietary License](LICENSE), and to
+abide by our [Code of Conduct](CODE_OF_CONDUCT.md).
 </content>

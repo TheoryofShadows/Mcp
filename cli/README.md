@@ -31,4 +31,4 @@ npx mcpx list               # recent servers (agent feed)
 
 ## License
 
-MIT
+Proprietary — © 2026 TheoryofShadows, all rights reserved. See [LICENSE](../LICENSE).

@@ -2,8 +2,27 @@ import { Router } from "express";
 import { v4 as uuid } from "uuid";
 import db from "../db.js";
 import { requireAuth } from "../middleware/auth.js";
+import { getSolanaConfig } from "../lib/solanaPay.js";
 
 const router = Router();
+
+// Solana Pay status shown on the home Revenue section, computed from the real
+// config so the homepage can never claim "devnet" while running on mainnet
+// (or vice-versa). Kept a plain function so /api/tiers stays synchronous.
+function solanaRevenueFact() {
+  const cfg = getSolanaConfig();
+  const value = !cfg.enabled
+    ? "Coming soon"
+    : cfg.cluster === "mainnet-beta"
+      ? "Live (mainnet)"
+      : `Live (${cfg.cluster})`;
+  return {
+    label: "Solana Pay",
+    value,
+    note: "Phantom checkout · matches /api/payments/solana/config",
+    highlight: cfg.cluster === "mainnet-beta",
+  };
+}
 
 const PRICING_TIERS = [
   {
@@ -61,11 +80,11 @@ const PRICING_TIERS = [
 ];
 
 // Honest product facts for the home Revenue section — not vanity projections.
+// Solana Pay is appended per-request from live config (see solanaRevenueFact).
 const REVENUE_PROJECTIONS = [
   { label: "Publisher share", value: "85%", note: "Stripe Connect · live today", highlight: true },
   { label: "Platform fee", value: "15%", note: "Only on paid tool sales", highlight: false },
   { label: "Payouts", value: "Monthly", note: "1st of each month · $0 minimum", highlight: false },
-  { label: "Solana Pay", value: "Live (devnet)", note: "Phantom checkout · matches /api/payments/solana/config", highlight: false },
 ];
 
 const TECH_STACK = [
@@ -81,7 +100,7 @@ const TECH_STACK = [
 router.get("/", (_req, res) => {
   res.json({
     tiers: PRICING_TIERS,
-    revenue_projections: REVENUE_PROJECTIONS,
+    revenue_projections: [...REVENUE_PROJECTIONS, solanaRevenueFact()],
     tech_stack: TECH_STACK,
   });
 });

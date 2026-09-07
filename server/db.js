@@ -183,6 +183,20 @@ db.exec(`
     expires_at TEXT
   );
 
+  -- Privacy-friendly page-view analytics. One row per visit. Stores the path,
+  -- the referrer *host only* (e.g. "news.ycombinator.com" — never the full URL
+  -- with its query string), and a coarse UTC day. No IP, no cookie, no user id,
+  -- no fingerprint — this answers "did my HN/Reddit/X post drive traffic?" and
+  -- nothing more invasive. Kept deliberately minimal so it can't become a
+  -- surveillance tool. Pruned past a retention window to stay bounded.
+  CREATE TABLE IF NOT EXISTS page_views (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    path TEXT NOT NULL,
+    referrer_host TEXT,
+    day TEXT NOT NULL,
+    created_at TEXT DEFAULT (datetime('now'))
+  );
+
   CREATE INDEX IF NOT EXISTS idx_servers_category ON servers(category_id);
   CREATE INDEX IF NOT EXISTS idx_servers_author ON servers(author_id);
   CREATE INDEX IF NOT EXISTS idx_servers_status ON servers(status);
@@ -197,6 +211,8 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_sales_server ON sales(server_id);
   CREATE INDEX IF NOT EXISTS idx_solana_purchases_buyer ON solana_purchases(buyer_id, status);
   CREATE INDEX IF NOT EXISTS idx_solana_purchases_ref ON solana_purchases(reference);
+  CREATE INDEX IF NOT EXISTS idx_page_views_day ON page_views(day);
+  CREATE INDEX IF NOT EXISTS idx_page_views_referrer ON page_views(referrer_host);
 `);
 
 // Adoption integrity: enforce one *counted* install per (server, authenticated

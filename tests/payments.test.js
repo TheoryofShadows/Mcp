@@ -13,8 +13,17 @@ import {
   SystemProgram,
 } from "../server/lib/solanaPay.js";
 import bs58 from "bs58";
+import {
+  setPriceFetchImpl,
+  resetPriceFetchImpl,
+  clearPriceCache,
+} from "../server/lib/solPriceFeed.js";
 import { cleanup, db, backdateUser } from "./setup.js";
 import { createApp } from "../server/app.js";
+
+// Deterministic USD→SOL for HTTP tests: pin the live feed to a known price so
+// checkout math and config labels don't depend on the network or market.
+const TEST_SOL_PRICE = 150;
 
 // 2025-01-01T00:00:00Z
 const TS = 1735689600;
@@ -265,6 +274,8 @@ describe("Solana Pay HTTP", () => {
 
   afterAll(async () => {
     resetSolanaVerifyImpl();
+    resetPriceFetchImpl();
+    clearPriceCache();
     delete process.env.SOLANA_TREASURY_WALLET;
     await cleanup();
   });
@@ -272,6 +283,9 @@ describe("Solana Pay HTTP", () => {
   beforeEach(() => {
     resetSolanaVerifyImpl();
     process.env.SOLANA_TREASURY_WALLET = TREASURY;
+    // Pin the live price feed so config/label/checkout are deterministic.
+    clearPriceCache();
+    setPriceFetchImpl(async () => TEST_SOL_PRICE);
   });
 
   it("GET /solana/config reports enabled when treasury is set", async () => {
@@ -279,7 +293,11 @@ describe("Solana Pay HTTP", () => {
     expect(res.status).toBe(200);
     expect(res.body.enabled).toBe(true);
     expect(res.body.cluster).toBe("devnet");
-    expect(res.body.currency_label).toMatch(/FX stub/i);
+    // Live feed is pinned in beforeEach, so the label reflects a live rate and
+    // the reported price matches the pinned quote.
+    expect(res.body.currency_label).toMatch(/live rate/i);
+    expect(res.body.rate_source).toBe("live");
+    expect(res.body.usd_per_sol).toBe(TEST_SOL_PRICE);
     expect(res.body.label).toMatch(/devnet/i);
   });
 

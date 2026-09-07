@@ -53,8 +53,10 @@ real UI on bundled sample data. For live listings, accounts, and purchases use
 [www.mcpx.digital](https://www.mcpx.digital). See [GITHUB_PAGES.md](GITHUB_PAGES.md).
 
 ### Can I self-host MCPX?
-Absolutely — it's MIT-licensed. The simplest setup is one Railway service. See
-[Deployment](DEPLOYMENT.md).
+MCPX is proprietary software (all rights reserved). Self-hosting or deploying
+it requires a commercial license from the Owner — see [LICENSE](../LICENSE) and
+contact us for licensing. The [Deployment](DEPLOYMENT.md) guide covers the
+Owner's own Railway setup.
 
 ### What's the tech stack?
 React 19 + Vite 7 frontend, Express 5 + SQLite backend, optional Stripe /

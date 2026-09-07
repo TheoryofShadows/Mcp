@@ -20,6 +20,7 @@ import {
   LAMPORTS_PER_SOL,
 } from "@solana/web3.js";
 import bs58 from "bs58";
+import { getUsdPerSol, stubRate } from "./solPriceFeed.js";
 
 export const PLATFORM_FEE_PCT = 0.15;
 export const PUBLISHER_PCT = 0.85;
@@ -45,18 +46,40 @@ export function getSolanaConfig() {
     (process.env.SOLANA_RPC_URL || "").trim() ||
     clusterApiUrl(safeCluster);
 
-  // Documented FX stub — NOT a live oracle. Label in product copy.
-  const usdPerSol = Number(process.env.SOLANA_USD_PER_SOL) || 150;
+  // Baseline rate is the documented stub; getSolanaConfigLive() upgrades this to
+  // a live feed quote at purchase time. Sync config keeps the stub so callers
+  // that only need cluster/treasury readiness don't have to await a network call.
+  const usdPerSol = stubRate(process.env);
 
   return {
     cluster: safeCluster,
     treasury,
     rpcUrl,
     usdPerSol,
+    rate_source: "stub",
     enabled: !!treasury && isValidPubkey(treasury),
     currency: "SOL",
-    currency_label: "SOL (FX stub)",
-    fx_note: `USD→SOL uses fixed stub rate $${usdPerSol}/SOL (env SOLANA_USD_PER_SOL). Not a live price feed.`,
+    currency_label: "SOL",
+    fx_note: `USD→SOL fallback rate $${usdPerSol}/SOL (env SOLANA_USD_PER_SOL). Live checkout uses a real price feed.`,
+  };
+}
+
+/**
+ * Config with a live USD→SOL rate resolved from the price feed. Falls back to
+ * the stub on any feed failure (getUsdPerSol never throws), so this is safe to
+ * await directly in the checkout path.
+ */
+export async function getSolanaConfigLive() {
+  const cfg = getSolanaConfig();
+  const { usdPerSol, source, live } = await getUsdPerSol(process.env);
+  return {
+    ...cfg,
+    usdPerSol,
+    rate_source: source, // live | cache | stub
+    currency_label: live ? "SOL (live rate)" : "SOL (fallback rate)",
+    fx_note: live
+      ? `USD→SOL priced from a live feed ($${usdPerSol.toFixed(2)}/SOL, ${source}).`
+      : `USD→SOL live feed unavailable — using fallback $${usdPerSol}/SOL.`,
   };
 }
 

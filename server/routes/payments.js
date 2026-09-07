@@ -22,6 +22,7 @@ import db from "../db.js";
 import { requireAuth } from "../middleware/auth.js";
 import {
   getSolanaConfig,
+  getSolanaConfigLive,
   isValidPubkey,
   centsToLamports,
   splitLamports,
@@ -177,12 +178,15 @@ export function paymentsConfigWarnings(env = process.env) {
     }
   }
 
-  // Solana: the USD→SOL rate is a fixed stub, not a price feed. Harmless on
-  // devnet; on mainnet it means real tools sold at a made-up exchange rate.
+  // Solana: USD→SOL now uses a live price feed with the SOLANA_USD_PER_SOL stub
+  // only as an outage fallback. On mainnet, still flag that the fallback rate
+  // should be kept sane in case the feed is unreachable at checkout time.
   if (env.SOLANA_TREASURY_WALLET && env.SOLANA_CLUSTER === "mainnet-beta") {
+    const stub = Number(env.SOLANA_USD_PER_SOL) || 150;
     warnings.push(
-      "Solana Pay is on mainnet-beta while USD→SOL uses the fixed SOLANA_USD_PER_SOL stub " +
-      "rate — real payments are priced off a hardcoded rate, not a live feed."
+      `Solana Pay is on mainnet-beta. USD→SOL uses a live feed; if it is ever ` +
+      `unreachable, checkout falls back to SOLANA_USD_PER_SOL ($${stub}/SOL). ` +
+      `Keep that value near the real price so a feed outage can't badly misprice tools.`
     );
   }
 
@@ -689,8 +693,8 @@ function requireSolana(res) {
 }
 
 // GET /api/payments/solana/config — public readiness (no secrets)
-router.get("/solana/config", (_req, res) => {
-  const cfg = getSolanaConfig();
+router.get("/solana/config", async (_req, res) => {
+  const cfg = await getSolanaConfigLive();
   res.json({
     enabled: cfg.enabled,
     cluster: cfg.cluster,
@@ -698,6 +702,7 @@ router.get("/solana/config", (_req, res) => {
     currency_label: cfg.currency_label,
     fx_note: cfg.fx_note,
     usd_per_sol: cfg.usdPerSol,
+    rate_source: cfg.rate_source,          // live | cache | stub
     platform_fee_pct: PLATFORM_FEE_PCT * 100,
     label: cfg.enabled
       ? (cfg.cluster === "mainnet-beta" ? "Live (mainnet)" : `Live (${cfg.cluster})`)
@@ -726,9 +731,11 @@ router.delete("/solana/wallet", requireAuth, (req, res) => {
 });
 
 // POST /api/payments/solana/request — create pending purchase + return pay params
-router.post("/solana/request", requireAuth, (req, res) => {
-  const cfg = requireSolana(res);
-  if (!cfg) return;
+router.post("/solana/request", requireAuth, async (req, res) => {
+  // Gate on sync config first (cheap: cluster + treasury readiness), then resolve
+  // the live rate only once we know Solana Pay is actually enabled.
+  if (!requireSolana(res)) return;
+  const cfg = await getSolanaConfigLive();
 
   const { server_slug } = req.body || {};
   if (!server_slug) return res.status(400).json({ error: "server_slug required" });
@@ -794,6 +801,7 @@ router.post("/solana/request", requireAuth, (req, res) => {
     currency_label: cfg.currency_label,
     fx_note: cfg.fx_note,
     usd_per_sol: cfg.usdPerSol,
+    rate_source: cfg.rate_source,          // live | cache | stub — rate locked here
     cluster: cfg.cluster,
     label: cfg.cluster === "mainnet-beta" ? "Live (mainnet)" : `Live (${cfg.cluster})`,
     server_slug,
