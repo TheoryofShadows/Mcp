@@ -332,6 +332,20 @@ describe("paymentsConfigWarnings", () => {
     expect(matching(w, /mainnet-beta/)).toHaveLength(1);
   });
 
+  it("flags a live key used outside production — the local-dev real-money trap", () => {
+    const w = paymentsConfigWarnings({ ...LIVE, NODE_ENV: "development" });
+    expect(matching(w, /LIVE key outside production/)).toHaveLength(1);
+  });
+
+  it("stays quiet about live-outside-prod when the local key is a test key", () => {
+    const w = paymentsConfigWarnings({
+      ...LIVE,
+      STRIPE_SECRET_KEY: "sk_test_x",
+      NODE_ENV: "development",
+    });
+    expect(matching(w, /LIVE key outside production/)).toHaveLength(0);
+  });
+
   it("says nothing about Stripe internals when no key is configured outside production", () => {
     expect(paymentsConfigWarnings({ NODE_ENV: "development" })).toEqual([]);
   });
