@@ -4,6 +4,7 @@ import { createApp } from "./app.js";
 import db from "./db.js";
 import { logger, initSentry } from "./lib/observability.js";
 import { startBackupScheduler } from "./lib/backupScheduler.js";
+import { recordView, pruneViews } from "./lib/analytics.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -65,11 +66,20 @@ app.get("/{*splat}", (req, res) => {
   if (extname(req.path)) {
     return res.status(404).type("text/plain").send("Not found");
   }
+  // Count this as a real page view — this handler only runs for SPA navigations
+  // (extension-less paths), i.e. an actual human landing on a page, not an asset
+  // or API call. recordView never throws, so analytics can't break page loads.
+  recordView(db, { path: req.path, referer: req.get("referer") });
+
   // Always revalidate the SPA shell so a new deploy's asset hashes are picked up
   // instead of a stale cached document referencing files that no longer exist.
   res.set("Cache-Control", "no-cache");
   res.sendFile(join(distPath, "index.html"));
 });
+
+// Keep the analytics table bounded — prune on boot and daily thereafter.
+pruneViews(db);
+setInterval(() => pruneViews(db), 24 * 60 * 60 * 1000).unref();
 
 const server = app.listen(PORT, () => {
   logger.info({ port: PORT }, `MCPX API server running on http://localhost:${PORT}`);

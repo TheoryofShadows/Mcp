@@ -1,7 +1,26 @@
 import { Router } from "express";
 import db from "../db.js";
+import { summary } from "../lib/analytics.js";
 
 const router = Router();
+
+// GET /api/stats/traffic — private page-view analytics ("did my post work?").
+// Gated by a simple shared secret (ANALYTICS_TOKEN) rather than the Descope
+// admin role, so the owner can read their own numbers without standing up
+// Descope. Pass it as ?token=… or the x-analytics-token header. If the env var
+// is unset, the endpoint is closed (safe default — never public by accident).
+router.get("/traffic", (req, res) => {
+  const secret = process.env.ANALYTICS_TOKEN;
+  if (!secret) {
+    return res.status(503).json({ error: "Analytics is not configured (set ANALYTICS_TOKEN)" });
+  }
+  const provided = req.get("x-analytics-token") || req.query.token;
+  if (provided !== secret) {
+    return res.status(401).json({ error: "Invalid or missing analytics token" });
+  }
+  const days = Math.min(365, Math.max(1, Number(req.query.days) || 30));
+  res.json(summary(db, days));
+});
 
 // GET /api/stats — platform-wide statistics
 router.get("/", (_req, res) => {
