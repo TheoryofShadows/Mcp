@@ -8,7 +8,6 @@ import {
   isValidPubkey,
   setSolanaVerifyImpl,
   resetSolanaVerifyImpl,
-  getSolanaConfigLive,
   verifyPurchaseTransaction,
   extractSystemTransfers,
   SystemProgram,
