@@ -2,7 +2,7 @@ import { fileURLToPath } from "url";
 import { dirname, join, extname } from "path";
 import { createApp } from "./app.js";
 import db from "./db.js";
-import { logger, initSentry } from "./lib/observability.js";
+import { logger, initSentry, captureError } from "./lib/observability.js";
 import { startBackupScheduler } from "./lib/backupScheduler.js";
 import { recordView, pruneViews } from "./lib/analytics.js";
 
@@ -85,6 +85,31 @@ const server = app.listen(PORT, () => {
   logger.info({ port: PORT }, `MCPX API server running on http://localhost:${PORT}`);
   // Off-box SQLite backups (Railway Buckets / S3). Gated by BACKUP_S3_BUCKET or BACKUP_ENABLED=1.
   startBackupScheduler();
+});
+
+// Last-resort crash guards. Node's default for an unhandled promise rejection
+// is to terminate the process, so one unawaited rejection anywhere in a request
+// path takes the whole site down for every visitor until Railway restarts it.
+// A marketplace that is briefly wrong is better than one that is offline, so
+// log loudly (Sentry included) and keep serving.
+process.on("unhandledRejection", (reason) => {
+  const err = reason instanceof Error ? reason : new Error(String(reason));
+  captureError(err);
+  logger.error({ err }, "[server] unhandled promise rejection — staying up");
+});
+
+// An uncaughtException leaves the process in an undefined state, so here we do
+// exit — but only after flushing the log and closing the DB cleanly, and we let
+// Railway restart us. Crashing loudly beats serving from corrupted state.
+process.on("uncaughtException", (err) => {
+  captureError(err);
+  logger.fatal({ err }, "[server] uncaught exception — exiting for restart");
+  try {
+    db.close();
+  } catch {
+    // already closing; nothing useful left to do
+  }
+  process.exit(1);
 });
 
 // Graceful shutdown — Railway sends SIGTERM before killing the process
