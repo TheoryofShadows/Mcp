@@ -14,6 +14,23 @@ const router = Router();
 // Validate a publisher-declared install command. It is shown to users and split
 // into command+args for client configs, so reject anything with shell-control
 // characters that could enable command chaining/redirection.
+// Stripe's maximum unit_amount. Above this the API errors out, but by then the
+// bad price has already been stored and shown to buyers as if it were real.
+export const MAX_PRICE_CENTS = 99999999;
+
+/** Returns an error string for an invalid paid price, or null when it is fine. */
+export function validatePriceAmount(value) {
+  if (value === undefined || value === null || value === "") {
+    return "Paid tools need a price";
+  }
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "Price must be a number";
+  if (!Number.isInteger(n)) return "Price must be a whole number of cents";
+  if (n <= 0) return "Price must be greater than zero";
+  if (n > MAX_PRICE_CENTS) return "Price must be under $999,999.99";
+  return null;
+}
+
 function validateInstallCommand(value) {
   if (typeof value !== "string") return "install_command must be a string";
   const cmd = value.trim();
@@ -180,7 +197,10 @@ router.get("/:slug", (req, res) => {
   let buyer_has_access = row.price_type !== "paid";
   if (row.price_type === "paid" && req.user?.id) {
     const sale = db.prepare(
-      "SELECT 1 AS ok FROM sales WHERE server_id = ? AND buyer_id = ? LIMIT 1"
+      // refunded_at IS NULL: a refunded or charged-back sale must not keep the
+      // tool unlocked, or a buyer can pay, take the install command, reverse the
+      // charge, and keep the tool for free.
+      "SELECT 1 AS ok FROM sales WHERE server_id = ? AND buyer_id = ? AND refunded_at IS NULL LIMIT 1"
     ).get(row.id, req.user.id);
     buyer_has_access = !!sale;
   }
@@ -333,6 +353,15 @@ router.post("/", requireAuth, (req, res) => {
 
   if (tags && tags.some((t) => typeof t !== "string" || t.length > 50)) {
     return res.status(400).json({ error: "Each tag must be a string of up to 50 characters" });
+  }
+
+  // Price is money: it becomes a Stripe unit_amount and the 15%/85% split. An
+  // unvalidated value reaches the database and the buyer's screen long before
+  // Stripe rejects it, so a negative, fractional or absurd price would be shown
+  // as real. Stripe caps unit_amount at 99999999 ($999,999.99).
+  if (price_type === "paid") {
+    const priceErr = validatePriceAmount(price_amount);
+    if (priceErr) return res.status(400).json({ error: priceErr });
   }
 
   const slug = name
