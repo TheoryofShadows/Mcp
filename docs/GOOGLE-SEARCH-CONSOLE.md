@@ -13,6 +13,18 @@ Sign in with the Google account you want to own these properties
 
 ---
 
+## Current status (checked 2026-09-07)
+
+Run `node scripts/check-seo-setup.js` any time to re-check this.
+
+| | mcpx.digital | thebookandme.com |
+|---|---|---|
+| Google TXT record | ❌ needs adding **in Railway** | ✅ already verified |
+| Canonical host | ❌ set `CANONICAL_HOST` in Railway | ✅ www already 301s to apex |
+| sitemap.xml | ✅ live (43 URLs) | ✅ live (2,724 URLs) |
+
+---
+
 ## Which verification method to use
 
 GSC offers a **Domain** property (covers every subdomain and both http/https,
@@ -27,8 +39,18 @@ different registrars** — checked via their nameservers on 2026-09-07:
 
 | Domain | DNS managed at | Where to add the TXT record |
 |---|---|---|
-| `mcpx.digital` | **Name.com** (`ns1kpv.name.com`, …) | name.com → My Domains → mcpx.digital → DNS Records |
-| `thebookandme.com` | **Porkbun** (`fortaleza.ns.porkbun.com`, …) | porkbun.com → Domain Management → thebookandme.com → DNS |
+| `mcpx.digital` | **Railway** (domain bought through Railway) | Railway → Domains → mcpx.digital → **Add Record** |
+| `thebookandme.com` | **Porkbun** | porkbun.com → Domain Management → thebookandme.com → DNS |
+
+> **Do not go to Name.com for mcpx.digital.** The domain was registered through
+> Railway ($44/yr, auto-renew), and Railway's domain page states "Railway is
+> managing DNS for this domain." The `ns1kpv.name.com`-style nameservers are
+> just Railway's upstream registrar plumbing — Railway resells through Name.com
+> but runs the DNS control plane itself, and there may be no usable Name.com
+> login at all.
+>
+> **Lesson:** nameservers tell you whose *servers* answer, not who *controls the
+> records*. Check the hosting dashboard before assuming the registrar.
 
 So log in to the right one for each site — this is the step most likely to trip
 you up.
@@ -43,7 +65,7 @@ GSC → property dropdown → **Add property** → **Domain** → enter `mcpx.di
 
 ### Step 2. Verify by DNS
 Google shows a TXT record like `google-site-verification=abc123...`.
-Add it at **Name.com** for `mcpx.digital`:
+Add it in **Railway** (Domains → `mcpx.digital` → **Add Record**):
 
 | Field | Value |
 |---|---|
@@ -86,8 +108,12 @@ Already live and valid: <https://www.mcpx.digital/sitemap.xml> (43 URLs).
 
 ## Site 2 — thebookandme.com (GitHub Pages)
 
-Same flow: **Add property → Domain → `thebookandme.com` → add the TXT record**,
-this time at **Porkbun**.
+**This domain is already Google-verified** — a `google-site-verification=W4a6n63k…`
+TXT record is already live at Porkbun (confirmed 2026-09-07). So there is no DNS
+work here: add the Domain property in GSC and it should verify immediately.
+If it does not, the record may belong to a different Google account, in which
+case add a fresh one alongside it — multiple verification TXT records can
+coexist.
 
 This site already redirects `www` → apex correctly, so there is no canonical
 work to do. Its sitemap is large and healthy:
