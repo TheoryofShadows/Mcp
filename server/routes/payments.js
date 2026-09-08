@@ -39,17 +39,29 @@ const PLATFORM_FEE_PCT = 0.15; // 15% — publishers keep 85%
 // Pin the API version so object shapes can't drift under us on an SDK bump.
 // As of Basil (2025-03-31) and later — which this SDK defaults to — the billing
 // period fields live on the subscription *item*, not the subscription.
-const stripe = process.env.STRIPE_SECRET_KEY
-  ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2026-02-25.clover" })
+// Env values get pasted through dashboards that add stray whitespace, quotes, or
+// angle brackets. An sk_live_ key wearing a leading space silently reads as
+// "unknown", which disables live payments while the app still looks healthy —
+// so normalise before matching, exactly as CORS_ORIGINS already does.
+export function normalizeStripeKey(key) {
+  if (typeof key !== "string") return "";
+  return key.trim().replace(/^["'<]+/, "").replace(/["'>]+$/, "").trim();
+}
+
+const STRIPE_KEY = normalizeStripeKey(process.env.STRIPE_SECRET_KEY);
+
+const stripe = STRIPE_KEY
+  ? new Stripe(STRIPE_KEY, { apiVersion: "2026-02-25.clover" })
   : null;
 
 // Live vs test is decided by the key prefix — Stripe never mixes the two, so a
 // `sk_test_`/`rk_test_` key means every charge below is a sandbox charge and no
 // real money moves. Derived from the prefix only; the key itself never leaves here.
 export function stripeKeyMode(key = process.env.STRIPE_SECRET_KEY) {
-  if (!key) return "unset";
-  if (/^(sk|rk)_live_/.test(key)) return "live";
-  if (/^(sk|rk)_test_/.test(key)) return "test";
+  const clean = normalizeStripeKey(key);
+  if (!clean) return "unset";
+  if (/^(sk|rk)_live_/.test(clean)) return "live";
+  if (/^(sk|rk)_test_/.test(clean)) return "test";
   return "unknown";
 }
 
@@ -144,7 +156,15 @@ export function paymentsConfigWarnings(env = process.env) {
   }
 
   if (mode === "unknown") {
-    warnings.push("STRIPE_SECRET_KEY does not look like a Stripe key (expected sk_/rk_ prefix).");
+    const raw = env.STRIPE_SECRET_KEY || "";
+    const clean = normalizeStripeKey(raw);
+    // Distinguish "wrong key" from "right key, mangled by the dashboard" — the
+    // second is a one-character fix and otherwise looks identical from outside.
+    const hint =
+      raw !== clean && /^(sk|rk)_(live|test)_/.test(clean)
+        ? " The value has surrounding whitespace or quotes — retype it in the dashboard with no spaces or quotes."
+        : "";
+    warnings.push(`STRIPE_SECRET_KEY does not look like a Stripe key (expected sk_/rk_ prefix).${hint}`);
   }
 
   if (!env.STRIPE_WEBHOOK_SECRET) {
