@@ -81,6 +81,7 @@
     "shell-quote": "^1.9.0",
     "@humanfs/node": "^0.16.8",
     "uuid": "$uuid",
-    "stream-json": "^3.5.0"
+    "stream-json": "^3.5.0",
+    "brace-expansion": "^5.0.9"
   }
 }
