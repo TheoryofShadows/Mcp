@@ -229,6 +229,19 @@ try {
   console.warn("[db] could not create unique install index (legacy duplicates?):", err.message);
 }
 
+// Payment integrity: one on-chain signature can settle exactly one purchase.
+// The route checks this too, but that check is a SELECT followed by an awaited
+// RPC round-trip before the write — two concurrent confirms with the same
+// signature can both pass it. Only a database constraint closes that window.
+// Partial index so the many pending rows (signature NULL) stay unconstrained.
+try {
+  db.exec(
+    "CREATE UNIQUE INDEX IF NOT EXISTS idx_solana_purchases_unique_sig ON solana_purchases(signature) WHERE signature IS NOT NULL"
+  );
+} catch (err) {
+  console.warn("[db] could not create unique solana signature index (legacy duplicates?):", err.message);
+}
+
 // ─── Idempotent column migrations ─────────────────────────────────────────────
 for (const sql of [
   "ALTER TABLE users ADD COLUMN stripe_customer_id TEXT",
@@ -242,6 +255,8 @@ for (const sql of [
   "ALTER TABLE servers ADD COLUMN repo_verified INTEGER DEFAULT 0", // Proven repo ownership → full provenance
   "ALTER TABLE servers ADD COLUMN verify_token TEXT",           // Per-server .mcpx-verify challenge token
   "ALTER TABLE sales ADD COLUMN payment_method TEXT DEFAULT 'stripe'",
+  "ALTER TABLE sales ADD COLUMN refunded_at TEXT",              // Refund/chargeback: revokes access, keeps the audit row
+  "ALTER TABLE sales ADD COLUMN payment_ref TEXT",              // Stripe payment_intent / Solana signature — ties a refund back to its sale
 ]) {
   try { db.prepare(sql).run(); } catch { /* column already exists */ }
 }

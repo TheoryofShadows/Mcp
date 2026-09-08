@@ -127,8 +127,10 @@ export function periodEndISO(subscription) {
 // destination charge are clawed back from the publisher's balance.
 export function hasPurchased(serverId, buyerId) {
   if (!serverId || !buyerId) return false;
+  // Refunded sales do not count as owning the tool: access is revoked, and the
+  // buyer must be able to purchase again rather than being told they own it.
   return !!db.prepare(
-    "SELECT 1 AS ok FROM sales WHERE server_id = ? AND buyer_id = ? LIMIT 1"
+    "SELECT 1 AS ok FROM sales WHERE server_id = ? AND buyer_id = ? AND refunded_at IS NULL LIMIT 1"
   ).get(serverId, buyerId);
 }
 
@@ -302,6 +304,17 @@ router.get("/stripe/config", (_req, res) => {
     platform_fee_pct: PLATFORM_FEE_PCT * 100,
     publisher_share_pct: (1 - PLATFORM_FEE_PCT) * 100,
     app_url: APP_URL,
+    // Shape-only diagnostic for a key that reads as "unknown": length and the
+    // first 3 characters are enough to tell a mangled value from a wrong one,
+    // and neither can reconstruct the secret. Omitted entirely once valid.
+    key_shape:
+      stripeKeyMode() === "unknown"
+        ? {
+            raw_length: (process.env.STRIPE_SECRET_KEY || "").length,
+            normalized_length: normalizeStripeKey(process.env.STRIPE_SECRET_KEY).length,
+            starts_with: normalizeStripeKey(process.env.STRIPE_SECRET_KEY).slice(0, 3),
+          }
+        : undefined,
     label: !configured
       ? "Not configured"
       : live
@@ -527,7 +540,7 @@ router.get("/stripe/connect/refresh", requireAuth, async (req, res) => {
 // after a failed delivery re-applies it cleanly instead of finding a half-written
 // grant. Exported for tests.
 
-export function grantToolPurchase({ server_id, buyer_id, gross_cents }) {
+export function grantToolPurchase({ server_id, buyer_id, gross_cents, payment_ref = null }) {
   if (!server_id || !buyer_id) return { granted: false, reason: "missing server_id or buyer_id" };
 
   const grossCents = Number(gross_cents) || 0;
@@ -547,12 +560,24 @@ export function grantToolPurchase({ server_id, buyer_id, gross_cents }) {
 
     if (grossCents > 0) {
       db.prepare(
-        "INSERT INTO sales (id, server_id, buyer_id, gross_cents, fee_cents, payment_method) VALUES (?, ?, ?, ?, ?, 'stripe')"
-      ).run(uuid(), server_id, buyer_id, grossCents, feeCents);
+        "INSERT INTO sales (id, server_id, buyer_id, gross_cents, fee_cents, payment_method, payment_ref) VALUES (?, ?, ?, ?, ?, 'stripe', ?)"
+      ).run(uuid(), server_id, buyer_id, grossCents, feeCents, payment_ref);
     }
   })();
 
   return { granted: true, gross_cents: grossCents, fee_cents: feeCents };
+}
+
+// Revoke a refunded or charged-back tool purchase. The sale row is KEPT and
+// stamped, not deleted: the money did move, and the audit trail plus the
+// publisher's earnings history have to reflect that it was later reversed.
+// Access is gated on refunded_at IS NULL, so stamping it is what locks the tool.
+// Returns the number of sales revoked. Exported for tests.
+export function revokeToolPurchase(paymentRef) {
+  if (!paymentRef) return 0;
+  return db.prepare(
+    "UPDATE sales SET refunded_at = datetime('now') WHERE payment_ref = ? AND refunded_at IS NULL"
+  ).run(String(paymentRef)).changes;
 }
 
 // ─── POST /api/payments/stripe/webhook ───────────────────────────────────────
@@ -649,7 +674,30 @@ router.post("/stripe/webhook", async (req, res) => {
             server_id: session.metadata?.server_id,
             buyer_id: userId,
             gross_cents: session.amount_total,
+            // Stored so charge.refunded / dispute.created can find this exact sale.
+            payment_ref: session.payment_intent ? String(session.payment_intent) : null,
           });
+        }
+        break;
+      }
+
+      // ── Refund or chargeback: revoke the tool ────────────────────────────
+      // Without this a buyer can pay, take the install command, reverse the
+      // charge, and keep the tool forever — Stripe claws the money back from
+      // the publisher while MCPX keeps handing out access.
+      case "charge.refunded":
+      case "charge.dispute.created": {
+        const charge = event.data.object;
+        const pi = charge.payment_intent;
+        // A partial refund still leaves the buyer paid-up; only revoke when the
+        // whole charge is reversed (a dispute is always treated as full).
+        const fullyRefunded =
+          event.type === "charge.dispute.created" || charge.amount_refunded >= charge.amount;
+        if (pi && fullyRefunded) {
+          const revoked = revokeToolPurchase(String(pi));
+          console.log(
+            `[stripe] ${event.type} pi=${pi} — revoked ${revoked} sale(s)`
+          );
         }
         break;
       }
@@ -908,6 +956,14 @@ router.post("/solana/confirm", requireAuth, async (req, res) => {
   try {
     unlock();
   } catch (err) {
+    // The unique index on solana_purchases(signature) is the authority here: the
+    // SELECT above cannot be trusted alone, because an awaited RPC round-trip
+    // sits between it and this write. A racing duplicate lands here, and the
+    // whole transaction has already rolled back — no install, no sale.
+    if (/UNIQUE constraint failed: .*solana_purchases\.signature/i.test(err.message)) {
+      console.warn(`[solana] replay blocked for sig=${signature.slice(0, 16)}…`);
+      return res.status(409).json({ error: "Signature already used for another purchase" });
+    }
     console.error("[solana] unlock error:", err.message);
     return res.status(500).json({ error: "Failed to record purchase" });
   }
