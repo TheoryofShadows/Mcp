@@ -6,7 +6,12 @@
 // that the apex 301s to the canonical www host (i.e. CANONICAL_HOST is set in
 // Railway). Exits non-zero while anything is still outstanding.
 
-import { promises as dns } from "node:dns";
+import { Resolver } from "node:dns/promises";
+
+// Query public resolvers, not the system one. A local router/ISP resolver can
+// hold a stale negative answer for minutes after a record is added, which shows
+// up here as a false "not added yet".
+const PUBLIC_DNS = ["8.8.8.8", "1.1.1.1"];
 
 const SITES = [
   { domain: "mcpx.digital", canonical: "www.mcpx.digital", registrar: "Railway", expectRedirect: true },
@@ -17,12 +22,17 @@ const ok = (m) => console.log(`  PASS  ${m}`);
 const todo = (m) => console.log(`  TODO  ${m}`);
 
 async function hasGoogleVerification(domain) {
-  try {
-    const records = await dns.resolveTxt(domain);
-    return records.flat().some((r) => r.includes("google-site-verification="));
-  } catch {
-    return false;
+  for (const server of PUBLIC_DNS) {
+    try {
+      const resolver = new Resolver();
+      resolver.setServers([server]);
+      const records = await resolver.resolveTxt(domain);
+      if (records.flat().some((r) => r.includes("google-site-verification="))) return true;
+    } catch {
+      // try the next resolver
+    }
   }
+  return false;
 }
 
 // Follows no redirects: we want the raw status of the apex itself.
