@@ -154,7 +154,15 @@ export function createApp() {
   app.get("/api/health", (_req, res) => {
     try {
       db.prepare("SELECT 1").get();
-      res.json({ status: "ok", db: "ok", timestamp: new Date().toISOString() });
+      // canonical_host echoes whether CANONICAL_HOST reached this process, so a
+      // misconfigured deploy is diagnosable without shell access. Null means the
+      // redirect middleware was never registered.
+      res.json({
+        status: "ok",
+        db: "ok",
+        canonical_host: canonicalHost || null,
+        timestamp: new Date().toISOString(),
+      });
     } catch (err) {
       captureError(err);
       res.status(503).json({ status: "degraded", db: "error", timestamp: new Date().toISOString() });
