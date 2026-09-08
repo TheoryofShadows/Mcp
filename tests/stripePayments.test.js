@@ -9,6 +9,7 @@ import {
   grantToolPurchase,
   hasPurchased,
   paymentsConfigWarnings,
+  normalizeStripeKey,
 } from "../server/routes/payments.js";
 
 const app = createApp();
@@ -280,6 +281,51 @@ describe("double-purchase guard", () => {
     expect(res.body.already_purchased).toBeUndefined();
     expect(res.body.reference).toBeTruthy();
     expect(res.body.recipient).toBe(PUBLISHER_WALLET);
+  });
+});
+
+// A live key that picks up a leading space or quotes from a hosting dashboard
+// reads as "unknown" and silently disables live payments while /api/health and
+// the site still look perfectly healthy. This actually happened in production.
+describe("normalizeStripeKey", () => {
+  it("accepts a clean key unchanged", () => {
+    expect(normalizeStripeKey("sk_live_abc123")).toBe("sk_live_abc123");
+  });
+
+  it("strips leading and trailing whitespace", () => {
+    expect(normalizeStripeKey("  sk_live_abc123  ")).toBe("sk_live_abc123");
+  });
+
+  it("strips wrapping double and single quotes", () => {
+    expect(normalizeStripeKey('"sk_live_abc123"')).toBe("sk_live_abc123");
+    expect(normalizeStripeKey("'sk_live_abc123'")).toBe("sk_live_abc123");
+  });
+
+  it("strips angle brackets from a pasted value", () => {
+    expect(normalizeStripeKey("<sk_live_abc123>")).toBe("sk_live_abc123");
+  });
+
+  it("returns empty string for missing or non-string values", () => {
+    expect(normalizeStripeKey(undefined)).toBe("");
+    expect(normalizeStripeKey(null)).toBe("");
+  });
+});
+
+describe("stripeKeyMode with mangled env values", () => {
+  it("still detects live mode through whitespace", () => {
+    expect(stripeKeyMode(" sk_live_abc ")).toBe("live");
+  });
+
+  it("still detects live mode through quotes", () => {
+    expect(stripeKeyMode('"sk_live_abc"')).toBe("live");
+  });
+
+  it("still detects test mode through whitespace", () => {
+    expect(stripeKeyMode("  sk_test_abc")).toBe("test");
+  });
+
+  it("still reports a genuinely wrong value as unknown", () => {
+    expect(stripeKeyMode("not-a-stripe-key")).toBe("unknown");
   });
 });
 
