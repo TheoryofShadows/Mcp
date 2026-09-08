@@ -26,3 +26,6 @@ server/mcpx.db-wal
 *.njsproj
 *.sln
 *.sw?
+
+# Private working dashboard — internal notes, not for the public repo
+NEXT.md
