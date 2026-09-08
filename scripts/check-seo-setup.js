@@ -9,7 +9,7 @@
 import { promises as dns } from "node:dns";
 
 const SITES = [
-  { domain: "mcpx.digital", canonical: "www.mcpx.digital", registrar: "Name.com", expectRedirect: true },
+  { domain: "mcpx.digital", canonical: "www.mcpx.digital", registrar: "Railway", expectRedirect: true },
   { domain: "thebookandme.com", canonical: "thebookandme.com", registrar: "Porkbun", expectRedirect: false },
 ];
 

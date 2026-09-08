@@ -19,7 +19,7 @@ Run `node scripts/check-seo-setup.js` any time to re-check this.
 
 | | mcpx.digital | thebookandme.com |
 |---|---|---|
-| Google TXT record | ❌ needs adding at Name.com | ✅ already verified |
+| Google TXT record | ❌ needs adding **in Railway** | ✅ already verified |
 | Canonical host | ❌ set `CANONICAL_HOST` in Railway | ✅ www already 301s to apex |
 | sitemap.xml | ✅ live (43 URLs) | ✅ live (2,724 URLs) |
 
@@ -39,15 +39,18 @@ different registrars** — checked via their nameservers on 2026-09-07:
 
 | Domain | DNS managed at | Where to add the TXT record |
 |---|---|---|
-| `mcpx.digital` | **Name.com** (`ns1kpv.name.com`, …) | name.com → My Domains → mcpx.digital → DNS Records |
-| `thebookandme.com` | **Porkbun** (`fortaleza.ns.porkbun.com`, …) | porkbun.com → Domain Management → thebookandme.com → DNS |
+| `mcpx.digital` | **Railway** (domain bought through Railway) | Railway → Domains → mcpx.digital → **Add Record** |
+| `thebookandme.com` | **Porkbun** | porkbun.com → Domain Management → thebookandme.com → DNS |
 
-> **Railway does not host mcpx.digital's DNS — a common mix-up.** Railway is
-> where the records *point* (`www` is a CNAME to `n478mba1.up.railway.app`, the
-> apex is an A record to Railway's edge), but the authoritative nameservers are
-> Name.com's. Railway's dashboard tells you what values to set; it cannot create
-> a TXT record for a zone it does not answer for.
-> **The Google TXT record goes at Name.com.**
+> **Do not go to Name.com for mcpx.digital.** The domain was registered through
+> Railway ($44/yr, auto-renew), and Railway's domain page states "Railway is
+> managing DNS for this domain." The `ns1kpv.name.com`-style nameservers are
+> just Railway's upstream registrar plumbing — Railway resells through Name.com
+> but runs the DNS control plane itself, and there may be no usable Name.com
+> login at all.
+>
+> **Lesson:** nameservers tell you whose *servers* answer, not who *controls the
+> records*. Check the hosting dashboard before assuming the registrar.
 
 So log in to the right one for each site — this is the step most likely to trip
 you up.
@@ -62,7 +65,7 @@ GSC → property dropdown → **Add property** → **Domain** → enter `mcpx.di
 
 ### Step 2. Verify by DNS
 Google shows a TXT record like `google-site-verification=abc123...`.
-Add it at **Name.com** for `mcpx.digital`:
+Add it in **Railway** (Domains → `mcpx.digital` → **Add Record**):
 
 | Field | Value |
 |---|---|
