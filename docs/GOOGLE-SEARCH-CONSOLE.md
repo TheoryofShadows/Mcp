@@ -13,6 +13,18 @@ Sign in with the Google account you want to own these properties
 
 ---
 
+## Current status (checked 2026-09-07)
+
+Run `node scripts/check-seo-setup.js` any time to re-check this.
+
+| | mcpx.digital | thebookandme.com |
+|---|---|---|
+| Google TXT record | ❌ needs adding at Name.com | ✅ already verified |
+| Canonical host | ❌ set `CANONICAL_HOST` in Railway | ✅ www already 301s to apex |
+| sitemap.xml | ✅ live (43 URLs) | ✅ live (2,724 URLs) |
+
+---
+
 ## Which verification method to use
 
 GSC offers a **Domain** property (covers every subdomain and both http/https,
@@ -29,6 +41,13 @@ different registrars** — checked via their nameservers on 2026-09-07:
 |---|---|---|
 | `mcpx.digital` | **Name.com** (`ns1kpv.name.com`, …) | name.com → My Domains → mcpx.digital → DNS Records |
 | `thebookandme.com` | **Porkbun** (`fortaleza.ns.porkbun.com`, …) | porkbun.com → Domain Management → thebookandme.com → DNS |
+
+> **Railway does not host mcpx.digital's DNS — a common mix-up.** Railway is
+> where the records *point* (`www` is a CNAME to `n478mba1.up.railway.app`, the
+> apex is an A record to Railway's edge), but the authoritative nameservers are
+> Name.com's. Railway's dashboard tells you what values to set; it cannot create
+> a TXT record for a zone it does not answer for.
+> **The Google TXT record goes at Name.com.**
 
 So log in to the right one for each site — this is the step most likely to trip
 you up.
@@ -86,8 +105,12 @@ Already live and valid: <https://www.mcpx.digital/sitemap.xml> (43 URLs).
 
 ## Site 2 — thebookandme.com (GitHub Pages)
 
-Same flow: **Add property → Domain → `thebookandme.com` → add the TXT record**,
-this time at **Porkbun**.
+**This domain is already Google-verified** — a `google-site-verification=W4a6n63k…`
+TXT record is already live at Porkbun (confirmed 2026-09-07). So there is no DNS
+work here: add the Domain property in GSC and it should verify immediately.
+If it does not, the record may belong to a different Google account, in which
+case add a fresh one alongside it — multiple verification TXT records can
+coexist.
 
 This site already redirects `www` → apex correctly, so there is no canonical
 work to do. Its sitemap is large and healthy:
