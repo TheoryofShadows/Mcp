@@ -422,7 +422,6 @@ export default function Submit() {
                 <div>
                   <p style={{ fontSize: "13px", fontWeight: 600, marginBottom: "4px" }}>Stripe Connect</p>
                   <p style={{ fontSize: "12px", color: "var(--text-muted)", lineHeight: 1.6 }}>
-                    {/* TODO: Implement Stripe Connect onboarding flow */}
                     Connect your Stripe account to receive payouts. We take a 15% platform fee.
                     Stripe Connect onboarding will be available after approval.
                   </p>
