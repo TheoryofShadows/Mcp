@@ -25,6 +25,10 @@ if (userCount === 0) {
 {
   const { backfillInstallCommands } = await import("./lib/seedInstallCommands.js");
   backfillInstallCommands(db);
+  // Rows seeded before one-time pricing landed still carry a "/mo" suffix that
+  // describes a subscription they never had. Only non-monthly rows are touched.
+  const { backfillPriceLabels } = await import("./lib/priceLabelBackfill.js");
+  backfillPriceLabels(db);
 }
 
 // Zero inflated seed-catalog social proof (installs/ratings/revenue/reviews).
