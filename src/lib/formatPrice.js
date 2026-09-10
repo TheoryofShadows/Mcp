@@ -2,7 +2,7 @@
  * Format a tool's display price.
  *
  * API contract:
- * - `price` / `price_label`: human string (e.g. "$16/mo", "Free")
+ * - `price` / `price_label`: human string (e.g. "$16", "Free")
  * - `price_amount`: integer cents (never dollars)
  *
  * Prefer the human label; if missing, convert cents → dollars. Never treat
@@ -18,11 +18,22 @@ export function formatPriceLabel(tool = {}) {
   const cents = Number(tool.price_amount);
   if (!Number.isFinite(cents) || cents <= 0) return "Paid";
 
-  const dollars = cents / 100;
+  return formatCents(cents);
+}
+
+/**
+ * Cents → a one-time price string. Server purchases are a single charge
+ * (Stripe Checkout `mode: "payment"` with a destination split), never a
+ * recurring subscription, so no interval suffix belongs here.
+ */
+export function formatCents(cents) {
+  const n = Number(cents);
+  if (!Number.isFinite(n) || n <= 0) return "Paid";
+  const dollars = n / 100;
   const formatted = Number.isInteger(dollars)
     ? String(dollars)
     : dollars.toFixed(2).replace(/\.?0+$/, "");
-  return `$${formatted}/mo`;
+  return `$${formatted}`;
 }
 
 

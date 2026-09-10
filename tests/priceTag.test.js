@@ -27,22 +27,32 @@ describe("formatPriceLabel", () => {
   });
 
   it("never treats cents as dollars when falling back to price_amount", () => {
-    // Production Firecrawl / Exa style: cents only, no price_label on some clients
+    // Production Firecrawl / Exa style: cents only, no price_label on some clients.
+    // The generated fallback carries NO interval — a listing is one-time unless
+    // its publisher chose monthly, and that choice lives in price_label.
     expect(
       formatPriceLabel({ price_type: "paid", price_amount: 100 })
-    ).toBe("$1/mo");
+    ).toBe("$1");
     expect(
       formatPriceLabel({ price_type: "paid", price_amount: 1600 })
-    ).toBe("$16/mo");
+    ).toBe("$16");
     expect(
       formatPriceLabel({ price_type: "paid", price_amount: 1000 })
-    ).toBe("$10/mo");
+    ).toBe("$10");
   });
 
   it("formats fractional dollars from cents", () => {
     expect(
       formatPriceLabel({ price_type: "paid", price_amount: 99 })
-    ).toBe("$0.99/mo");
+    ).toBe("$0.99");
+  });
+
+  it("still echoes a stored recurring label verbatim", () => {
+    // A publisher who chose monthly billing has "/mo" saved in price_label;
+    // the formatter must not strip it.
+    expect(
+      formatPriceLabel({ price_type: "paid", price_label: "$16/mo", price_amount: 1600 })
+    ).toBe("$16/mo");
   });
 });
 

@@ -9,8 +9,13 @@ import { SEED_CATEGORIES } from "../data/seed";
 
 const CATEGORIES = SEED_CATEGORIES.filter((c) => c.id !== "all");
 
-function parsePriceLabel(amount) {
-  return `$${amount}/mo`;
+// Server purchases are a ONE-TIME charge (Stripe Checkout `mode: "payment"`),
+// so the label carries no interval. Publishers set any amount they like.
+function parsePriceLabel(amount, billingPeriod = "one_time") {
+  const n = Number(amount);
+  if (!Number.isFinite(n) || n <= 0) return "Paid";
+  const formatted = Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/\.?0+$/, "");
+  return `$${formatted}${billingPeriod === "monthly" ? "/mo" : ""}`;
 }
 
 async function fetchGitHubMeta(url) {
@@ -56,6 +61,7 @@ export default function Submit() {
     author_name: "",
     category_id: "dev",
     price_type: "free",
+    billing_period: "one_time",
     price_amount: "",
     tags: "",
     install_command: "",
@@ -115,7 +121,7 @@ export default function Submit() {
           category_id: form.category_id,
           price_type: form.price_type,
           price_amount: form.price_type === "paid" ? Number(form.price_amount) : null,
-          price_label: form.price_type === "paid" ? parsePriceLabel(form.price_amount) : "Free",
+          price_label: form.price_type === "paid" ? parsePriceLabel(form.price_amount, form.billing_period) : "Free",
           repo_url: githubUrl,
           install_command: form.install_command,
           tags,
@@ -133,6 +139,7 @@ export default function Submit() {
           long_description: form.readme || "",
           price_type: form.price_type,
           price_amount: form.price_type === "paid" ? Math.round(Number(form.price_amount) * 100) : 0,
+          billing_period: form.price_type === "paid" ? form.billing_period : "one_time",
           repo_url: githubUrl || "",
           install_command: form.install_command || "",
           tags,
@@ -236,7 +243,7 @@ export default function Submit() {
           Publish an MCP Tool
         </h1>
         <p style={{ fontSize: "14px", color: "var(--text-muted)" }}>
-          Publish your MCP server to the marketplace. Earn 85% of subscription revenue.
+          Publish your MCP server to the marketplace. Set any price you like and keep 85% of every sale.
         </p>
       </div>
 
@@ -393,9 +400,9 @@ export default function Submit() {
                 <span style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)", fontSize: "14px" }}>$</span>
                 <input
                   type="number"
-                  min="1"
-                  max="999"
-                  step="1"
+                  min="0.01"
+                  max="999999.99"
+                  step="0.01"
                   required={form.price_type === "paid"}
                   placeholder="9"
                   style={{ ...inputStyle, paddingLeft: "28px" }}
@@ -403,6 +410,43 @@ export default function Submit() {
                   onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(34, 211, 238,0.4)")}
                   onBlur={(e) => (e.currentTarget.style.borderColor = "#2e2e44")}
                 />
+              </div>
+
+              {/* How the buyer is charged. Both route through Stripe Connect
+                  with the same 15% platform fee — one-time takes a fixed cent
+                  fee, monthly takes 15% of every renewal. */}
+              <div style={{ marginTop: "12px" }}>
+                <label style={labelStyle}>Billing</label>
+                <div style={{ display: "flex", gap: "10px" }}>
+                  {[
+                    { id: "one_time", label: "One-time", hint: "Charged once" },
+                    { id: "monthly", label: "Monthly", hint: "Recurring subscription" },
+                  ].map(({ id, label, hint }) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => setForm((f) => ({ ...f, billing_period: id }))}
+                      aria-pressed={form.billing_period === id}
+                      style={{
+                        flex: 1,
+                        padding: "10px 12px",
+                        borderRadius: "10px",
+                        cursor: "pointer",
+                        textAlign: "left",
+                        background: form.billing_period === id ? "rgba(34, 211, 238,0.10)" : "#12121c",
+                        border: `1px solid ${form.billing_period === id ? "rgba(34, 211, 238,0.45)" : "#2e2e44"}`,
+                        color: form.billing_period === id ? "#a5f3fc" : "var(--text-secondary)",
+                      }}
+                    >
+                      <div style={{ fontSize: "13px", fontWeight: 600 }}>{label}</div>
+                      <div style={{ fontSize: "11px", opacity: 0.75 }}>{hint}</div>
+                    </button>
+                  ))}
+                </div>
+                <p style={{ margin: "8px 0 0", fontSize: "11px", color: "var(--text-muted)" }}>
+                  You keep 85% either way. Monthly takes the same 15% from every
+                  renewal, paid out automatically.
+                </p>
               </div>
 
               {/* Stripe placeholder */}

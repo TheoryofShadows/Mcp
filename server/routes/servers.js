@@ -19,6 +19,12 @@ const router = Router();
 export const MAX_PRICE_CENTS = 99999999;
 
 /** Returns an error string for an invalid paid price, or null when it is fine. */
+/** Exact cents → a dollar string, never dropping cents ($999 -> "999", $9.99 -> "9.99"). */
+export function formatDollars(cents) {
+  const dollars = (Number(cents) || 0) / 100;
+  return Number.isInteger(dollars) ? String(dollars) : dollars.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+}
+
 export function validatePriceAmount(value) {
   if (value === undefined || value === null || value === "") {
     return "Paid tools need a price";
@@ -360,7 +366,7 @@ router.post("/", requireAuth, (req, res) => {
     return res.status(429).json({ error: "You can create up to 10 servers per day" });
   }
 
-  const { name, category_id, description, long_description, price_type, price_amount, repo_url, tags, install_command } = req.body;
+  const { name, category_id, description, long_description, price_type, price_amount, billing_period, repo_url, tags, install_command } = req.body;
 
   if (!name || !category_id || !description) {
     return res.status(400).json({ error: "Name, category, and description are required" });
@@ -429,16 +435,23 @@ router.post("/", requireAuth, (req, res) => {
 
   const id = uuid();
   const gradient = GRADIENTS[Math.floor(Math.random() * GRADIENTS.length)];
-  const priceLabel = price_type === "paid" && price_amount ? `$${(price_amount / 100).toFixed(0)}/mo` : "free";
+  // Publishers pick how they bill. 'monthly' carries a /mo suffix; anything
+  // else is a one-time charge and carries none. toFixed(0) would silently drop
+  // cents from a $9.99 listing, so format from the exact cent value instead.
+  const billingPeriod = billing_period === "monthly" ? "monthly" : "one_time";
+  const priceLabel =
+    price_type === "paid" && price_amount
+      ? `$${formatDollars(price_amount)}${billingPeriod === "monthly" ? "/mo" : ""}`
+      : "free";
 
   db.prepare(`
     INSERT INTO servers (id, name, slug, author_id, category_id, description, long_description,
-      price_type, price_amount, price_label, gradient, repo_url, tags, install_command, status)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')
+      price_type, price_amount, price_label, billing_period, gradient, repo_url, tags, install_command, status)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')
   `).run(
     id, name, slug, req.user.id, category_id,
     description, long_description || "",
-    price_type || "free", price_amount || 0, priceLabel,
+    price_type || "free", price_amount || 0, priceLabel, billingPeriod,
     gradient, repo_url || "", JSON.stringify(tags || []),
     install_command ? String(install_command).trim() : null
   );
@@ -771,6 +784,7 @@ function formatServer(row) {
     price_label: row.price_label,
     price_type: row.price_type,
     price_amount: row.price_amount,
+    billing_period: row.billing_period || "one_time",
     ...computePurchasable(row),
     publisher_has_solana_wallet: !!row.publisher_has_solana_wallet,
     verified: !!row.verified,

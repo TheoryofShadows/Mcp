@@ -254,6 +254,10 @@ for (const sql of [
   "ALTER TABLE servers ADD COLUMN install_command TEXT",        // Verifiable install spec (CLI + web)
   "ALTER TABLE servers ADD COLUMN repo_verified INTEGER DEFAULT 0", // Proven repo ownership → full provenance
   "ALTER TABLE servers ADD COLUMN verify_token TEXT",           // Per-server .mcpx-verify challenge token
+  // Billing period for a paid listing: 'one_time' (default) or 'monthly'.
+  // Publishers choose; both route through Connect with the same 15% platform fee.
+  "ALTER TABLE servers ADD COLUMN billing_period TEXT DEFAULT 'one_time'",
+  "ALTER TABLE sales ADD COLUMN stripe_subscription_id TEXT",   // Recurring tool sales: ties renewals/cancellation back to the sale
   "ALTER TABLE sales ADD COLUMN payment_method TEXT DEFAULT 'stripe'",
   "ALTER TABLE sales ADD COLUMN refunded_at TEXT",              // Refund/chargeback: revokes access, keeps the audit row
   "ALTER TABLE sales ADD COLUMN payment_ref TEXT",              // Stripe payment_intent / Solana signature — ties a refund back to its sale
