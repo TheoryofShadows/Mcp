@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Loader, AlertCircle, CheckCircle, CreditCard, ArrowRight, Info } from "lucide-react";
 import GithubIcon from "../components/icons/GithubIcon";
+import PublishPipeline from "../components/PublishPipeline";
 import { useAuth } from "../hooks/useAuth";
 import { supabase } from "../lib/supabase";
 import { createServer } from "../api/client";
@@ -246,6 +247,10 @@ export default function Submit() {
           Publish your MCP server to the marketplace. Set any price you like and keep 85% of every sale.
         </p>
       </div>
+
+      {/* Publishers decide here whether this is worth their time — say what
+          happens after the button, and what the payout prerequisite is. */}
+      <PublishPipeline style={{ marginBottom: "20px" }} />
 
       {/* GitHub URL fetch */}
       <div style={{ background: "#12121c", border: "1px solid #1d1d2b", borderRadius: "14px", padding: "24px", marginBottom: "20px" }}>
