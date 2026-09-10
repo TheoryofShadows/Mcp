@@ -4,11 +4,11 @@ The command-line installer for the [MCPX](https://www.mcpx.digital) marketplace.
 Discover, inspect trust, and install MCP servers — with a built-in trust gate.
 
 ```bash
-npx mcpx install <slug>     # install into Claude / Cursor / VS Code
-npx mcpx search <query>     # search the marketplace
-npx mcpx trust <slug>       # itemized Trust Score
-npx mcpx scan <repo-url>    # live source security scan
-npx mcpx list               # recent servers (agent feed)
+npx @mcpx/cli install <slug>     # install into Claude / Cursor / VS Code
+npx @mcpx/cli search <query>     # search the marketplace
+npx @mcpx/cli trust <slug>       # itemized Trust Score
+npx @mcpx/cli scan <repo-url>    # live source security scan
+npx @mcpx/cli list               # recent servers (agent feed)
 ```
 
 ## Install behavior

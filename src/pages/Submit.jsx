@@ -354,7 +354,7 @@ export default function Submit() {
               onBlur={(e) => (e.currentTarget.style.borderColor = "#2e2e44")}
             />
             <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "7px", lineHeight: 1.5 }}>
-              The exact command to launch your server. Used by the install buttons and <code style={{ fontFamily: "var(--font-mono)" }}>npx mcpx install</code>.
+              The exact command to launch your server. Used by the install buttons and <code style={{ fontFamily: "var(--font-mono)" }}>npx @mcpx/cli install</code>.
               Without it, the installer falls back to a guessed package name.
             </p>
           </div>

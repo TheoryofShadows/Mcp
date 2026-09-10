@@ -1,13 +1,13 @@
 {
-  "name": "mcpx",
+  "name": "@mcpx/cli",
   "version": "0.1.0",
-  "description": "Command-line installer for the MCPX marketplace — discover, inspect trust, and install MCP servers.",
+  "description": "Command-line installer for the MCPX marketplace \u2014 discover, inspect trust, and install MCP servers.",
   "type": "module",
   "bin": {
     "mcpx": "./index.js"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22.13"
   },
   "scripts": {
     "prepack": "node ../scripts/sync-shared.js"
@@ -18,6 +18,20 @@
     "installConfig.js",
     "README.md"
   ],
-  "keywords": ["mcp", "mcpx", "model-context-protocol", "cli"],
-  "license": "SEE LICENSE IN ../LICENSE"
+  "keywords": [
+    "mcp",
+    "mcpx",
+    "model-context-protocol",
+    "cli"
+  ],
+  "license": "SEE LICENSE IN ../LICENSE",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheoryofShadows/Mcp.git",
+    "directory": "cli"
+  },
+  "homepage": "https://www.mcpx.digital"
 }

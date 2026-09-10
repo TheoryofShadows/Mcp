@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Copy, Check, Terminal, Code2, Cpu } from "lucide-react";
 // Install-command logic lives in a shared module so the web UI and the
-// `npx mcpx install` CLI always produce identical config (see shared/installConfig.js).
+// `npx @mcpx/cli install` CLI always produce identical config (see shared/installConfig.js).
 import { buildClaudeCommand, buildCursorConfig, buildVSCodeConfig } from "../../shared/installConfig.js";
 
 // ─── Copy button ──────────────────────────────────────────────────────────────

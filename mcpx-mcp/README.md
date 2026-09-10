@@ -16,7 +16,7 @@ marketplace itself**. Give an agent the ability to discover, vet, and install
 | `install_server` | Install a server into a local client config — **refuses low-trust / unverified servers unless `force=true`** |
 
 `install_server` reuses the exact trust gate and non-clobbering config merge as the
-`npx mcpx install` CLI, so an agent can't quietly install a `caution`-tier,
+`npx @mcpx/cli install` CLI, so an agent can't quietly install a `caution`-tier,
 high-risk, or unverified-artifact server.
 
 ## Use
