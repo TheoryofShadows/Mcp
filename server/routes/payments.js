@@ -309,8 +309,13 @@ router.get("/stripe/tool-checkout/preflight", requireAuth, async (req, res) => {
 
   if (!server) return res.status(404).json({ error: "Server not found" });
 
+  // The JWT carries only { id }, so a missing users.email row is invisible
+  // until Stripe rejects the session. Surface it.
+  const buyerRow = db.prepare("SELECT email FROM users WHERE id = ?").get(req.user.id);
+
   const checks = {
     stripe_configured: !!stripe,
+    buyer_has_email: !!(buyerRow?.email || "").trim(),
     tool_is_paid: server.price_type === "paid" && !!server.price_amount,
     price_cents: server.price_amount || 0,
     billing_period: server.billing_period || "one_time",
@@ -347,6 +352,9 @@ router.get("/stripe/tool-checkout/preflight", requireAuth, async (req, res) => {
 
   const blockers = [];
   if (!checks.stripe_configured) blockers.push("Stripe is not configured on the server");
+  if (!checks.buyer_has_email) {
+    blockers.push("Your account has no email address on file — Stripe will collect one at checkout");
+  }
   if (!checks.tool_is_paid) blockers.push("This tool is free — no checkout needed");
   if (checks.already_purchased) blockers.push("You already own this tool");
   if (checks.is_your_own_tool) blockers.push("You are the publisher — Stripe cannot pay your own account");
@@ -498,9 +506,18 @@ router.post("/stripe/tool-checkout", requireAuth, async (req, res) => {
       ...(isRecurring ? { recurring: { interval: "month" } } : {}),
     };
 
+    // The JWT payload is only { id } — signToken({ id }) in routes/auth.js — so
+    // req.user.email is ALWAYS undefined and Stripe rejects the session with
+    // "Invalid email address". The platform-subscription route above already
+    // reads the address from the database; this one never did. Omit the field
+    // entirely when we have no address rather than sending an empty one:
+    // Stripe then simply collects it at checkout.
+    const buyer = db.prepare("SELECT email FROM users WHERE id = ?").get(req.user.id);
+    const buyerEmail = (buyer?.email || "").trim();
+
     const session = await stripe.checkout.sessions.create({
       mode: isRecurring ? "subscription" : "payment",
-      customer_email: req.user.email,
+      ...(buyerEmail ? { customer_email: buyerEmail } : {}),
       client_reference_id: req.user.id,
       line_items: [{ quantity: 1, price_data }],
       ...(isRecurring
