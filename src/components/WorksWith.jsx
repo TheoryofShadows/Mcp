@@ -27,6 +27,7 @@ const CLIENTS = [
 export default function WorksWith({ style }) {
   return (
     <div
+      className="works-with"
       style={{
         display: "flex",
         alignItems: "center",

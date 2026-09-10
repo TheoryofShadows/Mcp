@@ -816,3 +816,14 @@ code::-webkit-scrollbar-thumb { background: var(--border-accent); border-radius:
     grid-template-columns: 1fr !important;
   }
 }
+
+/* ─── "Works with" client row ───────────────────────────────────────────────
+   At 390px the label + three client chips measure ~417px against ~342px of
+   available width, so the row wraps and the label orphans from the chips.
+   Stack it deliberately instead of letting flex-wrap decide. */
+@media (max-width: 480px) {
+  .works-with {
+    flex-direction: column;
+    gap: 8px !important;
+  }
+}
