@@ -364,12 +364,25 @@ describe("Solana Pay HTTP", () => {
       .set("Authorization", `Bearer ${buyerToken}`);
     expect(status.body.status).toBe("completed");
 
+    // This suite runs with SOLANA_CLUSTER=devnet, where SOL is free from a
+    // faucet. The sale is therefore recorded as a zero-value 'solana-devnet'
+    // row: the buyer keeps access (asserted below), but free test money must
+    // never reach publisher earnings. Only mainnet-beta records real cents.
     const sale = db.prepare(
-      "SELECT payment_method, gross_cents, fee_cents FROM sales WHERE payment_method = 'solana' ORDER BY created_at DESC LIMIT 1"
+      "SELECT payment_method, gross_cents, fee_cents FROM sales WHERE payment_method = 'solana-devnet' ORDER BY created_at DESC LIMIT 1"
     ).get();
-    expect(sale.payment_method).toBe("solana");
-    expect(sale.gross_cents).toBe(1500);
-    expect(sale.fee_cents).toBe(225);
+    expect(sale.payment_method).toBe("solana-devnet");
+    expect(sale.gross_cents).toBe(0);
+    expect(sale.fee_cents).toBe(0);
+
+    // The devnet confirm above must not have produced a real-money row for
+    // THIS server. (Scoped by server: the suite shares a database.)
+    const realSale = db.prepare(`
+      SELECT sa.id FROM sales sa
+      JOIN servers s ON s.id = sa.server_id
+      WHERE s.slug = ? AND sa.payment_method = 'solana'
+    `).get(paidSlug);
+    expect(realSale).toBeUndefined();
 
     const install = db.prepare(`
       SELECT i.id FROM installs i
