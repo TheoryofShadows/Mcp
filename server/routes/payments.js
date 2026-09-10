@@ -286,6 +286,83 @@ async function getPriceId(tierId) {
 // the key in use is live or test. This is the endpoint to curl after a deploy
 // to answer "are we live?" without opening the Stripe Dashboard.
 
+// GET /api/payments/stripe/tool-checkout/preflight?server_slug=…
+// Why a checkout WOULD fail, without creating one or charging anything.
+//
+// A failed checkout previously surfaced as one opaque string, and the real
+// reason only existed in the server log — which is unreachable on a hosted
+// deploy without CLI access. This reports every precondition the real handler
+// checks, plus Stripe's live view of the destination account, so a broken
+// purchase can be diagnosed from the browser.
+//
+// Requires auth and reports only on the caller's own view. Publisher account
+// ids are truncated: enough to identify, not enough to act on.
+router.get("/stripe/tool-checkout/preflight", requireAuth, async (req, res) => {
+  const server_slug = String(req.query.server_slug || "").trim();
+  if (!server_slug) return res.status(400).json({ error: "server_slug required" });
+
+  const server = db.prepare(`
+    SELECT s.*, u.stripe_account_id, u.stripe_onboarding_done
+    FROM servers s JOIN users u ON u.id = s.author_id
+    WHERE s.slug = ? AND s.status = 'active'
+  `).get(server_slug);
+
+  if (!server) return res.status(404).json({ error: "Server not found" });
+
+  const checks = {
+    stripe_configured: !!stripe,
+    tool_is_paid: server.price_type === "paid" && !!server.price_amount,
+    price_cents: server.price_amount || 0,
+    billing_period: server.billing_period || "one_time",
+    already_purchased: hasPurchased(server.id, req.user.id),
+    is_your_own_tool: server.author_id === req.user.id,
+    publisher_has_account: !!server.stripe_account_id,
+    publisher_onboarding_done: !!server.stripe_onboarding_done,
+    publisher_account: server.stripe_account_id
+      ? `${String(server.stripe_account_id).slice(0, 8)}…`
+      : null,
+  };
+
+  // Ask Stripe what it actually thinks of the destination account right now.
+  // Our stripe_onboarding_done flag is only reconciled when the publisher
+  // visits /connect, so it can be stale at checkout time.
+  if (stripe && server.stripe_account_id) {
+    try {
+      const live = await stripe.accounts.retrieve(server.stripe_account_id);
+      const r = payoutReadiness(live);
+      checks.stripe_live = {
+        ready: r.ready,
+        status: r.status,
+        details_submitted: r.details_submitted,
+        charges_enabled: r.charges_enabled,
+        payouts_enabled: r.payouts_enabled,
+        transfers_capability: live?.capabilities?.transfers || null,
+        disabled_reason: live?.requirements?.disabled_reason || null,
+        currently_due: (live?.requirements?.currently_due || []).slice(0, 8),
+      };
+    } catch (err) {
+      checks.stripe_live = { error: err.message };
+    }
+  }
+
+  const blockers = [];
+  if (!checks.stripe_configured) blockers.push("Stripe is not configured on the server");
+  if (!checks.tool_is_paid) blockers.push("This tool is free — no checkout needed");
+  if (checks.already_purchased) blockers.push("You already own this tool");
+  if (checks.is_your_own_tool) blockers.push("You are the publisher — Stripe cannot pay your own account");
+  if (!checks.publisher_has_account) blockers.push("Publisher has no Stripe account");
+  if (!checks.publisher_onboarding_done) blockers.push("Publisher has not finished onboarding (our flag)");
+  if (checks.stripe_live && checks.stripe_live.ready === false) {
+    blockers.push(
+      `Stripe says the publisher account is not ready: ${checks.stripe_live.status}` +
+      (checks.stripe_live.disabled_reason ? ` (${checks.stripe_live.disabled_reason})` : "")
+    );
+  }
+  if (checks.stripe_live?.error) blockers.push(`Stripe account lookup failed: ${checks.stripe_live.error}`);
+
+  res.json({ server_slug, would_succeed: blockers.length === 0, blockers, checks });
+});
+
 router.get("/stripe/config", (_req, res) => {
   const mode = stripeKeyMode();
   const configured = !!stripe;
