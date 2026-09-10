@@ -56,6 +56,17 @@ export function getSolanaConfig() {
   // counted as revenue or presented to a buyer as a real payment.
   const isRealMoney = safeCluster === "mainnet-beta";
 
+  // A payment button that cannot take payment is worse than no button: it
+  // reads as a real checkout, unlocks tools for free, and teaches buyers the
+  // marketplace is not serious about money. So a non-mainnet rail is HIDDEN by
+  // default and must be opted into explicitly with MCPX_SOLANA_SHOW_DEVNET=1
+  // (for local/staging testing). Switching SOLANA_CLUSTER to mainnet-beta
+  // turns it on for everyone with no other change.
+  const showDevnet = /^(1|true|yes)$/i.test(
+    (process.env.MCPX_SOLANA_SHOW_DEVNET || "").trim()
+  );
+  const treasuryReady = !!treasury && isValidPubkey(treasury);
+
   return {
     cluster: safeCluster,
     is_real_money: isRealMoney,
@@ -63,7 +74,7 @@ export function getSolanaConfig() {
     rpcUrl,
     usdPerSol,
     rate_source: "stub",
-    enabled: !!treasury && isValidPubkey(treasury),
+    enabled: treasuryReady && (isRealMoney || showDevnet),
     currency: "SOL",
     currency_label: "SOL",
     fx_note: `USD→SOL fallback rate $${usdPerSol}/SOL (env SOLANA_USD_PER_SOL). Live checkout uses a real price feed.`,

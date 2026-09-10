@@ -39,7 +39,26 @@ export function zeroOutDevnetSales(db, solanaConfig = {}) {
       "[solana] re-labelled devnet SOL sales as zero-value — they were never real money"
     );
   }
-  return { updated, skipped: false };
+
+  // Optionally revoke the access those free unlocks granted. Off by default —
+  // silently taking away something a user already has is worse than leaving a
+  // zero-value row — but needed to test the real Stripe path from scratch on a
+  // tool that was unlocked with faucet SOL. Set MCPX_REVOKE_DEVNET_UNLOCKS=1.
+  let revoked = 0;
+  if (/^(1|true|yes)$/i.test((process.env.MCPX_REVOKE_DEVNET_UNLOCKS || "").trim())) {
+    // Stamp rather than delete: the audit trail keeps the row, and access is
+    // gated on refunded_at IS NULL, so stamping is exactly what locks the tool.
+    revoked = db.prepare(`
+      UPDATE sales
+      SET refunded_at = datetime('now')
+      WHERE payment_method = 'solana-devnet' AND refunded_at IS NULL
+    `).run().changes || 0;
+    if (revoked > 0) {
+      logger.warn({ revoked }, "[solana] revoked devnet unlocks (MCPX_REVOKE_DEVNET_UNLOCKS)");
+    }
+  }
+
+  return { updated, revoked, skipped: false };
 }
 
 export default zeroOutDevnetSales;
