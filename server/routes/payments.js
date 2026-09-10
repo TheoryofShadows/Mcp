@@ -391,28 +391,45 @@ router.post("/stripe/tool-checkout", requireAuth, async (req, res) => {
   }
 
   try {
-    const appFee = Math.round(server.price_amount * PLATFORM_FEE_PCT);
+    // Publishers choose how their tool is billed. Both paths are Connect
+    // destination charges taking the same 15% platform cut — they differ only
+    // in HOW Stripe wants the fee expressed:
+    //   one-time  → application_fee_amount, an exact integer number of cents
+    //   monthly   → application_fee_percent, applied to each renewal invoice
+    // A fixed cent amount cannot be used for a subscription, because renewals
+    // (proration, tax, currency changes) may not equal today's price.
+    const isRecurring = server.billing_period === "monthly";
+
+    const price_data = {
+      currency: "usd",
+      unit_amount: server.price_amount,
+      product_data: {
+        name: server.name,
+        description: server.description?.slice(0, 255),
+        metadata: { server_slug, server_id: server.id },
+      },
+      ...(isRecurring ? { recurring: { interval: "month" } } : {}),
+    };
 
     const session = await stripe.checkout.sessions.create({
-      mode: "payment",
+      mode: isRecurring ? "subscription" : "payment",
       customer_email: req.user.email,
       client_reference_id: req.user.id,
-      line_items: [{
-        quantity: 1,
-        price_data: {
-          currency: "usd",
-          unit_amount: server.price_amount,
-          product_data: {
-            name: server.name,
-            description: server.description?.slice(0, 255),
-            metadata: { server_slug, server_id: server.id },
-          },
-        },
-      }],
-      payment_intent_data: {
-        application_fee_amount: appFee,
-        transfer_data: { destination: server.stripe_account_id },
-      },
+      line_items: [{ quantity: 1, price_data }],
+      ...(isRecurring
+        ? {
+            subscription_data: {
+              application_fee_percent: PLATFORM_FEE_PCT * 100,
+              transfer_data: { destination: server.stripe_account_id },
+              metadata: { server_slug, server_id: server.id, buyer_id: req.user.id },
+            },
+          }
+        : {
+            payment_intent_data: {
+              application_fee_amount: Math.round(server.price_amount * PLATFORM_FEE_PCT),
+              transfer_data: { destination: server.stripe_account_id },
+            },
+          }),
       success_url: `${APP_URL}/tool/${server_slug}?purchased=1`,
       cancel_url:  `${APP_URL}/tool/${server_slug}`,
       metadata: { server_slug, server_id: server.id, buyer_id: req.user.id },
@@ -540,7 +557,7 @@ router.get("/stripe/connect/refresh", requireAuth, async (req, res) => {
 // after a failed delivery re-applies it cleanly instead of finding a half-written
 // grant. Exported for tests.
 
-export function grantToolPurchase({ server_id, buyer_id, gross_cents, payment_ref = null }) {
+export function grantToolPurchase({ server_id, buyer_id, gross_cents, payment_ref = null, stripe_subscription_id = null }) {
   if (!server_id || !buyer_id) return { granted: false, reason: "missing server_id or buyer_id" };
 
   const grossCents = Number(gross_cents) || 0;
@@ -560,8 +577,8 @@ export function grantToolPurchase({ server_id, buyer_id, gross_cents, payment_re
 
     if (grossCents > 0) {
       db.prepare(
-        "INSERT INTO sales (id, server_id, buyer_id, gross_cents, fee_cents, payment_method, payment_ref) VALUES (?, ?, ?, ?, ?, 'stripe', ?)"
-      ).run(uuid(), server_id, buyer_id, grossCents, feeCents, payment_ref);
+        "INSERT INTO sales (id, server_id, buyer_id, gross_cents, fee_cents, payment_method, payment_ref, stripe_subscription_id) VALUES (?, ?, ?, ?, ?, 'stripe', ?, ?)"
+      ).run(uuid(), server_id, buyer_id, grossCents, feeCents, payment_ref, stripe_subscription_id);
     }
   })();
 
@@ -626,7 +643,15 @@ router.post("/stripe/webhook", async (req, res) => {
         const userId  = session.client_reference_id;
         if (!userId) break;
 
-        if (session.mode === "subscription") {
+        // A "subscription" session is now ambiguous: it is either a publisher
+        // buying an MCPX tier, or a buyer subscribing to a publisher's tool.
+        // server_id in the metadata is what separates them — without this check
+        // a recurring tool sale would fall into the tier branch, fail to resolve
+        // a tier, and leave a paying buyer with no access.
+        const isToolSubscription =
+          session.mode === "subscription" && !!session.metadata?.server_id;
+
+        if (session.mode === "subscription" && !isToolSubscription) {
           // Publisher tier upgrade
           const stripeSub = await stripe.subscriptions.retrieve(session.subscription);
           const priceId   = stripeSub.items.data[0]?.price?.id;
@@ -656,6 +681,18 @@ router.post("/stripe/webhook", async (req, res) => {
               "INSERT INTO subscriptions (id, user_id, tier, status, stripe_subscription_id, expires_at) VALUES (?, ?, ?, 'active', ?, ?)"
             ).run(uuid(), userId, tier, session.subscription, expiresAt);
           })();
+        }
+
+        if (isToolSubscription) {
+          // Recurring tool sale — same grant as a one-time purchase. Renewals
+          // arrive later as invoice.paid and extend access from there.
+          grantToolPurchase({
+            server_id: session.metadata?.server_id,
+            buyer_id: userId,
+            gross_cents: session.amount_total,
+            payment_ref: session.invoice ? String(session.invoice) : null,
+            stripe_subscription_id: session.subscription ? String(session.subscription) : null,
+          });
         }
 
         if (session.mode === "payment") {

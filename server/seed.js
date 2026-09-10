@@ -380,7 +380,9 @@ const insertServer = db.prepare(`
 for (const [i, s] of servers.entries()) {
   const id = uuid();
   const priceAmount = s.price_type === "paid" ? (s.price_amount || 900) : 0;
-  const priceLabel = s.price_type === "paid" ? `$${(priceAmount / 100).toFixed(0)}/mo` : "free";
+  // One-time price: server purchases charge once (Stripe `mode: "payment"`),
+  // so seeded labels must not imply a subscription.
+  const priceLabel = s.price_type === "paid" ? `$${(priceAmount / 100).toFixed(0)}` : "free";
   // Honesty: no vanity social proof. Real installs/ratings come from live
   // activity; seed catalog starts at zero with created_at = now.
   const createdAt = new Date().toISOString().replace("T", " ").slice(0, 19);
