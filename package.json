@@ -22,7 +22,7 @@
   "author": "TheoryofShadows",
   "type": "module",
   "engines": {
-    "node": ">=20"
+    "node": ">=22.13"
   },
   "scripts": {
     "dev": "dotenv -e .env -- concurrently \"vite\" \"node server/index.js\"",
