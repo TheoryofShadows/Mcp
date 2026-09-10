@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { TrendingUp, Star, Download } from "lucide-react";
 import VerifiedBadge from "./VerifiedBadge";
 import PriceTag from "./PriceTag";
+import { trustSummary } from "../lib/trustSummary";
 
 function formatInstalls(n) {
   const v = Number(n) || 0;
@@ -228,10 +229,17 @@ const ToolCard = memo(function ToolCard({ tool, index = 0 }) {
                   fontSize: "11px",
                   color: "#67e8f9",
                 }}
-                title={`Trust Score ${tool.trust.score}/100`}
+                title={trustSummary(tool.trust)}
+                aria-label={trustSummary(tool.trust)}
               >
                 <span aria-hidden="true" style={{ width: 6, height: 6, borderRadius: "50%", background: "#22d3ee" }} />
                 {tool.trust.score}
+                <span
+                  aria-hidden="true"
+                  style={{ fontSize: "9px", opacity: 0.55, letterSpacing: "0.04em" }}
+                >
+                  TRUST
+                </span>
               </div>
             )}
             <div
