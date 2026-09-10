@@ -782,7 +782,11 @@ export default function ToolDetail() {
                           marginBottom: "6px",
                         }}
                       >
-                        {phantom.connecting ? "Connecting…" : "Connect Phantom"}
+                        {phantom.connecting
+                          ? "Connecting…"
+                          : solanaCfg.is_real_money
+                            ? "Connect Phantom"
+                            : "Connect Phantom (devnet test)"}
                       </button>
                     ) : (
                       <button
@@ -838,7 +842,11 @@ export default function ToolDetail() {
                           marginBottom: "6px",
                         }}
                       >
-                        {solanaLoading ? "Confirming on-chain…" : `Pay with Solana · ${solanaCfg.label || "Live (devnet)"}`}
+                        {solanaLoading
+                          ? "Confirming on-chain…"
+                          : solanaCfg.is_real_money
+                            ? `Pay with Solana · ${solanaCfg.label || "Solana"}`
+                            : "Test payment (devnet · not real money)"}
                       </button>
                     )}
                     {(solanaCfg.cluster || "devnet") !== "mainnet-beta" && (

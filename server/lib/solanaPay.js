@@ -51,8 +51,14 @@ export function getSolanaConfig() {
   // that only need cluster/treasury readiness don't have to await a network call.
   const usdPerSol = stubRate(process.env);
 
+  // Only mainnet-beta moves money that exists. devnet/testnet SOL is free from
+  // a faucet, so a "purchase" there costs the buyer nothing — it must never be
+  // counted as revenue or presented to a buyer as a real payment.
+  const isRealMoney = safeCluster === "mainnet-beta";
+
   return {
     cluster: safeCluster,
+    is_real_money: isRealMoney,
     treasury,
     rpcUrl,
     usdPerSol,
