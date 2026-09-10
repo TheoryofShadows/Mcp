@@ -29,6 +29,11 @@ if (userCount === 0) {
   // describes a subscription they never had. Only non-monthly rows are touched.
   const { backfillPriceLabels } = await import("./lib/priceLabelBackfill.js");
   backfillPriceLabels(db);
+  // Solana Pay runs on devnet, where SOL is free. Any sale recorded from it is
+  // not revenue — zero it out so publisher earnings never show money nobody paid.
+  const { zeroOutDevnetSales } = await import("./lib/devnetSalesCleanup.js");
+  const { getSolanaConfig } = await import("./lib/solanaPay.js");
+  zeroOutDevnetSales(db, getSolanaConfig());
 }
 
 // Zero inflated seed-catalog social proof (installs/ratings/revenue/reviews).

@@ -985,9 +985,21 @@ router.post("/solana/confirm", requireAuth, async (req, res) => {
       // Unique (server, user) — already installed is fine
     }
 
+    // devnet/testnet SOL is free from a faucet, so a purchase there cost the
+    // buyer nothing. Record it as 'solana-devnet' and with ZERO cents: the
+    // buyer still gets access (they completed the flow), but no fake revenue
+    // reaches the publisher's earnings. Only mainnet-beta is real money.
+    const realMoney = cfg.is_real_money;
     db.prepare(
-      "INSERT INTO sales (id, server_id, buyer_id, gross_cents, fee_cents, payment_method) VALUES (?, ?, ?, ?, ?, 'solana')"
-    ).run(uuid(), purchase.server_id, req.user.id, purchase.gross_cents, purchase.fee_cents);
+      "INSERT INTO sales (id, server_id, buyer_id, gross_cents, fee_cents, payment_method) VALUES (?, ?, ?, ?, ?, ?)"
+    ).run(
+      uuid(),
+      purchase.server_id,
+      req.user.id,
+      realMoney ? purchase.gross_cents : 0,
+      realMoney ? purchase.fee_cents : 0,
+      realMoney ? "solana" : "solana-devnet"
+    );
   });
 
   try {
