@@ -2,7 +2,7 @@
   "name": "mcpx",
   "private": true,
   "version": "1.0.0",
-  "description": "MCPX — The Marketplace for AI Agent Tools (MCP Servers). Discover, install, and publish Model Context Protocol servers for Claude, Cursor, and VS Code.",
+  "description": "MCPX \u2014 The Marketplace for AI Agent Tools (MCP Servers). Discover, install, and publish Model Context Protocol servers for Claude, Cursor, and VS Code.",
   "keywords": [
     "mcp",
     "mcpx",
@@ -36,7 +36,8 @@
     "sync:vendored": "node scripts/sync-shared.js",
     "backup:db": "node scripts/backup-db.js",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "publish:packages": "node scripts/publish-packages.js"
   },
   "dependencies": {
     "@descope/node-sdk": "^2.12.0",
