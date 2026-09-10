@@ -1,0 +1,55 @@
+# Publish the @mcpx packages to npm.
+#
+# Manual only (workflow_dispatch): publishing is irreversible — npm allows
+# unpublish for just 72 hours and a version number can never be reused — so
+# this never fires on a push.
+#
+# The token lives in GitHub secrets (NPM_TOKEN) and is only ever exposed to
+# the npm CLI in this job. Nobody has to paste it into a terminal or share it.
+name: Publish npm packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (check only, publish nothing)"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+          cache: npm
+
+      - run: npm ci
+
+      # Never publish something that does not build and pass its tests.
+      - name: Verify
+        run: |
+          npm run lint
+          npm test
+          npm run build
+
+      - name: Publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -z "$NODE_AUTH_TOKEN" ]; then
+            echo "::error::NPM_TOKEN secret is not set. Add it under Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            node scripts/publish-packages.js
+          else
+            node scripts/publish-packages.js --yes
+          fi
