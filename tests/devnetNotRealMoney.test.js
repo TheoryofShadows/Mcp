@@ -87,6 +87,53 @@ describe("devnet SOL is not revenue", () => {
     expect(src).toMatch(/realMoney \? "solana" : "solana-devnet"/);
   });
 
+  it("HIDES the Solana rail entirely while the cluster is not mainnet", () => {
+    const prev = process.env.SOLANA_TREASURY_WALLET;
+    const prevShow = process.env.MCPX_SOLANA_SHOW_DEVNET;
+    // A valid-looking treasury is present, but devnet must still be hidden:
+    // a payment button that cannot take payment is worse than no button.
+    process.env.SOLANA_TREASURY_WALLET = "11111111111111111111111111111111";
+    delete process.env.MCPX_SOLANA_SHOW_DEVNET;
+    try {
+      const cfg = getSolanaConfig();
+      if (cfg.cluster !== "mainnet-beta") {
+        expect(cfg.enabled).toBe(false);
+      }
+      // Explicit opt-in brings it back for local/staging testing.
+      process.env.MCPX_SOLANA_SHOW_DEVNET = "1";
+      expect(getSolanaConfig().enabled).toBe(true);
+    } finally {
+      if (prev === undefined) delete process.env.SOLANA_TREASURY_WALLET;
+      else process.env.SOLANA_TREASURY_WALLET = prev;
+      if (prevShow === undefined) delete process.env.MCPX_SOLANA_SHOW_DEVNET;
+      else process.env.MCPX_SOLANA_SHOW_DEVNET = prevShow;
+    }
+  });
+
+  it("keeps devnet unlocks by default, and revokes them only when asked", () => {
+    addSale("d1", "solana", 100, 15);
+    const prev = process.env.MCPX_REVOKE_DEVNET_UNLOCKS;
+    delete process.env.MCPX_REVOKE_DEVNET_UNLOCKS;
+    try {
+      const a = zeroOutDevnetSales(db, { is_real_money: false });
+      expect(a.revoked).toBe(0);
+      expect(get("d1").refunded_at).toBeNull();
+
+      process.env.MCPX_REVOKE_DEVNET_UNLOCKS = "1";
+      const b = zeroOutDevnetSales(db, { is_real_money: false });
+      expect(b.revoked).toBe(1);
+      // refunded_at stamped → access gate (refunded_at IS NULL) now fails.
+      expect(get("d1").refunded_at).not.toBeNull();
+      const owned = db.prepare(
+        "SELECT 1 AS ok FROM sales WHERE server_id = ? AND buyer_id = ? AND refunded_at IS NULL LIMIT 1"
+      ).get("srv", "buyer");
+      expect(owned).toBeUndefined();
+    } finally {
+      if (prev === undefined) delete process.env.MCPX_REVOKE_DEVNET_UNLOCKS;
+      else process.env.MCPX_REVOKE_DEVNET_UNLOCKS = prev;
+    }
+  });
+
   it("does not present devnet to a buyer as a real payment", () => {
     const ui = readFileSync(new URL("../src/pages/ToolDetail.jsx", import.meta.url), "utf8");
     expect(ui).toMatch(/Test payment \(devnet · not real money\)/);

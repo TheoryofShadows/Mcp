@@ -235,6 +235,9 @@ describe("Solana Pay HTTP", () => {
   beforeAll(async () => {
     process.env.SOLANA_TREASURY_WALLET = TREASURY;
     process.env.SOLANA_CLUSTER = "devnet";
+    // The devnet rail is hidden in production; these tests exercise the flow
+    // itself, so they opt in explicitly the same way local/staging would.
+    process.env.MCPX_SOLANA_SHOW_DEVNET = "1";
     process.env.SOLANA_USD_PER_SOL = "150";
 
     const suffix = Date.now().toString(36);
@@ -277,6 +280,7 @@ describe("Solana Pay HTTP", () => {
     resetPriceFetchImpl();
     clearPriceCache();
     delete process.env.SOLANA_TREASURY_WALLET;
+    delete process.env.MCPX_SOLANA_SHOW_DEVNET;
     await cleanup();
   });
 

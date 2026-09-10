@@ -235,12 +235,16 @@ describe("double-purchase guard", () => {
   beforeAll(() => {
     process.env.SOLANA_TREASURY_WALLET = TREASURY;
     process.env.SOLANA_CLUSTER = "devnet";
+    // The devnet rail is hidden in production; these tests exercise the flow
+    // itself, so they opt in explicitly the same way local/staging would.
+    process.env.MCPX_SOLANA_SHOW_DEVNET = "1";
     process.env.SOLANA_USD_PER_SOL = "150";
     db.prepare("UPDATE users SET solana_wallet = ? WHERE id = ?").run(PUBLISHER_WALLET, publisherId);
   });
 
   afterAll(() => {
     delete process.env.SOLANA_TREASURY_WALLET;
+    delete process.env.MCPX_SOLANA_SHOW_DEVNET;
   });
 
   it("refuses to open a Solana purchase for a tool the buyer already owns", async () => {
