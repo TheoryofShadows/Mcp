@@ -8,6 +8,8 @@ import { supabase } from "../lib/supabase";
 import { fetchServers, fetchStats, fetchCategories } from "../api/client";
 import RevenueSection from "../components/sections/RevenueSection";
 import WorksWith from "../components/WorksWith";
+import SecurityNote from "../components/SecurityNote";
+import { withSignal, catalogLine } from "../lib/statPresentation";
 
 // Map an API server object onto the fields ToolCard/seed expect.
 function normalizeTool(s) {
@@ -87,6 +89,10 @@ export default function Home() {
   const [stats, setStats] = useState(SEED_STATS);
   const [catCounts, setCatCounts] = useState(null);
   const navigate = useNavigate();
+
+  // Don't render a metric that hasn't started yet — "Publisher payouts $0/mo"
+  // reads as an abandoned marketplace. The catalog count always shows.
+  const visibleStats = withSignal(STAT_ITEMS, stats);
 
   useEffect(() => {
     loadHomeData().then(({ tools: t, stats: s, catCounts: cc }) => {
@@ -385,18 +391,18 @@ export default function Home() {
             maxWidth: "1100px",
             margin: "0 auto",
             display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
+            gridTemplateColumns: `repeat(${visibleStats.length}, 1fr)`,
             gap: "0",
           }}
           className="stats-grid"
         >
-          {STAT_ITEMS.map(({ icon: Icon, key, label, format }, i) => (
+          {visibleStats.map(({ icon: Icon, key, label, format }, i) => (
             <div
               key={key}
               style={{
                 textAlign: "center",
                 padding: "8px 16px",
-                borderRight: i < STAT_ITEMS.length - 1 ? "1px solid #1d1d2b" : "none",
+                borderRight: i < visibleStats.length - 1 ? "1px solid #1d1d2b" : "none",
               }}
             >
               <div
@@ -434,7 +440,7 @@ export default function Home() {
           ))}
         </div>
         <p style={{ textAlign: "center", marginTop: "14px", fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--text-muted)" }}>
-          Live catalog stats — no vanity metrics
+          {catalogLine(stats.total_tools)}
         </p>
       </section>
 
@@ -666,6 +672,10 @@ export default function Home() {
       </section>
 
       {/* ─── Pricing / Revenue model ──────────────────────────────────────────── */}
+      {/* MCP's attack story is public; say how we handle it before someone
+          else frames it for us. */}
+      <SecurityNote />
+
       <RevenueSection onAuthClick={() => navigate("/login")} />
 
       {/* ─── CTA Banner ───────────────────────────────────────────────────────── */}
