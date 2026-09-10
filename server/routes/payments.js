@@ -389,6 +389,16 @@ router.post("/stripe/tool-checkout", requireAuth, async (req, res) => {
   if (!server.stripe_account_id || !server.stripe_onboarding_done) {
     return res.status(402).json({ error: "Publisher has not completed Stripe onboarding" });
   }
+  // A Connect destination charge cannot pay the account that is making it —
+  // Stripe rejects the session outright. Catch it here with an explanation
+  // instead of surfacing an opaque "Failed to create checkout session".
+  if (server.author_id === req.user.id) {
+    return res.status(400).json({
+      error:
+        "This is your own tool — Stripe can't route a payment from your account back to it. " +
+        "Test the purchase flow from a different account.",
+    });
+  }
 
   try {
     // Publishers choose how their tool is billed. Both paths are Connect
@@ -438,7 +448,19 @@ router.post("/stripe/tool-checkout", requireAuth, async (req, res) => {
     res.json({ checkout_url: session.url });
   } catch (err) {
     console.error("[stripe] tool-checkout error:", err.message);
-    res.status(500).json({ error: "Failed to create tool checkout session" });
+    // Stripe's own message is the only thing that makes a failed checkout
+    // diagnosable ("destination cannot be the same as the account", "amount
+    // too small", "account cannot receive transfers"). Swallowing it left a
+    // dead button with no way to tell what went wrong. Stripe card_error /
+    // invalid_request_error messages are written for end users and carry no
+    // secrets; anything else stays generic.
+    const safe =
+      err?.type === "StripeInvalidRequestError" || err?.type === "StripeCardError";
+    res.status(500).json({
+      error: safe && err.message
+        ? `Stripe rejected this checkout: ${err.message}`
+        : "Failed to create tool checkout session",
+    });
   }
 });
 

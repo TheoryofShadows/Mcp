@@ -722,7 +722,9 @@ export default function ToolDetail() {
                     setCheckoutErr(
                       /onboard/i.test(err.message)
                         ? "This publisher hasn't enabled payouts yet, so it can't be purchased right now."
-                        : err.message || "Checkout failed. Please try again."
+                        : /your own tool/i.test(err.message)
+                          ? err.message
+                          : err.message || "Checkout failed. Please try again."
                     );
                   } finally {
                     setCheckoutLoading(false);
