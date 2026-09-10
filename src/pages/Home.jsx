@@ -7,6 +7,7 @@ import { SEED_TOOLS, SEED_CATEGORIES, SEED_STATS } from "../data/seed";
 import { supabase } from "../lib/supabase";
 import { fetchServers, fetchStats, fetchCategories } from "../api/client";
 import RevenueSection from "../components/sections/RevenueSection";
+import WorksWith from "../components/WorksWith";
 
 // Map an API server object onto the fields ToolCard/seed expect.
 function normalizeTool(s) {
@@ -331,6 +332,11 @@ export default function Home() {
               <Terminal size={14} /> Get install command free
             </a>
           </div>
+
+          {/* Which clients this actually works with — shown before the tool
+              chips below, because a visitor needs to know MCPX targets their
+              editor before they care which servers exist. */}
+          <WorksWith style={{ marginBottom: "18px" }} />
 
           {/* Quick links */}
           <div style={{ display: "flex", justifyContent: "center", gap: "8px", flexWrap: "wrap" }}>
