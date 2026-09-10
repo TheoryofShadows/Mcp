@@ -229,7 +229,7 @@ Full architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - [x] Capability and risk warnings
 - [x] Stripe Connect payouts + Pro/Enterprise platform subscriptions
 - [x] GitHub Pages demo + full documentation
-- [x] `npx mcpx install <slug>` — trust-enforcing CLI installer ([`cli/`](cli/))
+- [x] `npx @mcpx/cli install <slug>` — trust-enforcing CLI installer ([`cli/`](cli/))
 - [x] Repo ownership verification (`.mcpx-verify`) + source-scan-aware Trust Score
 - [x] Reference MCP server: [`@mcpx/railway`](railway-mcp/)
 - [x] Solana Pay — Phantom checkout for paid tools (devnet default, 85/15 on-chain)

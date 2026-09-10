@@ -2,11 +2,11 @@
 /**
  * mcpx — the MCPX command-line installer.
  *
- *   npx mcpx install <slug> [--client claude|cursor|vscode] [--force] [--yes]
- *   npx mcpx search <query>
- *   npx mcpx trust <slug>
- *   npx mcpx scan <repo-url>
- *   npx mcpx list
+ *   npx @mcpx/cli install <slug> [--client claude|cursor|vscode] [--force] [--yes]
+ *   npx @mcpx/cli search <query>
+ *   npx @mcpx/cli trust <slug>
+ *   npx @mcpx/cli scan <repo-url>
+ *   npx @mcpx/cli list
  *
  * Env:
  *   MCPX_API    base URL (default https://www.mcpx.digital)

@@ -11,7 +11,7 @@ enable them. Secret variable **values are never returned** — only names.
 
 ```bash
 # via the MCPX CLI (recommended — checks trust before installing)
-npx mcpx install railway
+npx @mcpx/cli install railway
 
 # or directly
 npx -y @mcpx/railway
