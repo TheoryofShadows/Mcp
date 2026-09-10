@@ -225,7 +225,10 @@ export default function ToolDetail() {
 
   const isPaid = tool.price_type === "paid";
   const canInstall = !isPaid || unlocked;
-  const showSolanaPay = isPaid && solanaCfg?.enabled && tool.publisher_has_solana_wallet;
+  // canInstall means "already owned" for a paid tool — never offer a second
+  // payment rail to someone who has already paid.
+  const showSolanaPay =
+    isPaid && !canInstall && solanaCfg?.enabled && tool.publisher_has_solana_wallet;
   // API marks paid tools purchasable only when publisher Stripe Connect is ready.
   const isPurchasable = tool.purchasable !== false;
   const purchaseBlocked = isPaid && !isPurchasable && !unlocked;
@@ -604,7 +607,9 @@ export default function ToolDetail() {
                 <>
                   {!purchaseBlocked && (
                     <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "8px", fontFamily: "var(--font-mono)" }}>
-                      per month · cancel anytime
+                      {tool.billing_period === "monthly"
+                        ? "per month · cancel anytime"
+                        : "one-time purchase · yours forever"}
                     </p>
                   )}
                   {purchaseBlocked && (
@@ -626,7 +631,34 @@ export default function ToolDetail() {
               )}
             </div>
 
-            {purchaseBlocked ? (
+            {/* Already owned: never show a buy button to someone who has paid.
+                The server returns { already_purchased: true, checkout_url: null }
+                for these, so the old button could only ever say "Redirecting…"
+                and then stop — there is nothing to redirect to. */}
+            {isPaid && canInstall ? (
+              <button
+                id="tool-checkout"
+                type="button"
+                onClick={() => {
+                  setInstallMsg(true);
+                  setActiveTab("Install");
+                }}
+                style={{
+                  width: "100%",
+                  padding: "13px",
+                  background: "rgba(16,185,129,0.12)",
+                  border: "1px solid rgba(16,185,129,0.35)",
+                  borderRadius: "10px",
+                  color: "#10b981",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  marginBottom: "10px",
+                }}
+              >
+                ✓ Purchased — go to install
+              </button>
+            ) : purchaseBlocked ? (
               <button
                 id="tool-checkout"
                 type="button"
@@ -677,6 +709,14 @@ export default function ToolDetail() {
                       setUnlocked(true);
                       setInstallMsg(true);
                       setActiveTab("Install");
+                    } else if (result !== null) {
+                      // toolCheckout returns null only after it has already set
+                      // window.location to Stripe. Anything else means we got
+                      // neither a redirect nor ownership — say so instead of
+                      // sitting on "Opening Stripe…" forever.
+                      setCheckoutErr(
+                        "Stripe didn't return a checkout link. Nothing was charged — please try again."
+                      );
                     }
                   } catch (err) {
                     setCheckoutErr(
@@ -696,7 +736,11 @@ export default function ToolDetail() {
               onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 0 28px rgba(34, 211, 238,0.4)")}
               onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "0 0 20px rgba(34, 211, 238,0.25)")}
             >
-              {checkoutLoading ? "Redirecting…" : tool.price_type === "free" ? "Install Tool" : `Subscribe — ${tool.price_label || tool.price}`}
+              {checkoutLoading
+                ? "Opening Stripe…"
+                : tool.price_type === "free"
+                  ? "Install Tool"
+                  : `${tool.billing_period === "monthly" ? "Subscribe" : "Buy"} — ${tool.price_label || tool.price}`}
             </button>
             )}
 
@@ -713,7 +757,7 @@ export default function ToolDetail() {
             )}
             {tool.price_type === "paid" && (
               <div style={{ textAlign: "center", marginBottom: "4px" }}>
-                {!purchaseBlocked && (
+                {!purchaseBlocked && !canInstall && (
                 <p style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "var(--font-mono)", marginBottom: "4px" }}>
                   Secure payment via Stripe · Publishers keep 85%
                 </p>
