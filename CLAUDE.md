@@ -18,6 +18,25 @@ hard-won facts here so we never have to rediscover them.
   to land on `main`, then Railway rebuilds automatically.
 - `railway.toml` holds build/start/healthcheck config but does NOT pin a
   branch — the branch is set in the Railway dashboard (default `main`).
+- **Railway builds a preview environment per PR.** Each PR's `mcpx - Mcp`
+  check links a distinct `environmentId` — a real, clickable deploy of that
+  branch. Use it to verify frontend changes *before* merging.
+- **The healthcheck only protects half the risk.** `/api/health` checks the
+  server and DB. A build/boot failure fails the healthcheck and the previous
+  deploy keeps serving. But a **broken frontend bundle still returns `ok`** —
+  the server boots fine and users get a white page. Frontend changes must be
+  eyeballed on the PR preview; backend/build changes are self-protecting.
+
+## Node version
+- **Node 22** (raised from 20, which hit EOL 2026-04-30). Pinned in four
+  places that must stay in sync: `.github/workflows/ci.yml`,
+  `.github/workflows/deploy-pages.yml`, `nixpacks.toml` (Railway), and
+  `package.json` engines (`>=22.13` — the exact floor eslint 10 needs).
+  `.nvmrc` holds `22` for local dev.
+- npm treats `engines` as **advisory, not fatal** — a dep can require a Node
+  version above the pinned one and CI stays green while emitting only
+  EBADENGINE warnings. Don't trust a green CI to mean the engine is right;
+  read the install log.
 
 ## Database / persistence
 - SQLite. Without a mounted volume, the DB lives in the ephemeral container
