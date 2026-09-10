@@ -1,13 +1,13 @@
 {
   "name": "@mcpx/mcp",
   "version": "0.1.0",
-  "description": "MCP server for the MCPX marketplace — let agents discover, inspect trust, scan, and install other MCP servers in-conversation.",
+  "description": "MCP server for the MCPX marketplace \u2014 let agents discover, inspect trust, scan, and install other MCP servers in-conversation.",
   "type": "module",
   "bin": {
     "mcpx-mcp": "./index.js"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22.13"
   },
   "scripts": {
     "prepack": "node ../scripts/sync-shared.js"
@@ -22,6 +22,21 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0"
   },
-  "keywords": ["mcp", "model-context-protocol", "mcpx", "marketplace", "agent"],
-  "license": "MIT"
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "mcpx",
+    "marketplace",
+    "agent"
+  ],
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheoryofShadows/Mcp.git",
+    "directory": "mcpx-mcp"
+  },
+  "homepage": "https://www.mcpx.digital"
 }

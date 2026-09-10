@@ -24,10 +24,27 @@ node -e "import('./railway-mcp/lib.js').then(m=>console.log(m.enabledTools({}).m
 ## Publish
 
 ```bash
-cd cli         && npm publish                      # mcpx (unscoped)
-cd mcpx-mcp    && npm publish --access public       # @mcpx/* scoped → must be public
-cd railway-mcp && npm publish --access public
+npm login                 # once per machine; opens a browser
+npm run publish:packages  # publishes cli, then mcpx-mcp (see note on railway below)
 ```
+
+Or one at a time:
+
+```bash
+( cd cli         && npm publish )
+( cd mcpx-mcp    && npm publish )
+```
+
+All three are scoped `@mcpx/*`. **Scoped packages default to `restricted`**, which
+needs a paid npm plan — every package here sets `publishConfig.access: "public"`
+so a plain `npm publish` works. Don't remove it.
+
+Publishing `@mcpx/cli` first also claims the `@mcpx` scope, which is currently
+unregistered. Nothing under it exists on npm yet.
+
+`@mcpx/railway` is deliberately NOT in the script — see the validation section
+below; publish it by hand once its GraphQL calls are confirmed against a live
+token.
 
 `prepack` regenerates `cli/installConfig.js`, `mcpx-mcp/cliShared.js`, and
 `mcpx-mcp/installConfig.js` automatically. Bump `version` in each `package.json`
