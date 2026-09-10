@@ -8,6 +8,7 @@ import { supabase } from "../lib/supabase";
 import { fetchServers, fetchStats, fetchCategories } from "../api/client";
 import RevenueSection from "../components/sections/RevenueSection";
 import WorksWith from "../components/WorksWith";
+import SecurityNote from "../components/SecurityNote";
 import { withSignal, catalogLine } from "../lib/statPresentation";
 
 // Map an API server object onto the fields ToolCard/seed expect.
@@ -671,6 +672,10 @@ export default function Home() {
       </section>
 
       {/* ─── Pricing / Revenue model ──────────────────────────────────────────── */}
+      {/* MCP's attack story is public; say how we handle it before someone
+          else frames it for us. */}
+      <SecurityNote />
+
       <RevenueSection onAuthClick={() => navigate("/login")} />
 
       {/* ─── CTA Banner ───────────────────────────────────────────────────────── */}
