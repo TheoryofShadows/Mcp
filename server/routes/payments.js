@@ -351,7 +351,31 @@ router.get("/stripe/tool-checkout/preflight", requireAuth, async (req, res) => {
     }
   }
 
+  // The PLATFORM account itself must be able to make destination charges. If
+  // Connect was never enabled on it, every tool checkout fails no matter how
+  // healthy the publisher's account is — and nothing else here would show it.
+  if (stripe) {
+    try {
+      const self = await stripe.accounts.retrieve();
+      checks.platform = {
+        country: self?.country || null,
+        charges_enabled: !!self?.charges_enabled,
+        disabled_reason: self?.requirements?.disabled_reason || null,
+      };
+    } catch (err) {
+      checks.platform = { error: err.message };
+    }
+  }
+
   const blockers = [];
+  if (checks.platform?.error) {
+    blockers.push(`Platform account lookup failed: ${checks.platform.error}`);
+  } else if (checks.platform && checks.platform.charges_enabled === false) {
+    blockers.push(
+      "The MCPX platform Stripe account cannot create charges" +
+        (checks.platform.disabled_reason ? ` (${checks.platform.disabled_reason})` : "")
+    );
+  }
   if (!checks.stripe_configured) blockers.push("Stripe is not configured on the server");
   if (!checks.tool_is_paid) blockers.push("This tool is free — no checkout needed");
   if (checks.already_purchased) blockers.push("You already own this tool");
