@@ -182,6 +182,17 @@ export async function subscribeTier(tier) {
 // ─── Stripe Payments ───
 
 /** Redirect user to Stripe Checkout for a paid tool (destination charge). */
+/**
+ * Why a checkout would fail, without creating one or charging anything.
+ * Surfaced to the buyer when a purchase errors, so a dead button becomes a
+ * readable reason instead of something only a server log could explain.
+ */
+export async function toolCheckoutPreflight(serverSlug) {
+  return request(
+    `/payments/stripe/tool-checkout/preflight?server_slug=${encodeURIComponent(serverSlug)}`
+  );
+}
+
 export async function toolCheckout(serverSlug) {
   const data = await request("/payments/stripe/tool-checkout", {
     method: "POST",

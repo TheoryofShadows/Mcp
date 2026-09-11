@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useSearchParams, Link } from "react-router-dom";
+import { useParams, useSearchParams, useNavigate, Link } from "react-router-dom";
 import {
   ArrowLeft, Star, Download, ExternalLink,
   Copy, Check, TrendingUp, AlertCircle
@@ -12,7 +12,8 @@ import InstallCommand from "../components/InstallCommand";
 import InstallButtons from "../components/InstallButtons";
 import CapabilitiesWarning from "../components/CapabilitiesWarning";
 import { SEED_TOOLS, SEED_REVIEWS } from "../data/seed";
-import { fetchServer, toolCheckout, recordInstall, reportServer, fetchSolanaConfig, solanaToolRequest, solanaToolConfirm } from "../api/client";
+import { useAuth } from "../hooks/useAuth";
+import { toolCheckoutPreflight, fetchServer, toolCheckout, recordInstall, reportServer, fetchSolanaConfig, solanaToolRequest, solanaToolConfirm } from "../api/client";
 import { usePhantom } from "../hooks/usePhantom";
 import { payWithPhantom } from "../lib/solanaPay";
 
@@ -150,7 +151,11 @@ export default function ToolDetail() {
   const [activeTab, setActiveTab] = useState("Overview");
   const [installMsg, setInstallMsg] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [checkoutErr, setCheckoutErr] = useState("");
+  const [diagnosis, setDiagnosis] = useState(null);
+  const [diagnosing, setDiagnosing] = useState(false);
   const [solanaCfg, setSolanaCfg] = useState(null);
   const [solanaLoading, setSolanaLoading] = useState(false);
   const [solanaMsg, setSolanaMsg] = useState("");
@@ -698,6 +703,13 @@ export default function ToolDetail() {
                 transition: "all 0.15s",
               }}
               onClick={async () => {
+                // A signed-out buyer cannot check out: the API requires a JWT
+                // and would return 401. Route them to sign in rather than
+                // letting them press a button that can only fail.
+                if (!user) {
+                  navigate(`/login?next=${encodeURIComponent(`/tool/${tool.slug}`)}`);
+                  return;
+                }
                 if (tool.price_type === "paid") {
                   setCheckoutLoading(true);
                   setCheckoutErr("");
@@ -719,12 +731,17 @@ export default function ToolDetail() {
                       );
                     }
                   } catch (err) {
+                    // A 401 here means the session expired or was never
+                    // established. Saying "checkout failed" for that sends the
+                    // buyer hunting a payment bug when they just need to log in.
                     setCheckoutErr(
-                      /onboard/i.test(err.message)
-                        ? "This publisher hasn't enabled payouts yet, so it can't be purchased right now."
-                        : /your own tool/i.test(err.message)
-                          ? err.message
-                          : err.message || "Checkout failed. Please try again."
+                      err.status === 401
+                        ? "You're signed out — sign in and try again."
+                        : /onboard/i.test(err.message)
+                          ? "This publisher hasn't enabled payouts yet, so it can't be purchased right now."
+                          : /your own tool/i.test(err.message)
+                            ? err.message
+                            : err.message || "Checkout failed. Please try again."
                     );
                   } finally {
                     setCheckoutLoading(false);
@@ -742,14 +759,74 @@ export default function ToolDetail() {
                 ? "Opening Stripe…"
                 : tool.price_type === "free"
                   ? "Install Tool"
-                  : `${tool.billing_period === "monthly" ? "Subscribe" : "Buy"} — ${tool.price_label || tool.price}`}
+                  : !user
+                    ? `Sign in to buy — ${tool.price_label || tool.price}`
+                    : `${tool.billing_period === "monthly" ? "Subscribe" : "Buy"} — ${tool.price_label || tool.price}`}
             </button>
             )}
 
             {checkoutErr && (
-              <p role="alert" style={{ fontSize: "12px", color: "#f87171", textAlign: "center", lineHeight: 1.5, marginBottom: "8px" }}>
-                {checkoutErr}
-              </p>
+              <div style={{ marginBottom: "8px" }}>
+                <p role="alert" style={{ fontSize: "12px", color: "#f87171", textAlign: "center", lineHeight: 1.5, margin: 0 }}>
+                  {checkoutErr}
+                </p>
+                {/* A failed checkout is otherwise only explainable from a server
+                    log. Let the buyer ask the server why, in one tap. */}
+                <div style={{ textAlign: "center", marginTop: "6px" }}>
+                  <button
+                    type="button"
+                    disabled={diagnosing}
+                    onClick={async () => {
+                      setDiagnosing(true);
+                      try {
+                        setDiagnosis(await toolCheckoutPreflight(tool.slug));
+                      } catch (err) {
+                        setDiagnosis({ blockers: [err.message || "Diagnosis failed"] });
+                      } finally {
+                        setDiagnosing(false);
+                      }
+                    }}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "#67e8f9",
+                      fontSize: "12px",
+                      textDecoration: "underline",
+                      cursor: diagnosing ? "wait" : "pointer",
+                      padding: 0,
+                    }}
+                  >
+                    {diagnosing ? "Checking…" : "Why can't I buy this?"}
+                  </button>
+                </div>
+                {diagnosis && (
+                  <div
+                    style={{
+                      marginTop: "8px",
+                      padding: "10px 12px",
+                      background: "#12121c",
+                      border: "1px solid #2e2e44",
+                      borderRadius: "8px",
+                      fontSize: "12px",
+                      lineHeight: 1.55,
+                      color: "var(--text-secondary)",
+                    }}
+                  >
+                    {(diagnosis.blockers || []).length > 0 ? (
+                      <ul style={{ margin: 0, paddingLeft: "16px" }}>
+                        {diagnosis.blockers.map((b, i) => (
+                          <li key={i}>{b}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <span>
+                        No blocker found — the marketplace believes this purchase
+                        should work. The error above came from Stripe itself.
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
             )}
 
             {installMsg && tool.price_type === "free" && (
