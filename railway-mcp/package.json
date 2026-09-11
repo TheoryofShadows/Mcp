@@ -12,7 +12,8 @@
   "files": [
     "index.js",
     "lib.js",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0"

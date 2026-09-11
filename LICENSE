@@ -24,12 +24,28 @@ Copyright (c) 2026 TheoryofShadows. All rights reserved.
    marks. You may not use the MCPX name or branding for any product,
    service, or promotion without the Owner's prior written permission.
 
-4. COMMERCIAL LICENSING
+4. PUBLISHED CLIENT PACKAGES — MIT (EXCEPTION TO SECTION 2)
+   The following npm packages are client-side tools intended to be run by
+   third parties, and are released under the MIT License. Each ships its
+   own LICENSE file, which governs that package:
+
+       @mcpx/cli        (cli/)          — marketplace installer CLI
+       @mcpx/mcp        (mcpx-mcp/)     — MCP server for agent discovery
+       @mcpx/railway    (railway-mcp/)  — reference MCP server for Railway
+
+   This exception is deliberately narrow. It covers ONLY the contents of
+   those three directories. It does NOT extend to the MCPX server, the
+   marketplace application, the Trust Score engine, the payments and
+   Stripe Connect integration, the database schema, the seed catalogue, or
+   anything else in this repository, all of which remain governed by
+   Sections 1-3 and 5 below.
+
+5. COMMERCIAL LICENSING
    Commercial use, redistribution, or deployment of the Software requires a
    separate written license agreement with the Owner. Contact the Owner to
    obtain such a license.
 
-5. NO WARRANTY
+6. NO WARRANTY
    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.

@@ -17,7 +17,8 @@
     "lib.js",
     "cliShared.js",
     "installConfig.js",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0"
