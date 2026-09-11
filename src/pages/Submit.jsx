@@ -405,7 +405,7 @@ export default function Submit() {
                 <span style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)", fontSize: "14px" }}>$</span>
                 <input
                   type="number"
-                  min="0.01"
+                  min="3"
                   max="999999.99"
                   step="0.01"
                   required={form.price_type === "paid"}
@@ -451,6 +451,14 @@ export default function Submit() {
                 <p style={{ margin: "8px 0 0", fontSize: "11px", color: "var(--text-muted)" }}>
                   You keep 85% either way. Monthly takes the same 15% from every
                   renewal, paid out automatically.
+                </p>
+                <p style={{ margin: "6px 0 0", fontSize: "11px", color: "var(--text-muted)", lineHeight: 1.5 }}>
+                  <strong style={{ color: "#a5f3fc" }}>Minimum $3.</strong> Card
+                  processing costs about 2.9% + 30¢ per sale, so under roughly
+                  $2.48 the fees exceed the platform&apos;s 15% and every purchase
+                  would lose money. If you want it cheaper than $3, list it free —
+                  free tools install instantly and still count toward your
+                  adoption and Trust Score.
                 </p>
               </div>
 

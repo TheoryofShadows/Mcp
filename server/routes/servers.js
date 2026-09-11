@@ -18,6 +18,18 @@ const router = Router();
 // bad price has already been stored and shown to buyers as if it were real.
 export const MAX_PRICE_CENTS = 99999999;
 
+// Below this, the platform LOSES money on every sale.
+//
+// A destination charge bills Stripe's processing fee (~2.9% + 30c) to the
+// platform, while our revenue is the 15% application fee. Break-even is where
+// 0.15g = 0.029g + 30, i.e. g = 30 / 0.121 = 247.9c. At $1 a sale costs us 18c;
+// at $2 it still costs 6c. $3 is the first clean price that clears (+6c) with
+// room for the fee varying by card type and region.
+//
+// Publishers who want to charge less should list the tool as free — adoption is
+// worth more to them than a price the marketplace cannot afford to process.
+export const MIN_PRICE_CENTS = 300;
+
 /** Returns an error string for an invalid paid price, or null when it is fine. */
 /** Exact cents → a dollar string, never dropping cents ($999 -> "999", $9.99 -> "9.99"). */
 export function formatDollars(cents) {
@@ -33,6 +45,9 @@ export function validatePriceAmount(value) {
   if (!Number.isFinite(n)) return "Price must be a number";
   if (!Number.isInteger(n)) return "Price must be a whole number of cents";
   if (n <= 0) return "Price must be greater than zero";
+  if (n < MIN_PRICE_CENTS) {
+    return `Paid tools start at $${(MIN_PRICE_CENTS / 100).toFixed(2)} — below that, card processing costs more than the platform fee. List it free instead.`;
+  }
   if (n > MAX_PRICE_CENTS) return "Price must be under $999,999.99";
   return null;
 }
