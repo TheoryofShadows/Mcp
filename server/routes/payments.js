@@ -309,8 +309,9 @@ router.get("/stripe/tool-checkout/preflight", requireAuth, async (req, res) => {
 
   if (!server) return res.status(404).json({ error: "Server not found" });
 
-  // The JWT carries only { id }, so a missing users.email row is invisible
-  // until Stripe rejects the session. Surface it.
+  // Informational only. users.email is TEXT UNIQUE NOT NULL and nothing ever
+  // clears it, so this is true for any real row — it is NOT a blocker, and a
+  // checkout succeeds without an address anyway (Stripe collects one in-flow).
   const buyerRow = db.prepare("SELECT email FROM users WHERE id = ?").get(req.user.id);
 
   const checks = {
@@ -350,11 +351,32 @@ router.get("/stripe/tool-checkout/preflight", requireAuth, async (req, res) => {
     }
   }
 
-  const blockers = [];
-  if (!checks.stripe_configured) blockers.push("Stripe is not configured on the server");
-  if (!checks.buyer_has_email) {
-    blockers.push("Your account has no email address on file — Stripe will collect one at checkout");
+  // The PLATFORM account itself must be able to make destination charges. If
+  // Connect was never enabled on it, every tool checkout fails no matter how
+  // healthy the publisher's account is — and nothing else here would show it.
+  if (stripe) {
+    try {
+      const self = await stripe.accounts.retrieve();
+      checks.platform = {
+        country: self?.country || null,
+        charges_enabled: !!self?.charges_enabled,
+        disabled_reason: self?.requirements?.disabled_reason || null,
+      };
+    } catch (err) {
+      checks.platform = { error: err.message };
+    }
   }
+
+  const blockers = [];
+  if (checks.platform?.error) {
+    blockers.push(`Platform account lookup failed: ${checks.platform.error}`);
+  } else if (checks.platform && checks.platform.charges_enabled === false) {
+    blockers.push(
+      "The MCPX platform Stripe account cannot create charges" +
+        (checks.platform.disabled_reason ? ` (${checks.platform.disabled_reason})` : "")
+    );
+  }
+  if (!checks.stripe_configured) blockers.push("Stripe is not configured on the server");
   if (!checks.tool_is_paid) blockers.push("This tool is free — no checkout needed");
   if (checks.already_purchased) blockers.push("You already own this tool");
   if (checks.is_your_own_tool) blockers.push("You are the publisher — Stripe cannot pay your own account");
@@ -507,11 +529,13 @@ router.post("/stripe/tool-checkout", requireAuth, async (req, res) => {
     };
 
     // The JWT payload is only { id } — signToken({ id }) in routes/auth.js — so
-    // req.user.email is ALWAYS undefined and Stripe rejects the session with
-    // "Invalid email address". The platform-subscription route above already
-    // reads the address from the database; this one never did. Omit the field
-    // entirely when we have no address rather than sending an empty one:
-    // Stripe then simply collects it at checkout.
+    // req.user.email is ALWAYS undefined here. That is worth fixing for
+    // correctness (the buyer's address belongs on the session, and the
+    // platform-subscription route above already reads it from the database),
+    // but it was NOT the cause of the failed purchases: the Stripe SDK drops
+    // undefined keys before encoding, so the wire bytes were identical either
+    // way. Verified against the installed SDK's queryStringifyRequestData.
+    // Sending an EMPTY string would be rejected, hence the conditional spread.
     const buyer = db.prepare("SELECT email FROM users WHERE id = ?").get(req.user.id);
     const buyerEmail = (buyer?.email || "").trim();
 
