@@ -16,7 +16,8 @@
     "index.js",
     "lib.js",
     "installConfig.js",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "keywords": [
     "mcp",
@@ -24,7 +25,7 @@
     "model-context-protocol",
     "cli"
   ],
-  "license": "SEE LICENSE IN ../LICENSE",
+  "license": "MIT",
   "publishConfig": {
     "access": "public"
   },
