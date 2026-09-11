@@ -4,7 +4,7 @@
  * Single source of truth for turning a server record into the per-client install
  * configuration. Imported by BOTH the web UI (src/components/InstallButtons.jsx)
  * and the CLI (cli/), so the command a user copies from the site and the command
- * `npx @mcpx/cli install` writes can never drift apart.
+ * `npx @mcpx-digital/cli install` writes can never drift apart.
  *
  * Pure & dependency-free (browser- and Node-safe): no I/O, no framework imports.
  *

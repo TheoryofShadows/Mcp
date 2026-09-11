@@ -1,4 +1,4 @@
-# @mcpx/railway
+# @mcpx-digital/railway
 
 A [Model Context Protocol](https://modelcontextprotocol.io) server for [Railway](https://railway.com).
 Give your agent safe, scoped access to your Railway projects: list services, inspect
@@ -11,10 +11,10 @@ enable them. Secret variable **values are never returned** — only names.
 
 ```bash
 # via the MCPX CLI (recommended — checks trust before installing)
-npx @mcpx/cli install railway
+npx @mcpx-digital/cli install railway
 
 # or directly
-npx -y @mcpx/railway
+npx -y @mcpx-digital/railway
 ```
 
 Set a scoped [Railway API token](https://docs.railway.com/reference/public-api):
@@ -31,7 +31,7 @@ export MCPX_RAILWAY_ALLOW_WRITE=1     # optional — enables deploy/restart/set_
   "mcpServers": {
     "railway": {
       "command": "npx",
-      "args": ["-y", "@mcpx/railway"],
+      "args": ["-y", "@mcpx-digital/railway"],
       "env": { "RAILWAY_API_TOKEN": "..." }
     }
   }
@@ -73,7 +73,7 @@ Suggested listing metadata (`install_command` makes the install verifiable):
   "name": "Railway",
   "category_id": "infra",
   "repo_url": "https://github.com/<you>/mcpx-railway",
-  "install_command": "npx -y @mcpx/railway",
+  "install_command": "npx -y @mcpx-digital/railway",
   "tags": ["infra", "deploy", "credentials", "railway"]
 }
 ```

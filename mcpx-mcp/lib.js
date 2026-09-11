@@ -1,5 +1,5 @@
 /**
- * @mcpx/mcp — pure tool registry for the MCPX meta-server.
+ * @mcpx-digital/mcp — pure tool registry for the MCPX meta-server.
  *
  * The meta-server lets an agent discover, inspect, and install *other* MCP
  * servers from the MCPX marketplace in-conversation. Tool schemas live here (no

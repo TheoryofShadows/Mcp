@@ -33,7 +33,7 @@ displays and validates:
 | **Description** | ✅ | 10–500 characters — the one-liner shown on cards. |
 | **Long description** | — | Up to 5,000 characters — full detail / README-style body. |
 | **Repository URL** | — | Strongly recommended; the biggest Trust Score factor — and verifying ownership (below) unlocks its full value. |
-| **Install command** | — | The exact command to run the server, e.g. `npx -y @you/my-mcp`. Used by the web install buttons and `npx @mcpx/cli install`. Without it, the install path falls back to a *guessed* package name. No shell metacharacters allowed. |
+| **Install command** | — | The exact command to run the server, e.g. `npx -y @you/my-mcp`. Used by the web install buttons and `npx @mcpx-digital/cli install`. Without it, the install path falls back to a *guessed* package name. No shell metacharacters allowed. |
 | **Tags** | — | Up to 10. Tags like `filesystem`, `shell`, `database` flag sensitive capabilities. |
 | **Price** | — | `free` (default) or `paid` with a monthly amount. |
 

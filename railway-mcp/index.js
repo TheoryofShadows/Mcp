@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * @mcpx/railway — a Model Context Protocol server for Railway.
+ * @mcpx-digital/railway — a Model Context Protocol server for Railway.
  *
  * Read-only by default; infrastructure-mutating tools are exposed only when
  * MCPX_RAILWAY_ALLOW_WRITE=1. Authenticates with a scoped RAILWAY_API_TOKEN and

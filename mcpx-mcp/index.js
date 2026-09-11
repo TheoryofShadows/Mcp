@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * @mcpx/mcp — a Model Context Protocol server for the MCPX marketplace itself.
+ * @mcpx-digital/mcp — a Model Context Protocol server for the MCPX marketplace itself.
  *
  * Gives an agent the ability to discover, inspect the trust of, scan, and install
  * other MCP servers without leaving the conversation. The install tool is
- * trust-enforcing: it reuses the exact same gate as the `npx @mcpx/cli install` CLI
+ * trust-enforcing: it reuses the exact same gate as the `npx @mcpx-digital/cli install` CLI
  * (../cli/lib.js), so a low-trust or unverified server is refused unless forced.
  *
  * Env:

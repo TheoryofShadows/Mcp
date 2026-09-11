@@ -3,7 +3,7 @@ import {
   TOOL_DEFS, WRITE_TOOLS, isWriteEnabled, enabledTools, assertToolAllowed, redactVariables,
 } from "../railway-mcp/lib.js";
 
-describe("@mcpx/railway capability gating", () => {
+describe("@mcpx-digital/railway capability gating", () => {
   it("is read-only by default", () => {
     const names = enabledTools({}).map((t) => t.name);
     expect(names).toContain("list_projects");

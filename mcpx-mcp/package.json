@@ -1,5 +1,5 @@
 {
-  "name": "@mcpx/mcp",
+  "name": "@mcpx-digital/mcp",
   "version": "0.1.0",
   "description": "MCP server for the MCPX marketplace \u2014 let agents discover, inspect trust, scan, and install other MCP servers in-conversation.",
   "type": "module",

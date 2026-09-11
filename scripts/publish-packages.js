@@ -6,7 +6,7 @@
  * version number can never be reused. So this checks everything it can BEFORE
  * pushing anything, and refuses rather than half-publishing.
  *
- * @mcpx/railway is deliberately excluded: its Railway GraphQL calls have not
+ * @mcpx-digital/railway is deliberately excluded: its Railway GraphQL calls have not
  * been validated against a live token (see RELEASE.md). Publish it by hand.
  *
  * Usage:
@@ -86,4 +86,4 @@ for (const { dir, name, version } of plan) {
 
 console.log("\nDone. Verify with:");
 for (const { name } of plan) console.log(`  npm view ${name} version`);
-console.log("\n@mcpx/railway was NOT published — validate its Railway API calls first (RELEASE.md).");
+console.log("\n@mcpx-digital/railway was NOT published — validate its Railway API calls first (RELEASE.md).");

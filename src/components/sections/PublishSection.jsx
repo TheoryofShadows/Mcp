@@ -7,7 +7,7 @@ const PUBLISH_STEPS = [
   {
     title: "Connect Your Repo",
     code: `# Install MCPX CLI
-npm install -g @mcpx/cli
+npm install -g @mcpx-digital/cli
 
 # Initialize in your project
 mcpx init

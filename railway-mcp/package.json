@@ -1,5 +1,5 @@
 {
-  "name": "@mcpx/railway",
+  "name": "@mcpx-digital/railway",
   "version": "0.1.0",
   "description": "Model Context Protocol server for Railway \u2014 manage projects, services, deployments, logs, and variables from any MCP client.",
   "type": "module",
