@@ -1,4 +1,4 @@
-# @mcpx/mcp
+# @mcpx-digital/mcp
 
 A [Model Context Protocol](https://modelcontextprotocol.io) server for the **MCPX
 marketplace itself**. Give an agent the ability to discover, vet, and install
@@ -16,7 +16,7 @@ marketplace itself**. Give an agent the ability to discover, vet, and install
 | `install_server` | Install a server into a local client config — **refuses low-trust / unverified servers unless `force=true`** |
 
 `install_server` reuses the exact trust gate and non-clobbering config merge as the
-`npx @mcpx/cli install` CLI, so an agent can't quietly install a `caution`-tier,
+`npx @mcpx-digital/cli install` CLI, so an agent can't quietly install a `caution`-tier,
 high-risk, or unverified-artifact server.
 
 ## Use
@@ -24,7 +24,7 @@ high-risk, or unverified-artifact server.
 ```json
 {
   "mcpServers": {
-    "mcpx": { "command": "npx", "args": ["-y", "@mcpx/mcp"] }
+    "mcpx": { "command": "npx", "args": ["-y", "@mcpx-digital/mcp"] }
   }
 }
 ```

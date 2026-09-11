@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { TOOL_DEFS, TOOL_NAMES } from "../mcpx-mcp/lib.js";
 import { installBlockReason } from "../cli/lib.js";
 
-describe("@mcpx/mcp meta-server tool registry", () => {
+describe("@mcpx-digital/mcp meta-server tool registry", () => {
   it("exposes the discover/inspect/scan/install surface", () => {
     for (const name of ["search_servers", "discover_servers", "get_server", "inspect_trust", "scan_repo", "install_server"]) {
       expect(TOOL_NAMES).toContain(name);

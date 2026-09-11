@@ -1,5 +1,5 @@
 /**
- * @mcpx/railway — pure tool registry, capability gating, and redaction.
+ * @mcpx-digital/railway — pure tool registry, capability gating, and redaction.
  *
  * Kept free of the MCP SDK and of I/O so the security-critical logic (which tools
  * mutate infrastructure, when writes are allowed, and that secret *values* are

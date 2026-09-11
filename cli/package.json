@@ -1,5 +1,5 @@
 {
-  "name": "@mcpx/cli",
+  "name": "@mcpx-digital/cli",
   "version": "0.1.0",
   "description": "Command-line installer for the MCPX marketplace \u2014 discover, inspect trust, and install MCP servers.",
   "type": "module",

@@ -29,9 +29,9 @@ Copyright (c) 2026 TheoryofShadows. All rights reserved.
    third parties, and are released under the MIT License. Each ships its
    own LICENSE file, which governs that package:
 
-       @mcpx/cli        (cli/)          — marketplace installer CLI
-       @mcpx/mcp        (mcpx-mcp/)     — MCP server for agent discovery
-       @mcpx/railway    (railway-mcp/)  — reference MCP server for Railway
+       @mcpx-digital/cli        (cli/)          — marketplace installer CLI
+       @mcpx-digital/mcp        (mcpx-mcp/)     — MCP server for agent discovery
+       @mcpx-digital/railway    (railway-mcp/)  — reference MCP server for Railway
 
    This exception is deliberately narrow. It covers ONLY the contents of
    those three directories. It does NOT extend to the MCPX server, the
