@@ -497,10 +497,19 @@ router.patch("/:slug", requireAuth, (req, res) => {
     return res.status(403).json({ error: "You can only update your own servers" });
   }
 
-  const allowed = ["description", "long_description", "repo_url", "tags", "license", "install_command", "status"];
+  // price_amount is editable so a publisher can correct a mispriced listing
+  // without deleting and recreating it (which would lose installs, reviews and
+  // Trust Score history). It runs through the same validatePriceAmount guard as
+  // creation, so the $3 minimum and the ceiling apply to edits too.
+  const allowed = ["description", "long_description", "repo_url", "tags", "license", "install_command", "status", "price_amount"];
   const updates = [];
   const values = [];
   let statusChanged = null;
+
+  if (req.body.price_amount !== undefined) {
+    const priceErr = validatePriceAmount(req.body.price_amount);
+    if (priceErr) return res.status(400).json({ error: priceErr });
+  }
 
   for (const field of allowed) {
     if (req.body[field] !== undefined) {
@@ -518,6 +527,19 @@ router.patch("/:slug", requireAuth, (req, res) => {
         if (installErr) return res.status(400).json({ error: installErr });
         updates.push("install_command = ?");
         values.push(req.body.install_command ? String(req.body.install_command).trim() : null);
+      } else if (field === "price_amount") {
+        // price_label is what buyers actually read. Updating the amount without
+        // it would show one price and charge another, so they move together.
+        const cents = Number(req.body.price_amount);
+        const row = db.prepare("SELECT price_type, billing_period FROM servers WHERE id = ?").get(server.id);
+        updates.push("price_amount = ?");
+        values.push(cents);
+        updates.push("price_label = ?");
+        values.push(
+          row?.price_type === "paid"
+            ? `$${formatDollars(cents)}${row?.billing_period === "monthly" ? "/mo" : ""}`
+            : "free"
+        );
       } else if (field === "status") {
         // Authors may unpublish (inactive) or republish (active). Pending stays admin-only.
         const next = String(req.body.status);
