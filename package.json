@@ -24,6 +24,11 @@
   "engines": {
     "node": ">=22.13"
   },
+  "workspaces": [
+    "cli",
+    "mcpx-mcp",
+    "railway-mcp"
+  ],
   "scripts": {
     "dev": "dotenv -e .env -- concurrently \"vite\" \"node server/index.js\"",
     "dev:client": "dotenv -e .env -- vite",
