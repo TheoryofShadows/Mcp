@@ -117,6 +117,29 @@ function makePreview(text, match, redact) {
  * @returns {{score:number, tier:string, finding_count:number,
  *   factors:Array, findings:Array, confidence:string}}
  */
+/**
+ * Is this file a test, fixture, or example?
+ *
+ * Test files are full of DELIBERATELY fake credentials — that is what a test
+ * fixture is. Counting them as leaked secrets produced a false accusation
+ * against github/github-mcp-server, whose pat_scope_test.go contains dummy
+ * "ghp_..." strings purely to exercise token parsing. Publishing that would be
+ * worse than publishing nothing.
+ *
+ * Only the `secrets` check is suppressed here. Tool-poisoning directives and
+ * dangerous execution surface still count in test files: a poisoned prompt or
+ * a shell spawn is just as real for being in a spec, and hiding code in a file
+ * named *.test.js is otherwise a trivial way to evade the scan.
+ */
+export function isTestPath(filePath) {
+  const p = String(filePath || "").split("\\").join("/").toLowerCase();
+  return (
+    /(^|\/)(tests?|__tests__|__mocks__|spec|specs|fixtures?|examples?|testdata|mocks?)(\/|$)/.test(p) ||
+    /[._-](test|spec)\.[a-z]+$/.test(p) ||
+    /_test\.[a-z]+$/.test(p)
+  );
+}
+
 export function scoreFiles(files = []) {
   const list = Array.isArray(files) ? files : [];
   const findings = [];
@@ -126,6 +149,8 @@ export function scoreFiles(files = []) {
     for (const file of list) {
       const text = typeof file?.text === "string" ? file.text : "";
       const filePath = file?.path || "(unknown)";
+      // A fake credential in a test fixture is not a leak. See isTestPath().
+      if (factor.key === "secrets" && isTestPath(filePath)) continue;
       for (const pat of factor.patterns) {
         // String.matchAll clones the regex, so iteration is stateless and the
         // result is deterministic across repeated calls.
