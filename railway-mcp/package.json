@@ -34,5 +34,9 @@
     "url": "git+https://github.com/TheoryofShadows/Mcp.git",
     "directory": "railway-mcp"
   },
-  "homepage": "https://www.mcpx.digital"
+  "homepage": "https://www.mcpx.digital",
+  "author": "TheoryofShadows",
+  "bugs": {
+    "url": "https://github.com/TheoryofShadows/Mcp/issues"
+  }
 }
