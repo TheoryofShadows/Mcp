@@ -24,6 +24,15 @@ const LINKS = {
     { label: "Dashboard", to: "/dashboard" },
     { label: "Payments (Stripe + Solana devnet)", href: "https://github.com/TheoryofShadows/Mcp/blob/main/docs/PUBLISHING.md" },
   ],
+  // Stripe requires a live Connect platform to publish these before taking
+  // money, and a buyer disputing a charge needs somewhere to read the terms
+  // they agreed to. Linked here so they are reachable from every page.
+  Legal: [
+    { label: "Terms of Service", href: "https://github.com/TheoryofShadows/Mcp/blob/main/docs/TERMS.md" },
+    { label: "Privacy Policy", href: "https://github.com/TheoryofShadows/Mcp/blob/main/docs/PRIVACY.md" },
+    { label: "Refund Policy", href: "https://github.com/TheoryofShadows/Mcp/blob/main/docs/REFUNDS.md" },
+    { label: "Security", href: "https://github.com/TheoryofShadows/Mcp/blob/main/SECURITY.md" },
+  ],
 };
 
 const linkStyle = {

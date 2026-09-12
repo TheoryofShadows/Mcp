@@ -839,6 +839,26 @@ export default function ToolDetail() {
                 {!purchaseBlocked && !canInstall && (
                 <p style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "var(--font-mono)", marginBottom: "4px" }}>
                   Secure payment via Stripe · Publishers keep 85%
+                  <br />
+                  {/* A buyer must be able to read what they are agreeing to
+                      BEFORE paying — not discover it during a dispute. */}
+                  <a
+                    href="https://github.com/TheoryofShadows/Mcp/blob/main/docs/TERMS.md"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: "#67e8f9", textDecoration: "none" }}
+                  >
+                    Terms
+                  </a>
+                  {" · "}
+                  <a
+                    href="https://github.com/TheoryofShadows/Mcp/blob/main/docs/REFUNDS.md"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: "#67e8f9", textDecoration: "none" }}
+                  >
+                    14-day refunds
+                  </a>
                 </p>
                 )}
                 {showSolanaPay ? (
