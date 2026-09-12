@@ -288,6 +288,79 @@ router.get("/me", requireAuth, (req, res) => {
 // POST /api/auth/logout — revoke the presented token so it can no longer be used.
 // Stateless JWTs can't be "deleted", so we record their jti in revoked_tokens and
 // authenticateToken rejects anything listed there until it would have expired.
+// PATCH /api/auth/password { current_password, new_password }
+// A signed-in user who KNOWS their password still had no way to change it —
+// they had to go through the reset flow. Requires the current password so a
+// stolen session token alone cannot lock the owner out.
+router.patch("/password", requireAuth, async (req, res) => {
+  const { current_password, new_password } = req.body || {};
+  if (!current_password || !new_password) {
+    return res.status(400).json({ error: "Current and new password are required" });
+  }
+  if (typeof new_password !== "string" || new_password.length < 10) {
+    return res.status(400).json({ error: "Password must be at least 10 characters" });
+  }
+
+  const user = db.prepare("SELECT password_hash FROM users WHERE id = ?").get(req.user.id);
+  if (!user) return res.status(404).json({ error: "Account not found" });
+
+  const ok = await bcrypt.compare(current_password, user.password_hash);
+  if (!ok) {
+    auditLog("auth.password.change.denied", req.user.id, {});
+    return res.status(401).json({ error: "Current password is incorrect" });
+  }
+
+  db.prepare("UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE id = ?")
+    .run(await bcrypt.hash(new_password, 10), req.user.id);
+  auditLog("auth.password.change", req.user.id, {});
+  res.json({ success: true, message: "Password updated." });
+});
+
+// DELETE /api/auth/account { password }
+// GDPR/CCPA erasure. Sales rows are NOT deleted: they are financial records we
+// are required to keep, and sales.buyer_id has no ON DELETE CASCADE precisely
+// so a deletion cannot silently destroy them. So this ANONYMISES instead —
+// personal data is scrubbed, the account can no longer be signed into, and the
+// accounting trail survives with no way back to a person.
+router.delete("/account", requireAuth, async (req, res) => {
+  const { password } = req.body || {};
+  if (!password) return res.status(400).json({ error: "Password is required to delete your account" });
+
+  const user = db.prepare("SELECT password_hash FROM users WHERE id = ?").get(req.user.id);
+  if (!user) return res.status(404).json({ error: "Account not found" });
+
+  const ok = await bcrypt.compare(password, user.password_hash);
+  if (!ok) {
+    auditLog("auth.account.delete.denied", req.user.id, {});
+    return res.status(401).json({ error: "Password is incorrect" });
+  }
+
+  const anonEmail = `deleted-${req.user.id}@deleted.invalid`;
+  const anonName = `deleted_${String(req.user.id).slice(0, 8)}`;
+
+  db.transaction(() => {
+    // Listings go, along with their reviews/installs/flags via cascade.
+    db.prepare("DELETE FROM servers WHERE author_id = ?").run(req.user.id);
+    // Outstanding reset tokens must not survive the account.
+    db.prepare("DELETE FROM password_resets WHERE user_id = ?").run(req.user.id);
+    // Scrub identity. The random password_hash guarantees no login can succeed
+    // even if some future code path skips the deleted_at check.
+    db.prepare(
+      `UPDATE users SET email = ?, username = ?, display_name = NULL, avatar_url = NULL,
+       password_hash = ?, stripe_account_id = NULL, stripe_onboarding_done = 0,
+       solana_wallet = NULL, updated_at = datetime('now') WHERE id = ?`
+    ).run(anonEmail, anonName, randomBytes(32).toString("hex"), req.user.id);
+  })();
+
+  revokeToken(req.user);
+  auditLog("auth.account.delete", req.user.id, {});
+  res.json({
+    success: true,
+    message:
+      "Account deleted. Listings removed and personal data erased. Sales records are retained in anonymised form as required for tax and accounting.",
+  });
+});
+
 router.post("/logout", requireAuth, (req, res) => {
   revokeToken(req.user);
   auditLog("auth.logout", req.user.id, { jti: req.user.jti });
