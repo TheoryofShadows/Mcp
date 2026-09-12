@@ -78,7 +78,7 @@ export default function App() {
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/"            element={<Home />} />
-            <Route path="/start"       element={<Navigate to={{ pathname: "/", hash: "new-here" }} replace />} />
+            <Route path="/start"       element={<Navigate to={{ pathname: "/", hash: "what-is-mcp-heading" }} replace />} />
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/tool/:slug"  element={<ToolDetail />} />
             <Route path="/tools/:slug" element={<ToolDetail />} />

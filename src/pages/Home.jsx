@@ -9,6 +9,7 @@ import { fetchServers, fetchStats, fetchCategories } from "../api/client";
 import RevenueSection from "../components/sections/RevenueSection";
 import WorksWith from "../components/WorksWith";
 import SecurityNote from "../components/SecurityNote";
+import WhatIsMcp from "../components/WhatIsMcp";
 import { withSignal, catalogLine } from "../lib/statPresentation";
 
 // Map an API server object onto the fields ToolCard/seed expect.
@@ -376,6 +377,10 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* A visitor who does not know what MCP is cannot evaluate anything
+          below this point, so the explainer comes first. */}
+      <WhatIsMcp />
 
       {/* ─── Stats Bar ────────────────────────────────────────────────────────── */}
       <section
