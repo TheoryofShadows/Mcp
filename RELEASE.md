@@ -50,22 +50,39 @@ token.
 `mcpx-mcp/installConfig.js` automatically. Bump `version` in each `package.json`
 before re-publishing.
 
-## `@mcpx-digital/railway` — validate before publishing
+## `@mcpx-digital/railway` — validated 2026-09-11
 
-The Railway GraphQL operations in `railway-mcp/index.js` follow the public API but
-have **not** been run against a live token. Before publishing, with a scoped
-`RAILWAY_API_TOKEN`:
+Previously flagged as unvalidated: the GraphQL operations were written from the
+public docs and had never been run against a live token. They have now been,
+via `node scripts/railway-introspect.js` with a real workspace token.
 
-1. `list_projects` → confirm `projects.edges[].node { id name }`.
-2. `list_services` → confirm `project(id).services.edges[].node`.
-3. `list_deployments` → confirm the `deployments(input:{serviceId,environmentId})` shape.
-4. `get_deployment_logs` → confirm `deploymentLogs(deploymentId,limit)`.
-5. `get_variables` → confirm the `variables(...)` query (we redact values regardless).
-6. Write tools (`MCPX_RAILWAY_ALLOW_WRITE=1`): `serviceInstanceRedeploy`,
-   `variableUpsert`, `deploymentRollback` mutation names/inputs.
+**Read tools — executed against a live account, all returned data:**
 
-Adjust field names to the current schema (https://docs.railway.com/reference/public-api)
-where they differ, re-run, then publish.
+| tool | result |
+|---|---|
+| `list_projects` | 1 project |
+| `list_services` | 1 service, 1 environment |
+| `list_deployments` | 3 deployments |
+| `get_deployment_logs` | 3 log lines |
+| `get_variables` | 36 keys (values never printed) |
+
+**Write tools — confirmed by schema introspection, deliberately NOT executed**
+(running them would redeploy or restart a live service):
+
+    serviceInstanceRedeploy(environmentId: String, serviceId: String)
+    variableUpsert(input: VariableUpsertInput)
+    deploymentRollback(id: String)
+
+All three match the arguments `railway-mcp/index.js` already sends.
+
+**Token scope matters.** A *workspace* token authenticates with
+`Authorization: Bearer` and can reach every tool above, but cannot call `me`
+(Railway scopes that to a personal account). `railway-mcp` never calls `me`, so
+a workspace token is sufficient — and is the safer credential to hand an agent,
+since it cannot reach your personal resources or other workspaces.
+
+Re-run `scripts/railway-introspect.js` after any Railway schema change; it is
+read-only and safe against production.
 
 ## After publish
 
