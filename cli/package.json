@@ -1,6 +1,6 @@
 {
   "name": "@mcpx-digital/cli",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Command-line installer for the MCPX marketplace \u2014 discover, inspect trust, and install MCP servers.",
   "type": "module",
   "bin": {
@@ -34,5 +34,9 @@
     "url": "git+https://github.com/TheoryofShadows/Mcp.git",
     "directory": "cli"
   },
-  "homepage": "https://www.mcpx.digital"
+  "homepage": "https://www.mcpx.digital",
+  "author": "TheoryofShadows",
+  "bugs": {
+    "url": "https://github.com/TheoryofShadows/Mcp/issues"
+  }
 }
