@@ -31,6 +31,10 @@ if (userCount === 0) {
   backfillPriceLabels(db);
   // Solana Pay runs on devnet, where SOL is free. Any sale recorded from it is
   // not revenue — zero it out so publisher earnings never show money nobody paid.
+  // Seed data asserted "reviewed by MCPX" on publishers nobody reviewed, which
+  // also waived their risk penalties. Clear it so the badge means what it says.
+  const { unverifySeededPublishers } = await import("./lib/unverifySeededPublishers.js");
+  unverifySeededPublishers(db);
   const { zeroOutDevnetSales } = await import("./lib/devnetSalesCleanup.js");
   const { getSolanaConfig } = await import("./lib/solanaPay.js");
   zeroOutDevnetSales(db, getSolanaConfig());
