@@ -51,7 +51,15 @@ export function normalizeStripeKey(key) {
 const STRIPE_KEY = normalizeStripeKey(process.env.STRIPE_SECRET_KEY);
 
 const stripe = STRIPE_KEY
-  ? new Stripe(STRIPE_KEY, { apiVersion: "2026-02-25.clover" })
+  ? new Stripe(STRIPE_KEY, {
+      apiVersion: "2026-02-25.clover",
+      // The SDK default is 80s per attempt, and it retries — so a network
+      // problem between here and Stripe left a buyer staring at a spinner for
+      // minutes before "Failed to create tool checkout session". 15s fails
+      // fast enough to show a real error while still tolerating a slow call.
+      timeout: 15_000,
+      maxNetworkRetries: 2,
+    })
   : null;
 
 // Live vs test is decided by the key prefix — Stripe never mixes the two, so a
@@ -393,6 +401,52 @@ router.get("/stripe/tool-checkout/preflight", requireAuth, async (req, res) => {
   res.json({ server_slug, would_succeed: blockers.length === 0, blockers, checks });
 });
 
+// GET /api/payments/stripe/health
+// Does the server ACTUALLY reach Stripe right now?
+//
+// /stripe/config only reads environment variables. It reported
+// "enabled: live, webhook set" for an entire session while every real API call
+// was failing with "connection to Stripe. Request was retried 2 times" — the
+// buyer saw "Failed to create tool checkout session" and the health endpoint
+// said everything was fine.
+//
+// A health check that cannot fail is not a health check. This one makes a real
+// (cheap, read-only) call and reports what happened.
+router.get("/stripe/health", async (_req, res) => {
+  const started = Date.now();
+  if (!stripe) {
+    return res.status(503).json({
+      reachable: false,
+      reason: "Stripe is not configured (STRIPE_SECRET_KEY missing)",
+    });
+  }
+  try {
+    // Retrieving the platform's own account is the cheapest authenticated call
+    // Stripe offers, and it exercises exactly the path checkout depends on.
+    const account = await stripe.accounts.retrieve();
+    res.json({
+      reachable: true,
+      latency_ms: Date.now() - started,
+      account_country: account?.country || null,
+      charges_enabled: !!account?.charges_enabled,
+      // A platform that cannot take charges cannot sell anything, however
+      // healthy the key looks.
+      can_accept_payments: !!account?.charges_enabled,
+      disabled_reason: account?.requirements?.disabled_reason || null,
+    });
+  } catch (err) {
+    // Surface Stripe's own wording: "connection to Stripe" means a network
+    // failure, while an auth error means the key itself is wrong. Those need
+    // very different fixes and the message is the only way to tell them apart.
+    res.status(503).json({
+      reachable: false,
+      latency_ms: Date.now() - started,
+      error_type: err?.type || "unknown",
+      reason: err?.message || "Stripe API call failed",
+    });
+  }
+});
+
 router.get("/stripe/config", (_req, res) => {
   const mode = stripeKeyMode();
   const configured = !!stripe;
@@ -404,6 +458,12 @@ router.get("/stripe/config", (_req, res) => {
     mode,                              // live | test | unknown | unset
     livemode: mode === "live",
     webhook_secret_set: webhookSecret,
+    // This endpoint reads environment variables only — it never calls Stripe,
+    // so it cannot tell you whether payments actually work. It reported
+    // "live, webhook set" while every checkout was failing on a network error.
+    // GET /api/payments/stripe/health makes a real call.
+    reflects_config_only: true,
+    liveness_endpoint: "/api/payments/stripe/health",
     prices_pinned: {
       pro: !!process.env.STRIPE_PRICE_PRO,
       enterprise: !!process.env.STRIPE_PRICE_ENTERPRISE,
