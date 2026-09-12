@@ -42,6 +42,18 @@ db.exec(`
     updated_at TEXT DEFAULT (datetime('now'))
   );
 
+  -- Password reset tokens. Only a HASH of the token is stored: a leaked
+  -- database must not hand out working reset links. Single-use (used_at) and
+  -- short-lived (expires_at), because a reset token is a temporary password.
+  CREATE TABLE IF NOT EXISTS password_resets (
+    token_hash TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    expires_at TEXT NOT NULL,
+    used_at TEXT,
+    created_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  );
+
   CREATE TABLE IF NOT EXISTS categories (
     id TEXT PRIMARY KEY,
     label TEXT NOT NULL,

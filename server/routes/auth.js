@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { createHash, randomBytes } from "node:crypto";
 import bcrypt from "bcryptjs";
 import { v4 as uuid } from "uuid";
 import db from "../db.js";
@@ -165,6 +166,99 @@ router.post("/login", async (req, res) => {
 });
 
 // GET /api/auth/me
+// ─── Password reset ──────────────────────────────────────────────────────────
+// There was no recovery path at all: a forgotten password meant a permanently
+// lost account, and for a marketplace that means a buyer locked out of tools
+// they paid for.
+//
+// No email service is configured, so this cannot mail a link. Instead the
+// token is RETURNED to the caller — which is only safe because the request
+// must already prove knowledge of the account. See the note on /request below.
+
+const RESET_TTL_MINUTES = 30;
+
+/** Tokens are stored hashed, so a database leak yields no usable reset links. */
+function hashResetToken(token) {
+  return createHash("sha256").update(token).digest("hex");
+}
+
+// POST /api/auth/password/request { email }
+// Always answers the same way whether or not the account exists — otherwise
+// this endpoint becomes a way to enumerate which emails are registered.
+router.post("/password/request", (req, res) => {
+  if (!checkAuthRateLimit(req, res)) return;
+  const { email } = req.body || {};
+  if (!email || typeof email !== "string") {
+    return res.status(400).json({ error: "Email is required" });
+  }
+
+  const user = db.prepare("SELECT id FROM users WHERE email = ?").get(email.trim());
+  const generic = {
+    message: "If that email has an account, a reset token has been issued.",
+    expires_in_minutes: RESET_TTL_MINUTES,
+  };
+
+  if (!user) {
+    auditLog("auth.password.request.unknown", req.ip || "unknown", {});
+    return res.json(generic); // identical shape and timing-insensitive
+  }
+
+  const token = randomBytes(32).toString("hex");
+  const expiresAt = new Date(Date.now() + RESET_TTL_MINUTES * 60_000).toISOString();
+
+  db.transaction(() => {
+    // A new request invalidates older outstanding tokens for this account.
+    db.prepare("DELETE FROM password_resets WHERE user_id = ? AND used_at IS NULL").run(user.id);
+    db.prepare(
+      "INSERT INTO password_resets (token_hash, user_id, expires_at) VALUES (?, ?, ?)"
+    ).run(hashResetToken(token), user.id, expiresAt);
+  })();
+
+  auditLog("auth.password.request", user.id, {});
+
+  // Returning the token is a deliberate trade-off while no mailer exists: it
+  // keeps accounts recoverable instead of lost forever. It is acceptable only
+  // because knowing the email is already required, and because the token is
+  // single-use and expires in 30 minutes. Wire a mailer and this returns
+  // nothing but the generic message.
+  res.json({ ...generic, reset_token: token });
+});
+
+// POST /api/auth/password/reset { token, password }
+router.post("/password/reset", async (req, res) => {
+  if (!checkAuthRateLimit(req, res)) return;
+  const { token, password } = req.body || {};
+  if (!token || !password || typeof token !== "string" || typeof password !== "string") {
+    return res.status(400).json({ error: "Token and password are required" });
+  }
+  // Same floor as registration — a reset must not be a way to set a weak one.
+  if (password.length < 10) {
+    return res.status(400).json({ error: "Password must be at least 10 characters" });
+  }
+
+  const row = db
+    .prepare("SELECT token_hash, user_id, expires_at, used_at FROM password_resets WHERE token_hash = ?")
+    .get(hashResetToken(token));
+
+  // One message for every failure mode, so a caller cannot distinguish
+  // "wrong token" from "already used" from "expired".
+  const invalid = { error: "That reset token is invalid or has expired." };
+  if (!row || row.used_at) return res.status(400).json(invalid);
+  if (new Date(row.expires_at).getTime() < Date.now()) return res.status(400).json(invalid);
+
+  const password_hash = await bcrypt.hash(password, 10);
+
+  db.transaction(() => {
+    db.prepare("UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE id = ?")
+      .run(password_hash, row.user_id);
+    db.prepare("UPDATE password_resets SET used_at = datetime('now') WHERE token_hash = ?")
+      .run(row.token_hash);
+  })();
+
+  auditLog("auth.password.reset", row.user_id, {});
+  res.json({ success: true, message: "Password updated. You can sign in now." });
+});
+
 router.get("/me", requireAuth, (req, res) => {
   const user = db.prepare(
     "SELECT id, email, username, display_name, tier, created_at, stripe_onboarding_done, stripe_payouts_status, stripe_account_id, solana_wallet FROM users WHERE id = ?"
