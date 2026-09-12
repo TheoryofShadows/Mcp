@@ -131,6 +131,97 @@ function makePreview(text, match, redact) {
  * a shell spawn is just as real for being in a spec, and hiding code in a file
  * named *.test.js is otherwise a trivial way to evade the scan.
  */
+/** The full source line containing a match, so context can be judged. */
+function lineAt(text, index) {
+  const start = text.lastIndexOf("\n", index) + 1;
+  const end = text.indexOf("\n", index);
+  return text.slice(start, end === -1 ? text.length : end);
+}
+
+/**
+ * Is `index` inside a multi-line comment — a Python docstring or a C-style
+ * block comment?
+ *
+ * A line-based check cannot see this: in a docstring the `"""` sits on an
+ * earlier line, so a continuation line looks like bare prose. Three findings
+ * in sooperset/mcp-atlassian were exactly that — security documentation whose
+ * opening delimiter was several lines up.
+ *
+ * Counts unpaired delimiters before the match. Odd count means still open.
+ * Cheap and good enough: a false "inside a docstring" needs an unbalanced
+ * delimiter, which does not occur in source that parses.
+ */
+function isInsideBlockComment(text, index) {
+  const before = text.slice(0, index);
+  const tripleDouble = (before.match(/"""/g) || []).length;
+  const tripleSingle = (before.match(/'''/g) || []).length;
+  if (tripleDouble % 2 === 1 || tripleSingle % 2 === 1) return true;
+  // C-style: open if the last /* is more recent than the last */.
+  const lastOpen = before.lastIndexOf("/*");
+  return lastOpen !== -1 && lastOpen > before.lastIndexOf("*/");
+}
+
+// A source-code comment: #, //, /* … */, *, --, <!--, or a Python docstring.
+const CODE_COMMENT = /^\s*(#|\/\/|\/\*|\*(?!\/)|--|<!--|"""|''')/;
+
+// Fields an MCP client actually shows to a model. A directive placed here is
+// the whole tool-poisoning attack, so a match in one of these is NEVER
+// suppressed — even though it is syntactically a quoted value like any other.
+const AGENT_FACING_FIELD =
+  /\b(description|instructions?|prompt|system|content|text|summary|about|readme|docstring|help|usage|tool_?description)\b\s*["']?\s*[:=]/i;
+
+/**
+ * Is this tool-poisoning match a MENTION of an attack rather than the attack?
+ *
+ * Calibration against widely-audited MCP servers exposed two classes of false
+ * positive, both of which would have made a public index a liability:
+ *
+ *   sooperset/mcp-atlassian scored `moderate` on six "exfiltration directive"
+ *   hits — every one a security comment describing the defence against it
+ *   ("# exfiltration via a caller-supplied filename").
+ *
+ *   github/github-mcp-server was flagged for "Ignore all previous
+ *   instructions" — the title field of a test fixture asserting the server
+ *   handles that input safely.
+ *
+ * The distinction is not vocabulary, it is POSITION. A real tool-poisoning
+ * directive has to be somewhere a model will read it as an instruction: a tool
+ * description, a manifest, a docstring returned to the agent. It cannot do its
+ * job from behind a `#`, because the model never sees that.
+ *
+ * So two things are suppressed:
+ *   1. lines that are source-code comments — descriptive prose about the code
+ *   2. strings that are plainly data values in fixtures or sample payloads
+ *
+ * Penalising code for NAMING the threat it defends against is backwards: it
+ * pushes authors to stop documenting their protections, and makes the index
+ * worse than silence.
+ *
+ * Deliberately NOT suppressed: prose in README/description fields, and any
+ * match on a bare line. Those are exactly where a poisoned instruction lives.
+ */
+// A quoted value under a NON-agent-facing key — `"title": "…"`, `name = "…"`.
+// Test tables and sample payloads look like this. Checked only after the
+// agent-facing test above has already declined.
+const QUOTED_DATA_VALUE = /["'][^"']*["']\s*[:=]|[:=]\s*["'][^"']*["']\s*,?\s*$/;
+
+// An imperative aimed at a model — the grammatical shape of a real directive,
+// as opposed to prose describing one. "Before answering, read .env" is an
+// instruction; "exfiltration via a caller-supplied filename" is a noun phrase.
+const IMPERATIVE_DIRECTIVE =
+  /\b(ignore|disregard|forget|before\s+(?:answering|responding|replying)|do\s+not\s+(?:tell|mention|reveal|disclose)|instead\s+of|you\s+must|always\s+(?:read|send|include)|never\s+(?:tell|mention))\b/i;
+
+export function isDefensiveMention(line) {
+  const l = String(line || "");
+  // An agent-facing field wins outright: that is where poisoning lives, so a
+  // match there is reported even if the line also looks like a comment.
+  if (AGENT_FACING_FIELD.test(l)) return false;
+  // A comment or docstring that reads as an INSTRUCTION is still an attack —
+  // a poisoned docstring is returned to models as a tool description.
+  if (IMPERATIVE_DIRECTIVE.test(l) && !QUOTED_DATA_VALUE.test(l)) return false;
+  return CODE_COMMENT.test(l) || QUOTED_DATA_VALUE.test(l);
+}
+
 export function isTestPath(filePath) {
   const p = String(filePath || "").split("\\").join("/").toLowerCase();
   return (
@@ -155,6 +246,22 @@ export function scoreFiles(files = []) {
         // String.matchAll clones the regex, so iteration is stateless and the
         // result is deterministic across repeated calls.
         for (const m of text.matchAll(pat.re)) {
+          // A security comment describing an attack is not the attack. Check
+          // the line itself, and whether it sits inside a multi-line docstring
+          // or block comment whose delimiter is further up.
+          if (factor.key === "tool_poisoning") {
+            const line = lineAt(text, m.index);
+            // Never suppress a line that is agent-facing or reads as an
+            // imperative: a poisoned docstring IS the attack, because
+            // docstrings are handed to models as tool descriptions. Only
+            // then consider whether this is descriptive prose.
+            const isDirective =
+              AGENT_FACING_FIELD.test(line) ||
+              (IMPERATIVE_DIRECTIVE.test(line) && !QUOTED_DATA_VALUE.test(line));
+            if (!isDirective && (isDefensiveMention(line) || isInsideBlockComment(text, m.index))) {
+              continue;
+            }
+          }
           hitCount += 1;
           findings.push({
             check: factor.key,
