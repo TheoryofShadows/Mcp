@@ -48,8 +48,78 @@ const POISON_PATTERNS = [
   { id: "ignore_instructions", label: "Override of prior instructions", re: /ignore\s+(?:all\s+)?previous\s+instructions/gi },
   { id: "disregard_instructions", label: "Disregard instructions", re: /disregard\s+[^\n]*\binstructions\b/gi },
   { id: "read_env", label: "Directive to read .env / secrets", re: /read\b[^\n]{0,40}\.env\b/gi },
-  { id: "exfiltrate", label: "Exfiltration directive", re: /\bexfiltrat\w*/gi },
+  // The bare word "exfiltration" is almost always security DOCUMENTATION —
+  // it appeared six times across mcp-atlassian, every one describing a
+  // defence. Require it to be part of an instruction, not a noun in prose.
+  { id: "exfiltrate", label: "Exfiltration directive",
+    re: /\b(?:exfiltrate|exfiltrating)\b[^\n]{0,40}\b(?:to|via|using|through)\b|\b(?:then|and|must|should|will)\s+exfiltrat\w*/gi },
   { id: "conceal", label: "Concealment directive", re: /do\s+not\s+(?:tell|mention|reveal)\b/gi },
+  // Paraphrases. Literal matching on "ignore all previous instructions" is
+  // trivially defeated by rewording, and the reworded version works just as
+  // well on a model. These match INTENT: override prior context, then act.
+  { id: "override_paraphrase", label: "Override of prior instructions (paraphrased)",
+    re: /\b(?:disregard|forget|set\s+aside|override|supersede|bypass)\s+(?:all\s+|any\s+|every\s+)?(?:the\s+)?(?:previous|prior|earlier|preceding|above|foregoing|system)\s*(?:instructions?|prompts?|guidance|directions?|rules?|context|messages?)/gi },
+  { id: "override_everything", label: "Override of prior instructions (broad)",
+    re: /\b(?:disregard|forget|ignore)\s+everything\s+(?:stated\s+|said\s+|written\s+)?(?:earlier|before|above|previously)/gi },
+  // Exfiltration described rather than named. "Append process.env.X to every
+  // response" never uses the word exfiltrate, but is exactly that.
+  // `[^.\n]` was wrong: "process.env.AWS_SECRET" contains dots, so the run
+  // stopped before reaching "to every response". Allow dots, bound by newline.
+  { id: "env_in_output", label: "Directive to include secrets in output",
+    re: /\b(?:append|include|add|attach|embed|return|output|send)\b[^\n]{0,80}\b(?:process\.env|environment\s+variables?|api[\s_-]?keys?|credentials?|secrets?|\.env)\b[^\n]{0,80}\b(?:every|each|all|your|the)\s+(?:response|reply|answer|output|message)/gi },
+  // ".env" alone matches "load environment from default .env file" — a normal
+  // dotenv log line. Private-key and cloud-credential paths have no benign
+  // reading in a tool description; a bare .env mention does.
+  { id: "read_secrets_directive", label: "Directive to read credential files",
+    re: /\b(?:read|open|cat|load|fetch|retrieve|output|print|send)\b[^.\n]{0,40}(?:~\/\.ssh\/|\.ssh\/id_[a-z]|\.aws\/credentials|\.config\/gcloud|id_rsa|id_ed25519)/gi },
+  { id: "env_contents_directive", label: "Directive to reveal .env contents",
+    re: /\b(?:read|output|print|send|include|return|reveal|show)\b[^.\n]{0,30}\b(?:the\s+)?(?:contents?\s+of\s+)?\.env\b[^.\n]{0,30}\b(?:and|then|in|to|with)\b/gi },
+];
+
+// Code that runs at INSTALL time, before a user ever invokes the tool. This is
+// the most common real supply-chain attack against package registries: a
+// postinstall hook that pipes a remote script into a shell. Detected on the
+// script BODY, so any interpreter counts.
+const INSTALL_HOOK_PATTERNS = [
+  { id: "install_hook_pipe_shell", label: "Install hook pipes a remote script to a shell",
+    re: /"(?:pre|post)?install"\s*:\s*"[^"]*(?:curl|wget|iwr|invoke-webrequest)[^"]*\|[^"]*(?:sh|bash|zsh|powershell|pwsh)/gi },
+  { id: "install_hook_remote_exec", label: "Install hook fetches and executes remote code",
+    re: /"(?:pre|post)?install"\s*:\s*"[^"]*(?:curl|wget)[^"]*(?:\|\s*(?:sh|bash)|-o\s*\S+\s*&&)/gi },
+  { id: "install_hook_node_eval", label: "Install hook evaluates dynamic code",
+    re: /"(?:pre|post)?install"\s*:\s*"[^"]*node\s+-e\b[^"]*(?:eval|atob|Buffer\.from|child_process)/gi },
+];
+
+// Credential theft — reading secrets, or shipping the environment off-host.
+const CREDENTIAL_THEFT_PATTERNS = [
+  // The signal is the WHOLE environment leaving the process, not a named
+  // variable. `process.env.CONTEXT7_API_KEY` in a fetch header is the correct
+  // way to pass a key — flagging it accused upstash/context7's own docs of
+  // credential theft. So: bare `process.env` only, and it must be serialised
+  // or assigned as a body, which is what actually ships it off-host.
+  { id: "env_exfil", label: "Serialises the entire environment for transmission",
+    re: /JSON\.stringify\s*\(\s*process\.env\s*\)|(?:body|data|payload)\s*[:=]\s*process\.env\s*[,;)}]/gi },
+  { id: "env_spread_exfil", label: "Spreads the entire environment into a request",
+    re: /(?:body|data|payload)\s*[:=]\s*\{\s*\.\.\.\s*process\.env\s*[,}]/gi },
+  // Match the PATH, not the call shape. `readFileSync(os.homedir()+"/.ssh/…")`
+  // contains a ")" that stops a [^)] run, and an attacker can nest arbitrarily.
+  // Any reference to a private-key path in source is worth reporting.
+  { id: "ssh_key_read", label: "References an SSH private key path",
+    re: /["'`][^"'`\n]{0,60}\.ssh\/(?:id_[a-z0-9]+|identity)\b/gi },
+  { id: "cloud_cred_read", label: "Reads cloud credential files",
+    re: /(?:readFile|readFileSync|open)\s*\([^)]{0,80}(?:\.aws\/credentials|\.config\/gcloud|\.kube\/config|\.netrc|\.npmrc)/gi },
+];
+
+// Obfuscation — not an attack by itself, but in an MCP server that an agent
+// runs with your permissions, deliberately hidden code is a legitimate signal.
+const OBFUSCATION_PATTERNS = [
+  { id: "base64_eval", label: "Base64-decoded code passed to eval",
+    re: /(?:eval|Function)\s*\(\s*(?:atob|Buffer\.from)\s*\(/gi },
+  { id: "fromcharcode_payload", label: "String assembled from character codes",
+    re: /String\.fromCharCode\s*\(\s*\d+\s*(?:,\s*\d+\s*){4,}\)/gi },
+  { id: "split_dynamic_call", label: "Dynamic call assembled from string fragments",
+    re: /\[\s*["'][a-z]{1,4}["']\s*\+\s*["'][a-z]{1,4}["']\s*\]/gi },
+  { id: "hex_escape_prose", label: "Hex-escaped text reconstructing a directive",
+    re: /\x[0-9a-f]{2}(?:[a-z ]{2,})?(?:ignore|instruction|previous|disregard)/gi },
 ];
 
 // Dangerous execution surface — shell-out and dynamic code evaluation.
@@ -66,10 +136,21 @@ const SURFACE_PATTERNS = [
  * every match, floored at 0. The sum of all `max` values is 100, so a clean
  * repo scores exactly 100.
  */
+// Weights are severity-ordered, and the maxima sum to exactly 100 so a clean
+// repo scores 100.
+//
+// install_hooks and credential_theft carry the harshest perHit (a full wipe of
+// their factor on the first hit) because they are FACTS, not heuristics: a
+// postinstall that pipes curl into a shell, or code posting process.env to a
+// remote host, has no benign reading. dangerous_surface is the gentlest —
+// spawn() is normal in a CLI, so it should nudge a score, never sink one.
 const FACTORS = [
-  { key: "secrets", label: "Leaked secrets", max: 40, perHit: 20, patterns: SECRET_PATTERNS, redact: true },
-  { key: "tool_poisoning", label: "Tool-poisoning directives", max: 35, perHit: 12, patterns: POISON_PATTERNS, redact: false },
-  { key: "dangerous_surface", label: "Dangerous execution surface", max: 25, perHit: 8, patterns: SURFACE_PATTERNS, redact: false },
+  { key: "install_hooks", label: "Install-time code execution", max: 25, perHit: 25, patterns: INSTALL_HOOK_PATTERNS, redact: false },
+  { key: "credential_theft", label: "Credential access & exfiltration", max: 25, perHit: 25, patterns: CREDENTIAL_THEFT_PATTERNS, redact: false },
+  { key: "secrets", label: "Leaked secrets", max: 15, perHit: 15, patterns: SECRET_PATTERNS, redact: true },
+  { key: "tool_poisoning", label: "Tool-poisoning directives", max: 20, perHit: 10, patterns: POISON_PATTERNS, redact: false },
+  { key: "obfuscation", label: "Obfuscated or hidden code", max: 5, perHit: 5, patterns: OBFUSCATION_PATTERNS, redact: false },
+  { key: "dangerous_surface", label: "Dangerous execution surface", max: 10, perHit: 2, patterns: SURFACE_PATTERNS, redact: false },
 ];
 
 /** Map a 0–100 scan score to a risk tier consumed by the UI/agents. */
@@ -78,6 +159,62 @@ export function scanTier(score) {
   if (score >= 70) return "low";
   if (score >= 40) return "moderate";
   return "high";
+}
+
+// Characters that render identically (or invisibly) but defeat literal
+// matching. An attacker writes "Ignore all prevіous instructions" with a
+// Cyrillic і: a model reads it exactly as intended, a regex does not match.
+const HOMOGLYPHS = new Map([
+  ["а", "a"], ["е", "e"], ["о", "o"], ["р", "p"],
+  ["с", "c"], ["х", "x"], ["і", "i"], ["ј", "j"],
+  ["һ", "h"], ["ԁ", "d"], ["ԛ", "q"], ["ѕ", "s"],
+  ["ο", "o"], ["α", "a"], ["ρ", "p"], ["ν", "v"],
+  ["‐", "-"], ["‑", "-"], ["‒", "-"], ["–", "-"], ["—", "-"],
+  ["‘", "'"], ["’", "'"], ["“", '"'], ["”", '"'],
+]);
+
+// Zero-width and invisible characters, used to split a phrase without changing
+// how it renders.
+const INVISIBLE = /[\u200b-\u200f\u2028\u2029\u202a-\u202e\u2060-\u2064\ufeff\u00ad]/g;
+
+/**
+ * Fold text to a canonical form before pattern matching.
+ *
+ * Three evasions in the corpus defeat literal matching without changing what a
+ * model reads: Cyrillic homoglyphs, zero-width separators, and full-width
+ * forms. NFKC handles full-width and ligatures; the map and the invisible-strip
+ * handle the rest.
+ *
+ * Matching runs on the folded text, but LINE NUMBERS and previews are reported
+ * from the original — an author looking at a finding must see their own source,
+ * not our normalised copy. Folding is length-preserving per character except
+ * for stripped invisibles, which is why offsets are recomputed rather than
+ * assumed (see foldWithMap).
+ */
+export function foldText(text) {
+  let out = String(text || "").normalize("NFKC").replace(INVISIBLE, "");
+  let folded = "";
+  for (const ch of out) folded += HOMOGLYPHS.get(ch) || ch;
+  return folded;
+}
+
+/**
+ * Fold `text` and return an index map so a match position in the folded string
+ * can be traced back to the original. Without this, a finding in normalised
+ * text would report the wrong line.
+ */
+function foldWithMap(text) {
+  const src = String(text || "").normalize("NFKC");
+  let folded = "";
+  const map = [];
+  for (let i = 0; i < src.length; i++) {
+    const ch = src[i];
+    if (INVISIBLE.test(ch)) { INVISIBLE.lastIndex = 0; continue; }
+    INVISIBLE.lastIndex = 0;
+    folded += HOMOGLYPHS.get(ch) || ch;
+    map.push(i);
+  }
+  return { folded, map };
 }
 
 /** 1-based line number of a match index within `text`. */
@@ -238,14 +375,20 @@ export function scoreFiles(files = []) {
   const factors = FACTORS.map((factor) => {
     let hitCount = 0;
     for (const file of list) {
-      const text = typeof file?.text === "string" ? file.text : "";
+      const original = typeof file?.text === "string" ? file.text : "";
       const filePath = file?.path || "(unknown)";
       // A fake credential in a test fixture is not a leak. See isTestPath().
       if (factor.key === "secrets" && isTestPath(filePath)) continue;
+      // Match against the FOLDED text so homoglyphs, zero-width separators and
+      // full-width forms cannot hide a directive. Report against the original.
+      const { folded, map } = foldWithMap(original);
+      const text = folded;
       for (const pat of factor.patterns) {
         // String.matchAll clones the regex, so iteration is stateless and the
         // result is deterministic across repeated calls.
         for (const m of text.matchAll(pat.re)) {
+          // Trace the folded offset back to the author's own source.
+          const origIndex = map[m.index] ?? m.index;
           // A security comment describing an attack is not the attack. Check
           // the line itself, and whether it sits inside a multi-line docstring
           // or block comment whose delimiter is further up.
@@ -268,7 +411,9 @@ export function scoreFiles(files = []) {
             pattern: pat.id,
             label: pat.label,
             path: filePath,
-            line: lineOf(text, m.index),
+            // Line and preview come from the ORIGINAL source: an author
+            // reading a finding must see their own file, not our folded copy.
+            line: lineOf(original, origIndex),
             preview: makePreview(text, m, factor.redact),
           });
         }
