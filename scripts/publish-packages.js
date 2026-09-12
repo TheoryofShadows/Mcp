@@ -6,8 +6,11 @@
  * version number can never be reused. So this checks everything it can BEFORE
  * pushing anything, and refuses rather than half-publishing.
  *
- * @mcpx-digital/railway is deliberately excluded: its Railway GraphQL calls have not
- * been validated against a live token (see RELEASE.md). Publish it by hand.
+ * All three packages are included. @mcpx-digital/railway was previously held
+ * back because its GraphQL calls had never been run against a live token; that
+ * validation was done on 2026-09-11 via scripts/railway-introspect.js — every
+ * read tool returned live data and every write mutation was confirmed in the
+ * schema. See RELEASE.md.
  *
  * Usage:
  *   npm run publish:packages            # dry run — shows what WOULD publish
@@ -19,7 +22,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const PACKAGES = ["cli", "mcpx-mcp"];
+const PACKAGES = ["cli", "mcpx-mcp", "railway-mcp"];
 const LIVE = process.argv.includes("--yes");
 
 const run = (cmd, args, cwd) =>
