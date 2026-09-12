@@ -171,6 +171,11 @@ export default function Dashboard() {
   }, [user?.solana_wallet]);
   const [verifyTool, setVerifyTool] = useState(null);
   const [statusBusySlug, setStatusBusySlug] = useState(null);
+  // Editing the install command of a listing that already exists.
+  const [editingInstallSlug, setEditingInstallSlug] = useState(null);
+  const [installDraft, setInstallDraft] = useState("");
+  const [installBusySlug, setInstallBusySlug] = useState(null);
+  const [installFeedback, setInstallFeedback] = useState(null);
   const [pendingStatusSlug, setPendingStatusSlug] = useState(null);
   const [statusFeedback, setStatusFeedback] = useState(null); // { type: 'ok'|'err', text }
   const [earnings, setEarnings] = useState(null);
@@ -211,6 +216,38 @@ export default function Dashboard() {
     // Real earned revenue (from completed sales) — best-effort.
     fetchEarnings().then(setEarnings).catch(() => setEarnings(null));
   }, [user, authLoading]);
+
+  /**
+   * Edit the install command of an existing listing.
+   *
+   * The API has always allowed this (install_command is in the PATCH
+   * allowlist) but nothing in the UI exposed it. A publisher who typo'd their
+   * install command at submit time could never fix it — they had to delete and
+   * recreate the listing, which discards its installs, reviews and Trust Score
+   * history. That is a real penalty for fixing a typo.
+   *
+   * Found when a listing was created with a null install_command: the tool was
+   * purchasable, but nobody could install it after paying.
+   */
+  async function saveInstallCommand(tool) {
+    if (demoMode || installBusySlug) return;
+    const next = String(installDraft ?? "").trim();
+    setInstallBusySlug(tool.slug);
+    setInstallFeedback(null);
+    try {
+      const updated = await patchServer(tool.slug, { install_command: next });
+      const applied = updated?.install_command ?? next;
+      setTools((prev) => prev.map((x) => (x.slug === tool.slug ? { ...x, install_command: applied } : x)));
+      setEditingInstallSlug(null);
+      setInstallFeedback({ type: "ok", text: `Install command updated for "${tool.name}".` });
+    } catch (err) {
+      // The server validates the launcher allowlist and shell metacharacters,
+      // so its message is more useful than anything we could invent here.
+      setInstallFeedback({ type: "err", text: err.message || "Could not update the install command." });
+    } finally {
+      setInstallBusySlug(null);
+    }
+  }
 
   function requestTogglePublish(tool) {
     if (demoMode || statusBusySlug) return;
@@ -581,7 +618,88 @@ export default function Dashboard() {
                             </button>
                           )
                         )}
+                        {/* A listing with no install command is purchasable but
+                            un-installable — the buyer pays and gets nothing. */}
+                        {!demoMode && (
+                          editingInstallSlug === tool.slug ? (
+                            <span style={{ display: "inline-flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
+                              <input
+                                type="text"
+                                value={installDraft}
+                                onChange={(e) => setInstallDraft(e.target.value)}
+                                placeholder="npx -y @scope/package"
+                                aria-label="Install command"
+                                style={{
+                                  fontSize: "12px",
+                                  fontFamily: "var(--font-mono)",
+                                  background: "#0d0d15",
+                                  border: "1px solid #2e2e44",
+                                  borderRadius: "8px",
+                                  color: "var(--text-primary)",
+                                  padding: "4px 8px",
+                                  minWidth: "230px",
+                                }}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => saveInstallCommand(tool)}
+                                disabled={installBusySlug === tool.slug}
+                                style={{
+                                  fontSize: "12px", fontFamily: "var(--font-mono)", color: "#10b981",
+                                  background: "transparent", border: "1px solid #2e2e44",
+                                  borderRadius: "8px", padding: "4px 8px",
+                                  cursor: installBusySlug === tool.slug ? "wait" : "pointer",
+                                }}
+                              >
+                                {installBusySlug === tool.slug ? "…" : "Save"}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => { setEditingInstallSlug(null); setInstallFeedback(null); }}
+                                style={{
+                                  fontSize: "12px", fontFamily: "var(--font-mono)", color: "var(--text-muted)",
+                                  background: "transparent", border: "none", cursor: "pointer", padding: "4px",
+                                }}
+                              >
+                                Cancel
+                              </button>
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingInstallSlug(tool.slug);
+                                setInstallDraft(tool.install_command || "");
+                                setInstallFeedback(null);
+                              }}
+                              style={{
+                                fontSize: "12px",
+                                fontFamily: "var(--font-mono)",
+                                color: tool.install_command ? "var(--text-muted)" : "#f59e0b",
+                                background: "transparent",
+                                border: "1px solid #2e2e44",
+                                borderRadius: "8px",
+                                padding: "4px 8px",
+                                cursor: "pointer",
+                              }}
+                            >
+                              {tool.install_command ? "Edit install" : "⚠ Add install command"}
+                            </button>
+                          )
+                        )}
                       </div>
+                      {installFeedback && editingInstallSlug === null && (
+                        <p
+                          role="status"
+                          style={{
+                            margin: "6px 0 0",
+                            fontSize: "12px",
+                            color: installFeedback.type === "ok" ? "#10b981" : "#f87171",
+                          }}
+                        >
+                          {installFeedback.text}
+                        </p>
+                      )}
                     </td>
                   </tr>
                 ))}
