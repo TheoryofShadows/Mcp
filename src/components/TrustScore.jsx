@@ -20,7 +20,11 @@ const TIER_META = {
 };
 
 export default function TrustScore({ trust }) {
-  const [open, setOpen] = useState(false);
+  // Caution / low scores default open so buyers see *why* without an extra click.
+  // Hook runs before the null guard so the call order stays stable.
+  const [open, setOpen] = useState(
+    () => trust?.tier === "caution" || (typeof trust?.score === "number" && trust.score < 40)
+  );
   if (!trust) return null;
 
   const { score, tier, factors = [], penalties = [], confidence } = trust;
@@ -28,6 +32,12 @@ export default function TrustScore({ trust }) {
   const { Icon } = meta;
 
   const rows = [...factors, ...penalties];
+  // Prefer the strongest penalty (most negative), else the weakest earned factor.
+  const topPenalty = [...penalties].filter((p) => p.points < 0).sort((a, b) => a.points - b.points)[0];
+  const weakestFactor = [...factors]
+    .filter((f) => typeof f.points === "number")
+    .sort((a, b) => (a.points / (a.max || 1)) - (b.points / (b.max || 1)))[0];
+  const headlineReason = topPenalty?.reason || weakestFactor?.reason || null;
 
   return (
     <div
@@ -80,6 +90,11 @@ export default function TrustScore({ trust }) {
           <div style={{ fontSize: "13px", color: "var(--text-secondary, #aaa)", marginTop: "2px" }}>
             MCPX Trust Score — computed from source, license, identity & usage
           </div>
+          {!open && headlineReason && (
+            <div style={{ fontSize: "12px", color: meta.color, marginTop: "6px", lineHeight: 1.45 }}>
+              {headlineReason}
+            </div>
+          )}
         </div>
 
         <button
