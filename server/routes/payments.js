@@ -45,10 +45,51 @@ const PLATFORM_FEE_PCT = 0.15; // 15% — publishers keep 85%
 // so normalise before matching, exactly as CORS_ORIGINS already does.
 export function normalizeStripeKey(key) {
   if (typeof key !== "string") return "";
-  return key.trim().replace(/^["'<]+/, "").replace(/["'>]+$/, "").trim();
+  // Strip ALL whitespace, not just the ends. A live key pasted from a dashboard
+  // that soft-wraps the display arrives with newlines *inside* it — we saw
+  // U+000A at offsets 37 and 75 of a 109-char key. Trimming the ends left both
+  // in place, and Node refuses to put a newline in the Authorization header, so
+  // the request never opened a socket. Stripe's SDK reports that as
+  // StripeConnectionError ("An error occurred with our connection to Stripe"),
+  // which reads exactly like a network outage and cost hours of chasing DNS and
+  // egress rules that were never broken.
+  return key.replace(/\s+/g, "").replace(/^["'<]+/, "").replace(/["'>]+$/, "");
+}
+
+// Shape check, deliberately loose on length: Stripe has issued keys of varying
+// length over the years, so pinning an exact count would reject a valid key.
+const STRIPE_KEY_SHAPE = /^(sk|rk)_(live|test)_[A-Za-z0-9]+$/;
+
+export function stripeKeyProblem(raw) {
+  if (typeof raw !== "string" || raw.trim() === "") return null; // unset is a separate, already-handled state
+  const clean = normalizeStripeKey(raw);
+  if (!STRIPE_KEY_SHAPE.test(clean)) return "malformed";
+  if (clean !== raw) return "repaired";
+  return null;
 }
 
 const STRIPE_KEY = normalizeStripeKey(process.env.STRIPE_SECRET_KEY);
+
+// Fail loudly at boot. Previously a malformed key sailed through startup and
+// only surfaced at checkout, where the buyer got "Failed to create tool
+// checkout session" and the server logged nothing useful. Whatever is wrong
+// with the key should be visible in the deploy log, not discovered by a
+// customer. This warns rather than throws: the marketplace still browses fine
+// without Stripe, and taking the whole site down over payments would be worse.
+{
+  const problem = stripeKeyProblem(process.env.STRIPE_SECRET_KEY);
+  if (problem === "malformed") {
+    console.error(
+      "[stripe] STRIPE_SECRET_KEY is malformed - expected sk_live_/sk_test_ followed by alphanumerics. " +
+        "Payments are DISABLED. Re-copy the key from Stripe > Developers > API keys.",
+    );
+  } else if (problem === "repaired") {
+    console.warn(
+      "[stripe] STRIPE_SECRET_KEY contained stray characters (whitespace/quotes) that were stripped. " +
+        "It works, but re-paste a clean value - embedded newlines break the Authorization header.",
+    );
+  }
+}
 
 const stripe = STRIPE_KEY
   ? new Stripe(STRIPE_KEY, {
@@ -182,6 +223,25 @@ export function paymentsConfigWarnings(env = process.env) {
       "STRIPE_WEBHOOK_SECRET is not set — checkouts will succeed but the webhook is rejected, " +
       "so no tier upgrade, install unlock, or sale is ever recorded."
     );
+  } else {
+    // Presence was never enough. This secret is pasted from the same dashboard
+    // that wrapped a live API key across three lines, and a wrapped value here
+    // fails *silently*: it is never sent in a header, it is used locally to
+    // verify Stripe's signature. Every webhook would fail verification while
+    // buyers are charged normally — money taken, nothing recorded.
+    const rawHook = env.STRIPE_WEBHOOK_SECRET;
+    const cleanHook = normalizeStripeKey(rawHook);
+    if (!/^whsec_[A-Za-z0-9+/=_-]+$/.test(cleanHook)) {
+      warnings.push(
+        "STRIPE_WEBHOOK_SECRET does not look like a signing secret (expected whsec_ prefix). " +
+        "Every webhook will fail signature verification — buyers get charged and no sale is recorded."
+      );
+    } else if (rawHook !== cleanHook) {
+      warnings.push(
+        "STRIPE_WEBHOOK_SECRET contained stray whitespace or quotes. Re-paste it as a single " +
+        "unbroken line from Stripe > Developers > Webhooks."
+      );
+    }
   }
 
   if (mode === "test" && isProd) {
@@ -826,7 +886,9 @@ router.post("/stripe/webhook", async (req, res) => {
   }
 
   const sig    = req.headers["stripe-signature"];
-  const secret = process.env.STRIPE_WEBHOOK_SECRET;
+  // Normalised for the same reason the API key is: a value wrapped by the
+  // dashboard must still verify, rather than rejecting every genuine event.
+  const secret = normalizeStripeKey(process.env.STRIPE_WEBHOOK_SECRET);
 
   if (!secret) return res.status(501).json({ error: "STRIPE_WEBHOOK_SECRET is not set" });
   if (!sig)    return res.status(400).json({ error: "Missing stripe-signature header" });
