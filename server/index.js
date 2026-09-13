@@ -1,5 +1,11 @@
+import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join, extname } from "path";
+import {
+  parseToolSlugFromPath,
+  buildToolShareMeta,
+  injectToolPageMeta,
+} from "./lib/toolPageMeta.js";
 import { createApp } from "./app.js";
 import db from "./db.js";
 import { logger, initSentry, captureError } from "./lib/observability.js";
@@ -87,6 +93,30 @@ app.get("/{*splat}", (req, res) => {
   // Always revalidate the SPA shell so a new deploy's asset hashes are picked up
   // instead of a stale cached document referencing files that no longer exist.
   res.set("Cache-Control", "no-cache");
+
+  // Tool deep links: inject listing-specific Open Graph / Twitter meta so
+  // shares of /tool/:slug preview the tool, not the generic homepage card.
+  // Crawlers usually skip JS, so client-side document.title alone is not enough.
+  const toolSlug = parseToolSlugFromPath(req.path);
+  if (toolSlug) {
+    try {
+      const row = db.prepare(`
+        SELECT slug, name, description
+        FROM servers
+        WHERE slug = ?
+          AND status = 'active'
+      `).get(toolSlug);
+      if (row) {
+        const site = (process.env.APP_URL || "https://www.mcpx.digital").replace(/\/$/, "");
+        const meta = buildToolShareMeta(row, site, req.path);
+        const html = readFileSync(join(distPath, "index.html"), "utf8");
+        return res.type("html").send(injectToolPageMeta(html, meta));
+      }
+    } catch (err) {
+      logger.warn({ err, path: req.path }, "[spa] tool meta inject failed — serving stock shell");
+    }
+  }
+
   res.sendFile(join(distPath, "index.html"));
 });
 
