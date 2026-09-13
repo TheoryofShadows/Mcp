@@ -9,8 +9,12 @@ import { readFileSync } from "node:fs";
  * It reports on someone else's Connect account, so what it exposes matters.
  */
 const src = readFileSync(new URL("../server/routes/payments.js", import.meta.url), "utf8");
+// Bound at the NEXT route rather than a named one: pinning the end to
+// `/stripe/config` broke the moment `/stripe/health` was inserted between
+// them, and the slice silently grew to cover an unrelated handler.
 const route = src.slice(src.indexOf('router.get("/stripe/tool-checkout/preflight"'));
-const body = route.slice(0, route.indexOf('router.get("/stripe/config"'));
+const nextRoute = route.indexOf("\nrouter.", 1);
+const body = route.slice(0, nextRoute === -1 ? undefined : nextRoute);
 
 describe("checkout preflight", () => {
   it("requires authentication", () => {
