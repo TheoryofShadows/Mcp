@@ -68,7 +68,7 @@ function handleError(err, res) {
 
 // POST /api/scan  { repo_url }
 router.post("/", async (req, res) => {
-  const ip = req.ip || req.headers["x-forwarded-for"] || "unknown";
+  const ip = req.ip || "unknown";
   if (rateLimited(ip)) {
     return res.status(429).json({ error: "Too many scans — try again in a minute." });
   }
@@ -86,7 +86,7 @@ router.post("/", async (req, res) => {
 
 // GET /api/scan/:owner/:repo  — convenience for agents / curl / shareable links
 router.get("/:owner/:repo", async (req, res) => {
-  const ip = req.ip || req.headers["x-forwarded-for"] || "unknown";
+  const ip = req.ip || "unknown";
   if (rateLimited(ip)) {
     return res.status(429).json({ error: "Too many scans — try again in a minute." });
   }
