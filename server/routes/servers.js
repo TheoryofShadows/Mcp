@@ -210,7 +210,18 @@ router.get("/", (req, res) => {
     LIMIT ? OFFSET ?
   `).all(...params, limitNum, offset);
 
-  const servers = rows.map(formatServer);
+  // Paid tools: the install command is the product. List used to skip the
+  // detail-route paywall, so `GET /api/servers?search=railway` leaked it to
+  // anyone. Redact the same way as detail; authors and buyers still see it.
+  const accessIds = paidInstallAccessIds(rows, req.user);
+  const servers = rows.map((row) => {
+    const formatted = formatServer(row);
+    if (row.price_type === "paid" && !accessIds.has(row.id)) {
+      formatted.install_command = null;
+      formatted.install_locked = true;
+    }
+    return formatted;
+  });
 
   res.json({
     servers,
@@ -254,7 +265,8 @@ router.get("/:slug", (req, res) => {
   `).all(row.id);
 
   // Paid tools: install unlocks after purchase. Authenticated buyers with a
-  // sales row get access; everyone else sees install_locked (command redacted).
+  // non-refunded sales row get access; the author can always see their own
+  // command (they cannot buy their own tool). Everyone else sees install_locked.
   let buyer_has_access = row.price_type !== "paid";
   if (row.price_type === "paid" && req.user?.id) {
     const sale = db.prepare(
@@ -267,7 +279,7 @@ router.get("/:slug", (req, res) => {
   }
 
   const formatted = formatServer(row);
-  if (row.price_type === "paid" && !buyer_has_access) {
+  if (row.price_type === "paid" && !buyer_has_access && row.author_id !== req.user?.id) {
     formatted.install_command = null;
     formatted.install_locked = true;
   }
@@ -798,6 +810,32 @@ function deriveCapabilities(tags, verified) {
   const highPower = capabilities.some((c) => HIGH_POWER.has(c));
   const risk_level = highPower ? (verified ? "medium" : "high") : (verified ? "low" : "medium");
   return { capabilities, risk_level };
+}
+
+/**
+ * Paid tools: the install command is the product. Reveal it only to the
+ * author and to buyers with a non-refunded sale. List used to skip this
+ * check, so marketplace search leaked paid commands to anyone.
+ * @param {object[]} rows
+ * @param {{id?: string}|null|undefined} user
+ * @returns {Set<string>}
+ */
+function paidInstallAccessIds(rows, user) {
+  const access = new Set();
+  if (!user?.id) return access;
+  const needSale = [];
+  for (const row of rows) {
+    if (row.price_type !== "paid") continue;
+    if (row.author_id === user.id) access.add(row.id);
+    else needSale.push(row.id);
+  }
+  if (needSale.length === 0) return access;
+  const placeholders = needSale.map(() => "?").join(", ");
+  const sales = db.prepare(
+    `SELECT server_id FROM sales WHERE buyer_id = ? AND refunded_at IS NULL AND server_id IN (${placeholders})`
+  ).all(user.id, ...needSale);
+  for (const s of sales) access.add(s.server_id);
+  return access;
 }
 
 function formatServer(row) {

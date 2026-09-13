@@ -43,8 +43,20 @@ export const SEED_INSTALL_COMMANDS = Object.freeze({
 });
 
 /**
- * Fill empty install_command rows from the seed map by slug.
- * Does NOT overwrite non-empty values (author-published commands win).
+ * Install commands for live marketplace listings that are NOT seed-catalog
+ * rows. Kept out of SEED_INSTALL_COMMANDS so resetSeedSocialProof never
+ * zeros their real installs/ratings/revenue.
+ *
+ * railway-mcp is a paid ($3) first-party listing. The correct package is
+ * @mcpx-digital/railway — not @railway/mcp-server.
+ */
+export const LISTING_INSTALL_BACKFILLS = Object.freeze({
+  "railway-mcp": "npx -y @mcpx-digital/railway",
+});
+
+/**
+ * Fill empty install_command rows from the seed map and listing backfills
+ * by slug. Does NOT overwrite non-empty values (author-published commands win).
  * @param {import("better-sqlite3").Database} db
  * @returns {{ updated: number, skipped: number }}
  */
@@ -59,7 +71,10 @@ export function backfillInstallCommands(db) {
   let updated = 0;
   let skipped = 0;
   const run = db.transaction(() => {
-    for (const [slug, cmd] of Object.entries(SEED_INSTALL_COMMANDS)) {
+    for (const [slug, cmd] of Object.entries({
+      ...SEED_INSTALL_COMMANDS,
+      ...LISTING_INSTALL_BACKFILLS,
+    })) {
       const info = update.run(cmd, slug);
       if (info.changes > 0) updated += 1;
       else skipped += 1;
