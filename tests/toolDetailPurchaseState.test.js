@@ -50,4 +50,13 @@ describe("ToolDetail — purchase state", () => {
     expect(src).toMatch(/else if \(result !== null\)/);
     expect(src).toMatch(/didn't return a checkout link/);
   });
+
+  it("explains what purchase unlocks without revealing install recipes", () => {
+    expect(src).toMatch(/After purchase you unlock/);
+    expect(src).toMatch(/Claude \/ Cursor \/ VS Code one-click configs/);
+    expect(src).toMatch(/Install command \(kept locked until then\)/);
+    expect(src).toMatch(/Lifetime access — yours forever/);
+    expect(src).toMatch(/One-click configs for Claude, Cursor, and VS Code/);
+    expect(src).toMatch(/Install command revealed after payment/);
+  });
 });

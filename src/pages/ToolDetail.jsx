@@ -531,13 +531,20 @@ export default function ToolDetail() {
                     <p style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "16px", marginBottom: 8 }}>
                       {purchaseBlocked ? "Unavailable for purchase" : "Install unlocks after purchase"}
                     </p>
-                    <p style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.55, maxWidth: 420, marginBottom: purchaseBlocked ? 0 : 14 }}>
+                    <p style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.55, maxWidth: 420, marginBottom: purchaseBlocked ? 0 : 10 }}>
                       {purchaseBlocked
                         ? `${blockedReason}. Install stays locked until the publisher enables payouts.`
                         : tool.billing_period === "monthly"
                           ? "Subscribe with Stripe (primary) to unlock one-click configs for Claude, Cursor, and VS Code."
                           : "Buy once with Stripe (primary) to unlock one-click configs for Claude, Cursor, and VS Code."}
                     </p>
+                    {!purchaseBlocked && (
+                      <ul style={{ listStyle: "none", padding: 0, margin: "0 0 14px", maxWidth: 420, textAlign: "left", fontSize: "12px", color: "var(--text-secondary)", lineHeight: 1.55 }}>
+                        <li style={{ marginBottom: 4 }}>✓ One-click configs for Claude, Cursor, and VS Code</li>
+                        <li style={{ marginBottom: 4 }}>✓ Install command revealed after payment</li>
+                        <li>{tool.billing_period === "monthly" ? "✓ Access while your subscription is active" : "✓ Yours forever — one-time purchase"}</li>
+                      </ul>
+                    )}
                     {!purchaseBlocked && (
                       <button
                         type="button"
@@ -679,9 +686,16 @@ export default function ToolDetail() {
                     </p>
                   )}
                   {!canInstall && !purchaseBlocked && (
-                    <p style={{ fontSize: "12px", color: "#a5f3fc", marginTop: "8px", lineHeight: 1.5 }}>
-                      Install command unlocks after purchase.
-                    </p>
+                    <div style={{ marginTop: "10px" }}>
+                      <p style={{ fontSize: "11px", color: "#a5f3fc", margin: "0 0 6px", fontFamily: "var(--font-mono)", letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                        After purchase you unlock
+                      </p>
+                      <ul style={{ listStyle: "none", padding: 0, margin: 0, fontSize: "12px", color: "var(--text-secondary)", lineHeight: 1.55 }}>
+                        <li style={{ marginBottom: 4 }}>✓ Claude / Cursor / VS Code one-click configs</li>
+                        <li style={{ marginBottom: 4 }}>✓ Install command (kept locked until then)</li>
+                        <li>{tool.billing_period === "monthly" ? "✓ Access while subscribed" : "✓ Lifetime access — yours forever"}</li>
+                      </ul>
+                    </div>
                   )}
                   {canInstall && unlocked && isPaid && (
                     <p style={{ fontSize: "12px", color: "#10b981", marginTop: "8px", fontFamily: "var(--font-mono)" }}>
