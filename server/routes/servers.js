@@ -8,6 +8,7 @@ import { auditLog } from "../lib/audit.js";
 import { scheduleScan, latestScanTier } from "../lib/scanService.js";
 import { readProofToken, VERIFY_FILENAME } from "../lib/provenance.js";
 import { computePurchasable } from "../lib/purchasable.js";
+import { redactLockedServerCopy } from "../lib/redactInstallRecipes.js";
 
 const router = Router();
 
@@ -229,6 +230,7 @@ router.get("/", (req, res) => {
     if (row.price_type === "paid" && !accessIds.has(row.id)) {
       formatted.install_command = null;
       formatted.install_locked = true;
+      redactLockedServerCopy(formatted);
     }
     return formatted;
   });
@@ -292,6 +294,7 @@ router.get("/:slug", (req, res) => {
   if (row.price_type === "paid" && !buyer_has_access && row.author_id !== req.user?.id) {
     formatted.install_command = null;
     formatted.install_locked = true;
+    redactLockedServerCopy(formatted);
   }
 
   res.json({ ...formatted, reviews, buyer_has_access });

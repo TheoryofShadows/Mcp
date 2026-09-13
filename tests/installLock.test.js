@@ -58,6 +58,7 @@ beforeAll(async () => {
       name: "Paid Lock Server",
       category_id: "dev-tools",
       description: "A paid server used to verify install unlock gating.",
+      long_description: "Does useful work.\n\nInstall: npx -y secret-paid-mcp",
       price_type: "paid",
       price_amount: 1600,
       install_command: "npx -y secret-paid-mcp",
@@ -79,6 +80,8 @@ describe("paid tool install lock", () => {
     expect(res.body.buyer_has_access).toBe(false);
     expect(res.body.install_locked).toBe(true);
     expect(res.body.install_command).toBeNull();
+    expect(res.body.long_description || "").not.toMatch(/npx -y secret-paid-mcp/i);
+    expect(res.body.long_description || "").toMatch(/Does useful work/);
   });
 
   it("unlocks install_command after a recorded sale", async () => {
@@ -93,6 +96,7 @@ describe("paid tool install lock", () => {
     expect(res.body.buyer_has_access).toBe(true);
     expect(res.body.install_locked).toBeUndefined();
     expect(res.body.install_command).toBe("npx -y secret-paid-mcp");
+    expect(res.body.long_description || "").toMatch(/npx -y secret-paid-mcp/i);
   });
 });
 
@@ -105,6 +109,7 @@ describe("paid tool list paywall", () => {
     expect(row.price_type).toBe("paid");
     expect(row.install_locked).toBe(true);
     expect(row.install_command).toBeNull();
+    expect(row.long_description || "").not.toMatch(/npx -y secret-paid-mcp/i);
   });
 
   it("redacts install_command on the list API for a signed-in non-buyer", async () => {
