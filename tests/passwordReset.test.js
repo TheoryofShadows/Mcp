@@ -7,6 +7,11 @@ import { createApp } from "../server/app.js";
  * There was no recovery path at all — a forgotten password meant a permanently
  * lost account. For a marketplace that means a buyer locked out of tools they
  * paid for, with no way back.
+ *
+ * Production must NOT return reset_token in the HTTP body (knowing an email is
+ * not proof of account ownership). Tests that exercise the token path opt in
+ * via ALLOW_INLINE_RESET_TOKEN=1 — the same break-glass used for local recovery
+ * until a mailer delivers the token out-of-band.
  */
 const app = createApp();
 const EMAIL = "resetme@example.com";
@@ -19,19 +24,45 @@ beforeAll(async () => {
   });
 });
 
-describe("password reset", () => {
+describe("password reset default (no inline token)", () => {
+  it("does not return reset_token and keeps response shapes identical", async () => {
+    const prev = process.env.ALLOW_INLINE_RESET_TOKEN;
+    process.env.ALLOW_INLINE_RESET_TOKEN = "0";
+    try {
+      const known = await request(app).post("/api/auth/password/request").send({ email: EMAIL });
+      const unknown = await request(app).post("/api/auth/password/request").send({
+        email: "still-nobody@example.com",
+      });
+      expect(known.status).toBe(200);
+      expect(unknown.status).toBe(200);
+      expect(known.body.message).toBe(unknown.body.message);
+      expect(known.body.reset_token).toBeUndefined();
+      expect(unknown.body.reset_token).toBeUndefined();
+      expect(db.prepare("SELECT COUNT(*) c FROM password_resets").get().c).toBeGreaterThan(0);
+    } finally {
+      process.env.ALLOW_INLINE_RESET_TOKEN = prev;
+    }
+  });
+});
+
+describe("password reset (inline token opt-in)", () => {
+  beforeAll(() => {
+    process.env.ALLOW_INLINE_RESET_TOKEN = "1";
+  });
+
   it("issues a token for a real account", async () => {
     const res = await request(app).post("/api/auth/password/request").send({ email: EMAIL });
     expect(res.status).toBe(200);
     expect(res.body.reset_token).toBeTruthy();
   });
 
-  it("does not reveal whether an email is registered", async () => {
-    // Otherwise this endpoint enumerates which emails have accounts.
+  it("uses the same message for known and unknown emails", async () => {
     const known = await request(app).post("/api/auth/password/request").send({ email: EMAIL });
     const unknown = await request(app).post("/api/auth/password/request").send({ email: "nobody@example.com" });
     expect(unknown.status).toBe(known.status);
     expect(unknown.body.message).toBe(known.body.message);
+    // Inline mode still omits the field for unknown emails; default mode
+    // (tested above) keeps both responses token-free and identical.
     expect(unknown.body.reset_token).toBeUndefined();
   });
 

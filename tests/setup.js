@@ -8,6 +8,8 @@ const dbFile = join(tmpdir(), `mcpx-test-${randomBytes(6).toString("hex")}.db`);
 process.env.DB_PATH = dbFile;
 process.env.JWT_SECRET = randomBytes(32).toString("hex");
 process.env.CORS_ORIGINS = "http://localhost:5173";
+// Auth suites issue many /password/request calls; keep the limiter on but raise the ceiling.
+process.env.AUTH_MAX_ATTEMPTS = process.env.AUTH_MAX_ATTEMPTS || "200";
 // Never let publish/update tests trigger a real `git clone` source scan.
 process.env.MCPX_DISABLE_AUTO_SCAN = "1";
 
