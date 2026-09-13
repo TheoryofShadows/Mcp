@@ -15,7 +15,11 @@ router.get("/", (req, res) => {
   const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 50));
   const since = req.query.since; // optional ISO timestamp for incremental polls
 
-  const where = ["s.status = 'active'"];
+  const where = [
+    "s.status = 'active'",
+    "s.slug != 'mcpx-flow-test-tool'",
+    "(s.tags IS NULL OR (instr(lower(s.tags), '\"e2e\"') = 0))",
+  ];
   const params = [];
   if (since) {
     if (typeof since !== "string" || since.length > 30 || !/^\d{4}-\d{2}-\d{2}/.test(since)) {
