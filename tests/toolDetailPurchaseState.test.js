@@ -33,6 +33,11 @@ describe("ToolDetail — purchase state", () => {
     expect(src).toMatch(/billing_period === "monthly" \? "Subscribe" : "Buy"/);
   });
 
+  it("helper copy says Buy once for one-time and Subscribe only for monthly", () => {
+    expect(src).toMatch(/billing_period === "monthly"[\s\S]{0,80}Subscribe with Stripe \(primary\)/);
+    expect(src).toMatch(/Buy once with Stripe \(primary\)/);
+  });
+
   it("does not leave the button stuck on a redirect that never happens", () => {
     // "Redirecting…" promised navigation that could not occur for an owned
     // tool. Check the rendered label specifically — the word still appears in
