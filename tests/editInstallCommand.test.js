@@ -61,11 +61,21 @@ describe("editing a listing's install command", () => {
 
   it("persists it — visible to the author on their own dashboard listing", async () => {
     const mine = await request(app)
-      .get("/api/servers?mine=1")
+      .get("/api/servers?author=installer")
       .set("Authorization", `Bearer ${token}`);
     const row = (mine.body.servers || []).find((s) => s.slug === slug);
     // The author must be able to see what they set, or they cannot correct it.
-    expect(row?.install_command ?? "npx -y @mcpx-digital/railway").toBe("npx -y @mcpx-digital/railway");
+    expect(row).toBeTruthy();
+    expect(row.install_command).toBe("npx -y @mcpx-digital/railway");
+    expect(row.install_locked).toBeUndefined();
+  });
+
+  it("still redacts the paid command on the public list", async () => {
+    const res = await request(app).get(`/api/servers?search=${encodeURIComponent(slug)}`);
+    const row = (res.body.servers || []).find((s) => s.slug === slug);
+    expect(row).toBeTruthy();
+    expect(row.install_command).toBeNull();
+    expect(row.install_locked).toBe(true);
   });
 
   it("still rejects a command that is not on the launcher allowlist", async () => {

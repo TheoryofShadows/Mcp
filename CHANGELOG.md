@@ -6,6 +6,17 @@ continuously from `main`, so "released" means "merged to `main` and live".
 
 ## [Unreleased]
 
+### Security
+- **List API paywall** — `GET /api/servers` no longer leaks `install_command` for
+  paid tools. Anonymous visitors and non-buyers see `install_locked: true` and
+  a null command, matching detail. Authors and buyers with a non-refunded sale
+  still see the command (dashboard edit depends on this).
+
+### Fixed
+- **railway-mcp install backfill** — `LISTING_INSTALL_BACKFILLS` fills
+  `npx -y @mcpx-digital/railway` without putting the slug in
+  `SEED_INSTALL_COMMANDS` (that map drives the social-proof honesty reset).
+
 ### Added
 - **GitHub Pages demo** — a static, seed-data build of the marketplace published
   via `.github/workflows/deploy-pages.yml`, with a build-time configurable base
