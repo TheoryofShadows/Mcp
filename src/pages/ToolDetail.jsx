@@ -206,6 +206,29 @@ export default function ToolDetail() {
       .catch(() => setSolanaCfg({ enabled: false, label: "Unavailable" }));
   }, []);
 
+  // Share / SEO: paid listing links should carry the tool name, not a generic app title.
+  useEffect(() => {
+    if (!tool?.name) return undefined;
+    const prev = document.title;
+    const desc = (tool.description || "").trim();
+    document.title = `${tool.name} · MCPX`;
+    let meta = document.querySelector('meta[name="description"]');
+    const created = !meta;
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.setAttribute("name", "description");
+      document.head.appendChild(meta);
+    }
+    const prevDesc = meta.getAttribute("content");
+    if (desc) meta.setAttribute("content", desc.slice(0, 160));
+    return () => {
+      document.title = prev;
+      if (created) meta.remove();
+      else if (prevDesc != null) meta.setAttribute("content", prevDesc);
+      else meta.removeAttribute("content");
+    };
+  }, [tool?.name, tool?.description]);
+
   if (loading) {
     return (
       <div role="status" aria-live="polite" style={{ maxWidth: "1000px", margin: "32px auto", padding: "0 24px 80px" }}>
