@@ -435,6 +435,17 @@ router.get("/stripe/health", async (_req, res) => {
       disabled_reason: account?.requirements?.disabled_reason || null,
     });
   } catch (err) {
+    // Log the FULL error server-side. The HTTP access log only records that
+    // this endpoint returned 503 — it never shows why, which made a real
+    // production outage undiagnosable from the Railway log viewer.
+    console.error("[stripe] health check failed:", {
+      type: err?.type,
+      message: err?.message,
+      code: err?.detail?.code || err?.cause?.code || err?.code,
+      syscall: err?.detail?.syscall || err?.cause?.syscall,
+      hostname: err?.detail?.hostname || err?.cause?.hostname,
+      errno: err?.detail?.errno || err?.cause?.errno,
+    });
     // Surface Stripe's own wording: "connection to Stripe" means a network
     // failure, while an auth error means the key itself is wrong. Those need
     // very different fixes and the message is the only way to tell them apart.
@@ -443,6 +454,14 @@ router.get("/stripe/health", async (_req, res) => {
       latency_ms: Date.now() - started,
       error_type: err?.type || "unknown",
       reason: err?.message || "Stripe API call failed",
+      // Stripe wraps the underlying socket failure and its own message says
+      // only "connection to Stripe" — useless for telling DNS from a refused
+      // connection from TLS interception. The Node error code underneath
+      // (ENOTFOUND, ECONNREFUSED, ETIMEDOUT, CERT_*) is the one word that
+      // names the actual fault, so surface it in the response AND the log.
+      cause_code: err?.detail?.code || err?.cause?.code || err?.code || null,
+      cause_syscall: err?.detail?.syscall || err?.cause?.syscall || null,
+      cause_host: err?.detail?.hostname || err?.cause?.hostname || null,
     });
   }
 });
