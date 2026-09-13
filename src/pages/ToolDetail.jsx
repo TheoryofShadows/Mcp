@@ -480,7 +480,9 @@ export default function ToolDetail() {
                     <p style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.55, maxWidth: 420, marginBottom: purchaseBlocked ? 0 : 14 }}>
                       {purchaseBlocked
                         ? `${blockedReason}. Install stays locked until the publisher enables payouts.`
-                        : "Subscribe with Stripe (primary) to unlock one-click configs for Claude, Cursor, and VS Code."}
+                        : tool.billing_period === "monthly"
+                          ? "Subscribe with Stripe (primary) to unlock one-click configs for Claude, Cursor, and VS Code."
+                          : "Buy once with Stripe (primary) to unlock one-click configs for Claude, Cursor, and VS Code."}
                     </p>
                     {!purchaseBlocked && (
                       <button
