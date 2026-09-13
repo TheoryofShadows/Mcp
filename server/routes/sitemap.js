@@ -38,6 +38,8 @@ router.get("/", (_req, res) => {
       SELECT slug, updated_at, created_at
       FROM servers
       WHERE status = 'active'
+        AND slug != 'mcpx-flow-test-tool'
+        AND (tags IS NULL OR instr(lower(tags), '"e2e"') = 0)
       ORDER BY installs DESC, name ASC
     `).all();
   } catch {
