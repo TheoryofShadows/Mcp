@@ -207,25 +207,56 @@ export default function ToolDetail() {
   }, []);
 
   // Share / SEO: paid listing links should carry the tool name, not a generic app title.
+  // Server SPA fallback also injects these for crawlers; this keeps in-app navigations honest.
   useEffect(() => {
     if (!tool?.name) return undefined;
     const prev = document.title;
-    const desc = (tool.description || "").trim();
-    document.title = `${tool.name} · MCPX`;
-    let meta = document.querySelector('meta[name="description"]');
-    const created = !meta;
-    if (!meta) {
-      meta = document.createElement("meta");
-      meta.setAttribute("name", "description");
-      document.head.appendChild(meta);
+    const title = `${tool.name} · MCPX`;
+    const desc = (tool.description || "").trim().slice(0, 160);
+    const url = `${window.location.origin}${window.location.pathname}`;
+    document.title = title;
+
+    const touched = [];
+    const upsert = (selector, attr, attrValue, content) => {
+      let el = document.querySelector(selector);
+      const created = !el;
+      if (!el) {
+        el = document.createElement("meta");
+        el.setAttribute(attr, attrValue);
+        document.head.appendChild(el);
+      }
+      const prevContent = el.getAttribute("content");
+      if (content) el.setAttribute("content", content);
+      touched.push({ el, created, prevContent });
+    };
+
+    upsert('meta[name="description"]', "name", "description", desc || undefined);
+    upsert('meta[property="og:title"]', "property", "og:title", title);
+    upsert('meta[property="og:description"]', "property", "og:description", desc || undefined);
+    upsert('meta[property="og:url"]', "property", "og:url", url);
+    upsert('meta[name="twitter:title"]', "name", "twitter:title", title);
+    upsert('meta[name="twitter:description"]', "name", "twitter:description", desc || undefined);
+
+    let canonical = document.querySelector('link[rel="canonical"]');
+    const canonicalCreated = !canonical;
+    const prevCanonical = canonical?.getAttribute("href");
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.setAttribute("rel", "canonical");
+      document.head.appendChild(canonical);
     }
-    const prevDesc = meta.getAttribute("content");
-    if (desc) meta.setAttribute("content", desc.slice(0, 160));
+    canonical.setAttribute("href", url);
+
     return () => {
       document.title = prev;
-      if (created) meta.remove();
-      else if (prevDesc != null) meta.setAttribute("content", prevDesc);
-      else meta.removeAttribute("content");
+      for (const { el, created, prevContent } of touched) {
+        if (created) el.remove();
+        else if (prevContent != null) el.setAttribute("content", prevContent);
+        else el.removeAttribute("content");
+      }
+      if (canonicalCreated) canonical.remove();
+      else if (prevCanonical != null) canonical.setAttribute("href", prevCanonical);
+      else canonical.removeAttribute("href");
     };
   }, [tool?.name, tool?.description]);
 
