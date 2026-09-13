@@ -10,6 +10,8 @@
 
 **[Try it → www.mcpx.digital](https://www.mcpx.digital)** · **[Publish & earn 85%](https://www.mcpx.digital/submit)** · [Marketplace](https://www.mcpx.digital/marketplace) · [Pricing](https://www.mcpx.digital/pricing) · [Docs](docs/README.md) · [Launch kit](docs/LAUNCH.md)
 
+If MCPX helps you discover or monetize MCP tools, a GitHub **⭐ star** on this repo helps others find it.
+
 Live: [www.mcpx.digital](https://www.mcpx.digital) · Demo: [GitHub Pages](https://theoryofshadows.github.io/Mcp/) · Source: [TheoryofShadows/Mcp](https://github.com/TheoryofShadows/Mcp)
 
 ---
