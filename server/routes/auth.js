@@ -12,7 +12,7 @@ const router = Router();
 // key: IP address, value: { count, resetAt }
 const authRateLimit = new Map();
 const AUTH_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
-const AUTH_MAX_ATTEMPTS = 20; // per window (generous for devs, stops bots)
+const AUTH_MAX_ATTEMPTS = Number(process.env.AUTH_MAX_ATTEMPTS) || 20; // per window (generous for devs, stops bots)
 
 setInterval(() => {
   const now = Date.now();
@@ -171,11 +171,20 @@ router.post("/login", async (req, res) => {
 // lost account, and for a marketplace that means a buyer locked out of tools
 // they paid for.
 //
-// No email service is configured, so this cannot mail a link. Instead the
-// token is RETURNED to the caller — which is only safe because the request
-// must already prove knowledge of the account. See the note on /request below.
+// No email service is configured yet, so a production deploy cannot mail a
+// link. Returning the raw token in the JSON body is account takeover for
+// anyone who knows (or guesses) the victim's email — emails are not a secret.
+// Default: issue + store a hashed token, respond with the generic message only.
+// Opt-in for local recovery / automated tests: ALLOW_INLINE_RESET_TOKEN=1.
+// Wire a mailer and deliver the token out-of-band; never put it in the HTTP
+// response on a public deployment.
 
 const RESET_TTL_MINUTES = 30;
+
+/** True only when explicitly opted in — never the production default. */
+function allowInlineResetToken() {
+  return process.env.ALLOW_INLINE_RESET_TOKEN === "1";
+}
 
 /** Tokens are stored hashed, so a database leak yields no usable reset links. */
 function hashResetToken(token) {
@@ -216,12 +225,13 @@ router.post("/password/request", (req, res) => {
 
   auditLog("auth.password.request", user.id, {});
 
-  // Returning the token is a deliberate trade-off while no mailer exists: it
-  // keeps accounts recoverable instead of lost forever. It is acceptable only
-  // because knowing the email is already required, and because the token is
-  // single-use and expires in 30 minutes. Wire a mailer and this returns
-  // nothing but the generic message.
-  res.json({ ...generic, reset_token: token });
+  // Default response matches the unknown-email shape (no reset_token field),
+  // so callers cannot enumerate registered addresses. Inline return is an
+  // explicit break-glass for local/dev/tests only.
+  if (allowInlineResetToken()) {
+    return res.json({ ...generic, reset_token: token });
+  }
+  res.json(generic);
 });
 
 // POST /api/auth/password/reset { token, password }
