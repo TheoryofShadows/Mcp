@@ -59,4 +59,13 @@ describe("ToolDetail — purchase state", () => {
     expect(src).toMatch(/One-click configs for Claude, Cursor, and VS Code/);
     expect(src).toMatch(/Install command revealed after payment/);
   });
+
+  it("shows a post-checkout success banner and routes to Install", () => {
+    expect(src).toMatch(/Purchase confirmed — this tool is unlocked/);
+    expect(src).toMatch(/Stripe should email your receipt shortly/);
+    expect(src).toMatch(/Open the Install tab for Claude, Cursor, and VS Code configs/);
+    expect(src).toMatch(/searchParams\.get\("purchased"\) !== "1"/);
+    expect(src).toMatch(/setActiveTab\("Install"\)/);
+    expect(src).toMatch(/purchaseBannerDismissed/);
+  });
 });

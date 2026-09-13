@@ -161,6 +161,8 @@ export default function ToolDetail() {
   const [solanaMsg, setSolanaMsg] = useState("");
   // Paid tools: install UI stays locked until purchase (Stripe return, Solana confirm, or prior sale).
   const [unlocked, setUnlocked] = useState(searchParams.get("purchased") === "1");
+  // Stripe return (?purchased=1): show a one-shot success banner until dismissed this visit.
+  const [purchaseBannerDismissed, setPurchaseBannerDismissed] = useState(false);
   const phantom = usePhantom();
   const [reportOpen, setReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState("security");
@@ -197,7 +199,10 @@ export default function ToolDetail() {
   }, [slug]);
 
   useEffect(() => {
-    if (searchParams.get("purchased") === "1") setUnlocked(true);
+    if (searchParams.get("purchased") !== "1") return;
+    setUnlocked(true);
+    setActiveTab("Install");
+    setInstallMsg(true);
   }, [searchParams]);
 
   useEffect(() => {
@@ -292,6 +297,8 @@ export default function ToolDetail() {
   const isPurchasable = tool.purchasable !== false;
   const purchaseBlocked = isPaid && !isPurchasable && !unlocked;
   const blockedReason = tool.purchase_blocked_reason || "Publisher payouts not enabled";
+  const showPurchaseSuccess =
+    isPaid && searchParams.get("purchased") === "1" && !purchaseBannerDismissed;
 
   return (
     <main id="main-content" style={{ maxWidth: "1000px", margin: "0 auto", padding: "32px 24px 80px" }}>
@@ -313,6 +320,49 @@ export default function ToolDetail() {
       >
         <ArrowLeft size={14} /> Back to Marketplace
       </Link>
+
+      {showPurchaseSuccess && (
+        <div
+          role="status"
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            gap: "12px",
+            marginBottom: "20px",
+            padding: "14px 16px",
+            background: "rgba(16,185,129,0.10)",
+            border: "1px solid rgba(16,185,129,0.35)",
+            borderRadius: "12px",
+          }}
+        >
+          <div style={{ minWidth: 0 }}>
+            <p style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: "#10b981" }}>
+              Purchase confirmed — this tool is unlocked
+            </p>
+            <p style={{ margin: "6px 0 0", fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.55 }}>
+              Open the Install tab for Claude, Cursor, and VS Code configs. Stripe should email your receipt shortly.
+            </p>
+          </div>
+          <button
+            type="button"
+            aria-label="Dismiss purchase confirmation"
+            onClick={() => setPurchaseBannerDismissed(true)}
+            style={{
+              flexShrink: 0,
+              background: "transparent",
+              border: "none",
+              color: "var(--text-muted)",
+              cursor: "pointer",
+              fontSize: "18px",
+              lineHeight: 1,
+              padding: "0 4px",
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: "28px", alignItems: "start" }} className="tool-detail-grid">
         {/* Main content */}
