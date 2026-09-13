@@ -122,6 +122,7 @@ router.get("/", (req, res) => {
 
   let where = ["s.status = 'active'"];
   const params = [];
+  let authorSelfCatalog = false;
 
   // Authors listing their own catalog can ask for inactive (unpublished) tools.
   // Public marketplace searches never see inactive rows.
@@ -133,6 +134,7 @@ router.get("/", (req, res) => {
     const me = db.prepare("SELECT username FROM users WHERE id = ?").get(req.user.id);
     if (me && me.username === author) {
       where = ["s.status IN ('active', 'inactive')"];
+      authorSelfCatalog = true;
     }
   }
 
@@ -168,6 +170,14 @@ router.get("/", (req, res) => {
   if (author) {
     where.push("u.username = ?");
     params.push(author);
+  }
+
+  // Public marketplace / agent discovery: hide internal E2E fixtures.
+  // Publisher dashboards that pass include_inactive for their own catalog still see them.
+  if (!authorSelfCatalog) {
+    where.push("s.slug != 'mcpx-flow-test-tool'");
+    // tags are JSON arrays like ["test","e2e"] — match the quoted token only
+    where.push("(s.tags IS NULL OR (instr(lower(s.tags), '\"e2e\"') = 0))");
   }
 
   const SORT_MAP = {
@@ -799,6 +809,11 @@ const TAG_CAPABILITIES = {
   browser: ["browser_control", "js_execution"], playwright: ["browser_control", "js_execution"], puppeteer: ["browser_control", "js_execution"], chrome: ["browser_control"],
   scraping: ["network_access", "browser_control"], crawl: ["network_access"], web: ["network_access"], api: ["network_access"], search: ["network_access"], hosting: ["network_access"],
   credentials: ["file_read"],
+  // Infra / deploy publishers (e.g. Railway MCP) declare these tags — surface
+  // honest capability warnings for buyers before checkout.
+  infra: ["network_access"], infrastructure: ["network_access"],
+  deploy: ["remote_code_execution"], deployment: ["remote_code_execution"],
+  devops: ["remote_code_execution"], railway: ["network_access", "remote_code_execution"],
 };
 const HIGH_POWER = new Set(["remote_code_execution", "file_write", "database_write", "payment_access", "email_send", "file_transfer"]);
 
