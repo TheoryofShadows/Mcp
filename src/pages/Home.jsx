@@ -221,6 +221,7 @@ export default function Home() {
             }}
           >
             Every listing gets a <strong style={{ color: "var(--text-primary)", fontWeight: 600 }}>computed Trust Score</strong> — not a vanity badge.
+            New paid utilities on the marketplace include site health checks, license scans, env/i18n/JSON helpers, and more.
             Install into Claude, Cursor, or VS Code in one click. Publishers keep{" "}
             <span style={{ color: "#67e8f9" }}>85%</span> via Stripe Connect.
           </p>
@@ -347,7 +348,7 @@ export default function Home() {
 
           {/* Quick links */}
           <div style={{ display: "flex", justifyContent: "center", gap: "8px", flexWrap: "wrap" }}>
-            {["GitHub MCP", "Postgres MCP", "Stripe MCP", "Slack MCP"].map((name) => (
+            {["Site Health", "License Scan", "Env Check", "JSON Tools", "GitHub MCP", "Stripe MCP"].map((name) => (
               <button
                 key={name}
                 onClick={() => navigate(`/marketplace?q=${encodeURIComponent(name)}`)}

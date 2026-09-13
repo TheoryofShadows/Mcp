@@ -288,11 +288,11 @@ export default function Login() {
                     id="login-password"
                     type="password"
                     required
-                    minLength={6}
+                    minLength={10}
                     autoComplete={mode === "login" ? "current-password" : "new-password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Min 6 characters"
+                    placeholder="Min 10 characters"
                     style={inputStyle}
                     onFocus={(e) => (e.target.style.borderColor = "#22d3ee")}
                     onBlur={(e) => (e.target.style.borderColor = "#2e2e44")}

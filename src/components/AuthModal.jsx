@@ -186,12 +186,12 @@ export default function AuthModal({ onClose }) {
             id="auth-password"
             type="password"
             required
-            minLength={6}
+            minLength={10}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="search-input"
             style={{ paddingLeft: "var(--space-md)" }}
-            placeholder="Min 6 characters"
+            placeholder="Min 10 characters"
           />
         </div>
 
