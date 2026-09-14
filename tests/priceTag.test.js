@@ -68,13 +68,45 @@ describe("formatPriceTagLabel", () => {
     ).toBe("Unavailable");
   });
 
-  it("keeps normal paid label when purchasable", () => {
+  it("labels one-time paid tools as Buy once", () => {
+    expect(
+      formatPriceTagLabel({
+        price_type: "paid",
+        price_label: "$5",
+        billing_period: "one_time",
+        purchasable: true,
+      })
+    ).toBe("Buy once · $5");
+  });
+
+  it("labels monthly paid tools as Subscribe", () => {
+    expect(
+      formatPriceTagLabel({
+        price_type: "paid",
+        price_label: "$16/mo",
+        billing_period: "monthly",
+        purchasable: true,
+      })
+    ).toBe("Subscribe · $16/mo");
+  });
+
+  it("infers Subscribe from /mo label when billing_period is absent", () => {
     expect(
       formatPriceTagLabel({
         price_type: "paid",
         price_label: "$16/mo",
         purchasable: true,
       })
-    ).toBe("$16/mo");
+    ).toBe("Subscribe · $16/mo");
+  });
+
+  it("defaults purchasable paid without /mo to Buy once", () => {
+    expect(
+      formatPriceTagLabel({
+        price_type: "paid",
+        price_amount: 500,
+        purchasable: true,
+      })
+    ).toBe("Buy once · $5");
   });
 });
