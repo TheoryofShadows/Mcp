@@ -129,6 +129,27 @@ const ToolCard = memo(function ToolCard({ tool, index = 0 }) {
           {/* Badges */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "5px" }}>
             <PriceTag tool={tool} size="sm" />
+            {tool.price_type === "paid" && tool.purchasable === false && (
+              <span
+                title={tool.purchase_blocked_reason || "Unavailable for purchase"}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  fontSize: "10px",
+                  fontFamily: "var(--font-mono)",
+                  color: "#94a3b8",
+                  background: "rgba(148,163,184,0.1)",
+                  border: "1px solid rgba(148,163,184,0.22)",
+                  borderRadius: "5px",
+                  padding: "2px 6px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {/payouts not enabled/i.test(tool.purchase_blocked_reason || "")
+                  ? "Payouts not ready"
+                  : (tool.purchase_blocked_reason || "Unavailable")}
+              </span>
+            )}
             {tool.trending && (
               <span
                 style={{

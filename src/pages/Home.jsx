@@ -304,6 +304,24 @@ export default function Home() {
               Browse marketplace <ArrowRight size={14} />
             </a>
             <a
+              href="/marketplace?price=paid"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "11px 20px",
+                background: "transparent",
+                border: "1px solid rgba(34, 211, 238,0.35)",
+                borderRadius: "10px",
+                color: "#a5f3fc",
+                fontSize: "14px",
+                fontWeight: 500,
+                textDecoration: "none",
+              }}
+            >
+              Browse paid tools
+            </a>
+            <a
               href="/submit"
               style={{
                 display: "inline-flex",
