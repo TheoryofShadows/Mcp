@@ -36,14 +36,35 @@ export function formatCents(cents) {
   return `$${formatted}`;
 }
 
+function stripPurchasePrefix(label) {
+  return String(label || "")
+    .replace(/^Buy once\s*[·•-]\s*/i, "")
+    .replace(/^Subscribe\s*[·•-]\s*/i, "")
+    .trim();
+}
+
+function isMonthlyBilling(tool, amountLabel) {
+  const period = String(tool?.billing_period || "").toLowerCase();
+  if (period === "monthly" || period === "month" || period === "recurring") return true;
+  if (period === "one_time" || period === "once" || period === "one-time") return false;
+  return /\/mo\b/i.test(amountLabel);
+}
 
 /**
  * Marketplace / detail price chip label.
  * Unpurchasable paid tools must not imply "buy now".
+ * Purchasable paid tools advertise buy-once vs subscribe for buyers.
  */
 export function formatPriceTagLabel(tool = {}) {
   if (tool?.price_type === "paid" && tool?.purchasable === false) {
     return "Unavailable";
   }
-  return formatPriceLabel(tool);
+  if (!tool || tool.price_type === "free") return "Free";
+
+  const amount = stripPurchasePrefix(formatPriceLabel(tool));
+  if (isMonthlyBilling(tool, amount)) {
+    const bare = amount.replace(/\s*\/mo\b/i, "").trim();
+    return `Subscribe · ${bare}/mo`;
+  }
+  return `Buy once · ${amount}`;
 }
