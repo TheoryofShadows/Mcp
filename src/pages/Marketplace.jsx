@@ -4,21 +4,7 @@ import { Search, X } from "lucide-react";
 import ToolCard from "../components/ToolCard";
 import { SEED_TOOLS, SEED_CATEGORIES } from "../data/seed";
 import { fetchServers } from "../api/client";
-import { sortPurchasableFirst } from "../lib/sortPurchasableFirst";
-
-// Map the API's server shape onto the fields ToolCard expects (which originate
-// from the legacy seed shape). Keeps the card component untouched.
-function normalize(s) {
-  return {
-    ...s,
-    author_name: s.author_display_name || s.author || s.author_name,
-    weekly_growth: s.weeklyGrowth ?? s.weekly_growth,
-    category_id: s.category ?? s.category_id,
-  };
-}
-
-// API sort keys differ from the UI's labels.
-const SORT_TO_API = { popular: "installs", newest: "newest", rating: "rating", trending: "installs" };
+import { loadMarketplaceTools } from "../lib/marketplaceLoad";
 
 const SORT_OPTIONS = [
   { value: "popular",  label: "Most Popular" },
@@ -27,56 +13,13 @@ const SORT_OPTIONS = [
   { value: "trending", label: "Trending" },
 ];
 
-function filterSeedTools({ search, category, priceFilter, sort }) {
-  let tools = [...SEED_TOOLS];
-  if (search) {
-    const q = search.toLowerCase();
-    tools = tools.filter(
-      (t) =>
-        t.name.toLowerCase().includes(q) ||
-        t.description.toLowerCase().includes(q) ||
-        t.tags.some((tag) => tag.includes(q)) ||
-        t.author_name.toLowerCase().includes(q)
-    );
-  }
-  if (category && category !== "all") {
-    tools = tools.filter((t) => t.category_id === category);
-  }
-  if (priceFilter === "free") tools = tools.filter((t) => t.price_type === "free");
-  if (priceFilter === "paid") tools = tools.filter((t) => t.price_type === "paid");
-
-  if (sort === "popular")  tools.sort((a, b) => b.installs - a.installs);
-  if (sort === "rating")   tools.sort((a, b) => b.rating - a.rating);
-  if (sort === "trending") tools.sort((a, b) => (b.trending ? 1 : 0) - (a.trending ? 1 : 0));
-  // newest: already ordered by id desc in seed
-  if (sort === "newest")   tools.sort((a, b) => Number(b.id) - Number(a.id));
-
-  // Purchasable paid first; keep secondary sort among peers.
-  return sortPurchasableFirst(tools);
-}
-
-async function loadTools({ search, category, priceFilter, sort }) {
-  try {
-    const params = { sort: SORT_TO_API[sort] || "installs", limit: 100 };
-    if (search) params.search = search;
-    if (category && category !== "all") params.category = category;
-    if (priceFilter !== "all") params.price_type = priceFilter;
-    const res = await fetchServers(params);
-    const servers = sortPurchasableFirst((res.servers || []).map(normalize));
-    // If the API is reachable but empty, fall back to seed so the page is never blank.
-    return servers.length ? servers : filterSeedTools({ search, category, priceFilter, sort });
-  } catch {
-    // API unreachable (e.g. static-only deploy) — degrade gracefully to seed data.
-    return filterSeedTools({ search, category, priceFilter, sort });
-  }
-}
-
 const DISPLAY_CATEGORIES = SEED_CATEGORIES;
 
 export default function MarketplacePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [tools, setTools] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadMode, setLoadMode] = useState("live"); // live | empty | offline
   const initQ    = searchParams.get("q") || "";
   const initCat  = searchParams.get("category") || "all";
   const initSort = searchParams.get("sort") || "popular";
@@ -100,11 +43,16 @@ export default function MarketplacePage() {
     setSearchParams(p, { replace: true });
   }, [debouncedQ, category, sort, priceFilter, setSearchParams]);
 
-  // Load tools
+  // Load tools — live empty stays empty; offline falls back to demoted seed
   useEffect(() => {
     setLoading(true);
-    loadTools({ search: debouncedQ, category, priceFilter, sort }).then((data) => {
+    loadMarketplaceTools(
+      { search: debouncedQ, category, priceFilter, sort },
+      fetchServers,
+      SEED_TOOLS
+    ).then(({ tools: data, mode }) => {
       setTools(data);
+      setLoadMode(mode);
       setLoading(false);
     });
   }, [debouncedQ, category, priceFilter, sort]);
@@ -125,6 +73,7 @@ export default function MarketplacePage() {
   };
 
   const hasActiveFilters = debouncedQ || category !== "all" || priceFilter !== "all" || sort !== "popular";
+  const offlineDemo = loadMode === "offline";
 
   return (
     <main id="main-content" style={{ maxWidth: "1200px", margin: "0 auto", padding: "40px 24px" }}>
@@ -145,9 +94,35 @@ export default function MarketplacePage() {
           Browse tools with a computed Trust Score. One-click install for Claude, Cursor, and VS Code.
         </p>
         <p role="status" aria-live="polite" style={{ fontSize: "13px", color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>
-          {loading ? "Loading…" : `${tools.length} tool${tools.length !== 1 ? "s" : ""} available`}
+          {loading
+            ? "Loading…"
+            : offlineDemo
+              ? `${tools.length} demo tool${tools.length !== 1 ? "s" : ""} (offline)`
+              : `${tools.length} tool${tools.length !== 1 ? "s" : ""} available`}
         </p>
       </div>
+
+      {offlineDemo && !loading && (
+        <div
+          role="status"
+          aria-live="polite"
+          data-testid="marketplace-offline-banner"
+          style={{
+            marginBottom: "20px",
+            padding: "12px 16px",
+            borderRadius: "10px",
+            border: "1px solid rgba(251, 191, 36, 0.35)",
+            background: "rgba(251, 191, 36, 0.08)",
+            color: "#fde68a",
+            fontSize: "13px",
+            lineHeight: 1.5,
+          }}
+        >
+          <strong style={{ fontWeight: 700 }}>Offline demo catalog.</strong>{" "}
+          The live marketplace API is unreachable, so you are seeing sample tools.
+          Live checkout is unavailable — paid listings show as Unavailable.
+        </div>
+      )}
 
       {/* Search + filter bar */}
       <div
