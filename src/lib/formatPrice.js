@@ -38,8 +38,8 @@ export function formatCents(cents) {
 
 function stripPurchasePrefix(label) {
   return String(label || "")
-    .replace(/^Buy once\s*[·•\-]\s*/i, "")
-    .replace(/^Subscribe\s*[·•\-]\s*/i, "")
+    .replace(/^Buy once\s*[·•-]\s*/i, "")
+    .replace(/^Subscribe\s*[·•-]\s*/i, "")
     .trim();
 }
 
