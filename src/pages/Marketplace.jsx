@@ -4,6 +4,7 @@ import { Search, X } from "lucide-react";
 import ToolCard from "../components/ToolCard";
 import { SEED_TOOLS, SEED_CATEGORIES } from "../data/seed";
 import { fetchServers } from "../api/client";
+import { sortPurchasableFirst } from "../lib/sortPurchasableFirst";
 
 // Map the API's server shape onto the fields ToolCard expects (which originate
 // from the legacy seed shape). Keeps the card component untouched.
@@ -50,7 +51,8 @@ function filterSeedTools({ search, category, priceFilter, sort }) {
   // newest: already ordered by id desc in seed
   if (sort === "newest")   tools.sort((a, b) => Number(b.id) - Number(a.id));
 
-  return tools;
+  // Purchasable paid first; keep secondary sort among peers.
+  return sortPurchasableFirst(tools);
 }
 
 async function loadTools({ search, category, priceFilter, sort }) {
@@ -60,7 +62,7 @@ async function loadTools({ search, category, priceFilter, sort }) {
     if (category && category !== "all") params.category = category;
     if (priceFilter !== "all") params.price_type = priceFilter;
     const res = await fetchServers(params);
-    const servers = (res.servers || []).map(normalize);
+    const servers = sortPurchasableFirst((res.servers || []).map(normalize));
     // If the API is reachable but empty, fall back to seed so the page is never blank.
     return servers.length ? servers : filterSeedTools({ search, category, priceFilter, sort });
   } catch {

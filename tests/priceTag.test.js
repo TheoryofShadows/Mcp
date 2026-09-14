@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { readFileSync } from "node:fs";
 import { formatPriceLabel, formatPriceTagLabel } from "../src/lib/formatPrice.js";
 
 describe("formatPriceLabel", () => {
@@ -108,5 +109,13 @@ describe("formatPriceTagLabel", () => {
         purchasable: true,
       })
     ).toBe("Buy once · $5");
+  });
+});
+describe("ToolCard unavailable chip (source)", () => {
+  it("shows a visible Payouts not ready / Unavailable chip for blocked paid tools", () => {
+    const src = readFileSync(new URL("../src/components/ToolCard.jsx", import.meta.url), "utf8");
+    expect(src).toMatch(/purchasable === false/);
+    expect(src).toMatch(/Payouts not ready/);
+    expect(src).toMatch(/purchase_blocked_reason/);
   });
 });
