@@ -9,6 +9,8 @@ const LINKS = {
     { label: "Marketplace", to: "/marketplace" },
     { label: "Publish", to: "/submit" },
     { label: "Pricing", to: "/pricing" },
+    { label: "Pull plan", to: "/playbook" },
+    { label: "Debug", to: "/debug" },
     { label: "Docs", to: "/docs" },
     { label: "New here?", to: "/start" },
   ],

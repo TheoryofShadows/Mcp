@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Zap, ArrowRight, Package, Download, DollarSign, Users, ShieldCheck, Bot, CreditCard, Terminal } from "lucide-react";
+import { Zap, ArrowRight, Package, Download, DollarSign, Users, ShieldCheck, Bot, CreditCard, Terminal } from "lucide-react";
 import ToolCard from "../components/ToolCard";
 import CategoryCard from "../components/CategoryCard";
+import JobSearch from "../components/JobSearch";
 import { SEED_TOOLS, SEED_CATEGORIES, SEED_STATS } from "../data/seed";
 import { supabase } from "../lib/supabase";
 import { fetchServers, fetchStats, fetchCategories } from "../api/client";
@@ -85,7 +86,6 @@ const STAT_ITEMS = [
 ];
 
 export default function Home() {
-  const [search, setSearch] = useState("");
   const [tools, setTools] = useState(SEED_TOOLS);
   const [stats, setStats] = useState(SEED_STATS);
   const [catCounts, setCatCounts] = useState(null);
@@ -113,12 +113,6 @@ export default function Home() {
       requestAnimationFrame(() => el.scrollIntoView({ behavior: "smooth", block: "start" }));
     }
   }, []);
-
-  function handleSearch(e) {
-    e.preventDefault();
-    if (search.trim()) navigate(`/marketplace?q=${encodeURIComponent(search.trim())}`);
-    else navigate("/marketplace");
-  }
 
   const featured = tools.slice(0, 6);
   const countByCategory = (catId) =>
@@ -221,67 +215,11 @@ export default function Home() {
             }}
           >
             Every listing gets a <strong style={{ color: "var(--text-primary)", fontWeight: 600 }}>computed Trust Score</strong> — not a vanity badge.
-            New paid utilities on the marketplace include site health checks, license scans, env/i18n/JSON helpers, and more.
-            Install into Claude, Cursor, or VS Code in one click. Publishers keep{" "}
+            Describe the job. Copy a trusted install. Publishers keep{" "}
             <span style={{ color: "#67e8f9" }}>85%</span> via Stripe Connect.
           </p>
 
-          {/* Search */}
-          <form onSubmit={handleSearch} style={{ display: "flex", gap: "0", maxWidth: "520px", margin: "0 auto 20px" }} className="hero-search">
-            <div style={{ position: "relative", flex: 1 }}>
-              <Search
-                size={16}
-                style={{
-                  position: "absolute",
-                  left: "16px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: "var(--text-muted)",
-                  pointerEvents: "none",
-                }}
-              />
-              <input
-                type="search"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search GitHub, Stripe, Figma, AWS…"
-                style={{
-                  width: "100%",
-                  padding: "14px 16px 14px 44px",
-                  background: "#12121c",
-                  border: "1px solid #2e2e44",
-                  borderRight: "none",
-                  borderRadius: "12px 0 0 12px",
-                  color: "var(--text-primary)",
-                  fontSize: "14px",
-                  fontFamily: "var(--font-body)",
-                  outline: "none",
-                }}
-                onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(34, 211, 238,0.4)")}
-                onBlur={(e) => (e.currentTarget.style.borderColor = "#2e2e44")}
-                aria-label="Search MCP tools"
-              />
-            </div>
-            <button
-              type="submit"
-              style={{
-                padding: "14px 22px",
-                background: "linear-gradient(135deg, #22d3ee, #14b8a6)",
-                border: "none",
-                borderRadius: "0 12px 12px 0",
-                color: "#fff",
-                fontSize: "14px",
-                fontWeight: 600,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-                whiteSpace: "nowrap",
-              }}
-            >
-              Search <ArrowRight size={14} />
-            </button>
-          </form>
+          <JobSearch />
 
           {/* Primary CTAs */}
           <div style={{ display: "flex", justifyContent: "center", gap: "10px", flexWrap: "wrap", marginBottom: "28px" }}>
