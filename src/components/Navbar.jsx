@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutGrid, Upload, BarChart3, LogIn, Menu, X, Zap, Tag } from "lucide-react";
+import { LayoutGrid, Upload, BarChart3, LogIn, Menu, X, Zap, Tag, Map, ShieldCheck } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import AdminNavLink from "./AdminNavLink";
 
@@ -8,6 +8,8 @@ const NAV_LINKS = [
   { path: "/marketplace", label: "Marketplace", icon: LayoutGrid },
   { path: "/pricing",     label: "Pricing",      icon: Tag },
   { path: "/submit",      label: "Publish",      icon: Upload },
+  { path: "/playbook",    label: "Pull plan",    icon: Map },
+  { path: "/debug",       label: "Debug",        icon: ShieldCheck },
   { path: "/dashboard",   label: "Dashboard",    icon: BarChart3 },
 ];
 

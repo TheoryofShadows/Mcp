@@ -209,7 +209,7 @@ Gives AI agents full access to Slack workspaces via the Slack API.
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-slack"],
       "env": {
-        "SLACK_BOT_TOKEN": "xoxb-...",
+        "SLACK_BOT_TOKEN": "<SLACK_BOT_TOKEN>",
         "SLACK_TEAM_ID": "T0123456789"
       }
     }
@@ -441,49 +441,36 @@ Full-featured AWS management for AI agents.
   {
     id: "9",
     slug: "figma-mcp",
-    name: "Figma Bridge",
-    author_name: "designops",
+    name: "Figma",
+    author_name: "figma",
     category_id: "creative",
     description:
-      "Figma MCP server for AI agents. Read designs, extract components, inspect styles, and auto-generate code from Figma files.",
-    readme: `# Figma Bridge MCP Server
+      "Official Figma MCP. Remote endpoint recommended; agents read selected frames, design tokens, and component specs.",
+    readme: `# Figma MCP
 
-Connects AI agents to Figma for design-to-code workflows.
-
-## Features
-
-- Read frames, components, and variants
-- Extract design tokens (colors, typography, spacing)
-- Generate React/HTML/CSS from designs
-- List and search Figma files
-- Access team libraries
-
-## Setup
-
-1. Create a [Figma Personal Access Token](https://www.figma.com/developers/api#access-tokens)
+Official remote MCP. Prefer the HTTP transport over a local token.
 
 \`\`\`json
 {
   "mcpServers": {
     "figma": {
-      "command": "npx",
-      "args": ["-y", "figma-mcp-server"],
-      "env": {
-        "FIGMA_ACCESS_TOKEN": "figd_..."
-      }
+      "url": "https://mcp.figma.com/mcp"
     }
   }
 }
-\`\`\``,
-    github_url: "https://github.com/designops/figma-mcp-server",
-    install_command: "npx -y figma-mcp-server",
-    price_type: "paid",
+\`\`\`
+
+Local installs take a \`<FIGMA_API_KEY>\` placeholder — never a real token.`,
+    github_url: "https://github.com/figma/mcp-server-guide",
+    install_command: "npx -y figma-developer-mcp",
+    remote_url: "https://mcp.figma.com/mcp",
+    price_type: "free",
     purchasable: false,
-    price_amount: 8,
-    price_label: "$8",
+    price_amount: 0,
+    price_label: "Free",
     verified: false,
     trending: false,
-    tags: ["figma", "design", "ui", "code-gen"],
+    tags: ["figma", "design", "ui", "tokens"],
     gradient: "linear-gradient(135deg, #7dd3fc, #f472b6)",
     installs: 0,
     rating: 0,
@@ -523,7 +510,7 @@ Full Linear API access for AI project management agents.
       "command": "npx",
       "args": ["-y", "@linear/mcp-server"],
       "env": {
-        "LINEAR_API_KEY": "lin_api_..."
+        "LINEAR_API_KEY": "<LINEAR_API_KEY>"
       }
     }
   }
@@ -630,7 +617,7 @@ Access the full Hugging Face ecosystem from AI agents.
       "command": "npx",
       "args": ["-y", "@huggingface/mcp-server"],
       "env": {
-        "HF_TOKEN": "hf_..."
+        "HF_TOKEN": "<HF_TOKEN>"
       }
     }
   }
@@ -708,62 +695,6 @@ This server can control real browsers on your machine. Only run it in trusted en
     weekly_growth: null,
     revenue_monthly: 0,
     capabilities: ["browser_control", "screenshot", "network_access"],
-    risk_level: "medium",
-  },
-  {
-    id: "14",
-    slug: "puppeteer-mcp",
-    name: "Puppeteer MCP",
-    author_name: "modelcontextprotocol",
-    category_id: "dev",
-    description:
-      "Official MCP server for Puppeteer. Control headless Chrome/Chromium, automate web tasks, take screenshots, and extract data from any website.",
-    readme: `# Puppeteer MCP Server
-
-MCP server providing browser automation via Puppeteer.
-
-## Features
-
-- Headless Chrome control
-- Navigate to URLs, click elements, fill forms
-- Take full-page screenshots
-- Generate PDFs from web pages
-- Execute JavaScript in browser context
-- Handle single-page applications
-
-## Setup
-
-\`\`\`json
-{
-  "mcpServers": {
-    "puppeteer": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-puppeteer"]
-    }
-  }
-}
-\`\`\`
-
-## Use Cases
-
-- Web scraping and data extraction
-- Automated testing
-- PDF generation from HTML
-- UI screenshot capture`,
-    github_url: "https://github.com/modelcontextprotocol/servers/tree/main/src/puppeteer",
-    install_command: "npx -y @modelcontextprotocol/server-puppeteer",
-    price_type: "free",
-    price_label: "Free",
-    verified: false,
-    trending: true,
-    tags: ["puppeteer", "browser", "chrome", "automation", "scraping"],
-    gradient: "linear-gradient(135deg, #00b4d8, #0077b6)",
-    installs: 0,
-    rating: 0,
-    review_count: 0,
-    weekly_growth: null,
-    revenue_monthly: 0,
-    capabilities: ["browser_control", "screenshot", "network_access", "js_execution"],
     risk_level: "medium",
   },
   {

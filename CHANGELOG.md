@@ -6,6 +6,18 @@ continuously from `main`, so "released" means "merged to `main` and live".
 
 ## [Unreleased]
 
+### Added
+- **Job-to-install front door** — homepage matcher turns a job ("open PRs",
+  "linear tickets") into trusted listings from the live catalog. Unmatched jobs
+  (Gmail, HubSpot) file as publisher bounties.
+- **Debug inspector** (`/debug`) — catalog/job integrity: fake repos, secret
+  placeholders, duplicate slugs, job→slug links.
+- **Pull plan** (`/playbook`) — 7-day GTM execution page.
+
+### Fixed
+- **Linear and Slack** are filled jobs — both already list on the marketplace.
+- **Home.jsx** leftover `}, []);` after the search-form swap.
+
 ### Security
 - **List API paywall** — `GET /api/servers` no longer leaks `install_command` for
   paid tools. Anonymous visitors and non-buyers see `install_locked: true` and

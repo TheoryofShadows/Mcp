@@ -14,6 +14,8 @@ const Login        = lazy(() => import("./pages/Login"));
 const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 const Admin        = lazy(() => import("./pages/Admin"));
 const Pricing      = lazy(() => import("./pages/Pricing"));
+const Playbook     = lazy(() => import("./pages/Playbook"));
+const Debug        = lazy(() => import("./pages/Debug"));
 
 const DOCS_README_URL =
   "https://github.com/TheoryofShadows/Mcp/blob/main/docs/README.md";
@@ -90,6 +92,8 @@ export default function App() {
             <Route path="/auth/callback"  element={<AuthCallback />} />
             <Route path="/admin"          element={<Admin />} />
             <Route path="/pricing"        element={<Pricing />} />
+            <Route path="/playbook"       element={<Playbook />} />
+            <Route path="/debug"          element={<Debug />} />
             {/* Legacy route compat */}
             <Route path="/servers/:slug" element={<ToolDetail />} />
           </Routes>
