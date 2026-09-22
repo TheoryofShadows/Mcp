@@ -107,7 +107,7 @@ export default function PublishSection({ onAuthClick }) {
           style={{
             fontFamily: "var(--font-heading)",
             fontSize: "var(--font-4xl)",
-            fontWeight: 800,
+            fontWeight: 400,
             letterSpacing: "-1px",
             marginBottom: "var(--space-sm)",
           }}

@@ -51,7 +51,7 @@ export default function Debug() {
 
   return (
     <main id="main-content" style={{ maxWidth: "960px", margin: "0 auto", padding: "48px 24px 80px" }}>
-      <p style={{ fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.16em", color: "#67e8f9" }}>
+      <p style={{ fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.16em", color: "var(--accent)" }}>
         INTEGRITY
       </p>
       <h1
@@ -84,8 +84,8 @@ export default function Debug() {
               alignItems: "center",
               padding: "12px 14px",
               borderRadius: "10px",
-              border: "1px solid #1d1d2b",
-              background: "#12121c",
+              border: "1px solid var(--border-subtle)",
+              background: "var(--bg-card)",
             }}
           >
             <Badge ok={c.ok}>{c.ok ? "pass" : "fail"}</Badge>
@@ -108,7 +108,7 @@ export default function Debug() {
           </thead>
           <tbody>
             {JOBS.map((j) => (
-              <tr key={j.id} style={{ borderTop: "1px solid #1d1d2b" }}>
+              <tr key={j.id} style={{ borderTop: "1px solid var(--border-subtle)" }}>
                 <td style={{ padding: "8px 10px", fontFamily: "var(--font-mono)" }}>{j.id}</td>
                 <td style={{ padding: "8px 10px" }}>{j.title}</td>
                 <td style={{ padding: "8px 10px" }}>{j.filled ? "filled" : "bounty"}</td>

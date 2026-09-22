@@ -11,9 +11,9 @@ const TRUST_LEVELS = {
   },
   verified: {
     label: "Verified",
-    color: "#22d3ee",
-    bg: "rgba(34, 211, 238,0.10)",
-    border: "rgba(34, 211, 238,0.25)",
+    color: "var(--accent)",
+    bg: "rgba(138, 154, 134,0.10)",
+    border: "rgba(138, 154, 134,0.25)",
     icon: BadgeCheck,
     title: "Verified publisher — identity and code reviewed by MCPX team",
   },

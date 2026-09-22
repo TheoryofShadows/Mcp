@@ -126,7 +126,7 @@ export default function Submit() {
           repo_url: githubUrl,
           install_command: form.install_command,
           tags,
-          gradient: "linear-gradient(135deg, #22d3ee, #14b8a6)",
+          gradient: "var(--text-primary)",
           published: true, // Express path publishes active immediately; Supabase path marks published
         });
         if (error) throw error;
@@ -173,7 +173,7 @@ export default function Submit() {
         >
           <CheckCircle size={28} color="#10b981" />
         </div>
-        <h1 style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "26px", marginBottom: "12px" }}>
+        <h1 style={{ fontFamily: "var(--font-heading)", fontWeight: 400, fontSize: "26px", marginBottom: "12px" }}>
           Tool Published!
         </h1>
         <p style={{ color: "var(--text-secondary)", fontSize: "15px", lineHeight: 1.65, marginBottom: "32px" }}>
@@ -184,9 +184,9 @@ export default function Submit() {
             to="/marketplace"
             style={{
               padding: "11px 22px",
-              background: "linear-gradient(135deg, #22d3ee, #14b8a6)",
+              background: "var(--text-primary)",
               borderRadius: "10px",
-              color: "#fff",
+              color: "var(--bg-primary)",
               textDecoration: "none",
               fontSize: "14px",
               fontWeight: 600,
@@ -198,8 +198,8 @@ export default function Submit() {
             to="/dashboard"
             style={{
               padding: "11px 22px",
-              background: "#12121c",
-              border: "1px solid #2e2e44",
+              background: "var(--bg-card)",
+              border: "1px solid var(--border-accent)",
               borderRadius: "10px",
               color: "var(--text-secondary)",
               textDecoration: "none",
@@ -216,8 +216,8 @@ export default function Submit() {
   const inputStyle = {
     width: "100%",
     padding: "11px 14px",
-    background: "#0d0d15",
-    border: "1px solid #2e2e44",
+    background: "var(--bg-secondary)",
+    border: "1px solid var(--border-accent)",
     borderRadius: "10px",
     color: "var(--text-primary)",
     fontSize: "14px",
@@ -240,7 +240,7 @@ export default function Submit() {
   return (
     <main id="main-content" style={{ maxWidth: "680px", margin: "0 auto", padding: "48px 24px 80px" }}>
       <div style={{ marginBottom: "36px" }}>
-        <h1 style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "28px", marginBottom: "8px", letterSpacing: "-0.5px" }}>
+        <h1 style={{ fontFamily: "var(--font-heading)", fontWeight: 400, fontSize: "28px", marginBottom: "8px", letterSpacing: "-0.5px" }}>
           Publish an MCP Tool
         </h1>
         <p style={{ fontSize: "14px", color: "var(--text-muted)" }}>
@@ -253,7 +253,7 @@ export default function Submit() {
       <PublishPipeline style={{ marginBottom: "20px" }} />
 
       {/* GitHub URL fetch */}
-      <div style={{ background: "#12121c", border: "1px solid #1d1d2b", borderRadius: "14px", padding: "24px", marginBottom: "20px" }}>
+      <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: "14px", padding: "24px", marginBottom: "20px" }}>
         <label style={labelStyle}>
           <GithubIcon size={12} style={{ display: "inline", marginRight: "5px" }} />
           GitHub Repository URL
@@ -265,8 +265,8 @@ export default function Submit() {
             onChange={(e) => { setGithubUrl(e.target.value); setFetched(false); setFetchError(""); }}
             placeholder="https://github.com/owner/repo"
             style={{ ...inputStyle, flex: 1 }}
-            onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(34, 211, 238,0.4)")}
-            onBlur={(e) => (e.currentTarget.style.borderColor = "#2e2e44")}
+            onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(138, 154, 134,0.4)")}
+            onBlur={(e) => (e.currentTarget.style.borderColor = "var(--border-accent)")}
           />
           <button
             type="button"
@@ -274,10 +274,10 @@ export default function Submit() {
             disabled={fetching || !githubUrl.trim()}
             style={{
               padding: "11px 18px",
-              background: fetching ? "#1d1d2b" : "rgba(34, 211, 238,0.15)",
-              border: "1px solid rgba(34, 211, 238,0.3)",
+              background: fetching ? "var(--border-subtle)" : "rgba(138, 154, 134,0.15)",
+              border: "1px solid rgba(138, 154, 134,0.3)",
               borderRadius: "10px",
-              color: "#a5f3fc",
+              color: "var(--accent-light)",
               fontSize: "13px",
               cursor: fetching ? "not-allowed" : "pointer",
               whiteSpace: "nowrap",
@@ -303,22 +303,22 @@ export default function Submit() {
       </div>
 
       <form onSubmit={handleSubmit}>
-        <div style={{ background: "#12121c", border: "1px solid #1d1d2b", borderRadius: "14px", padding: "24px", marginBottom: "16px", display: "flex", flexDirection: "column", gap: "18px" }}>
+        <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: "14px", padding: "24px", marginBottom: "16px", display: "flex", flexDirection: "column", gap: "18px" }}>
           <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "16px", marginBottom: "4px" }}>Tool Details</h2>
 
           <div>
             <label style={labelStyle}>Tool Name *</label>
             <input type="text" required placeholder="My Awesome MCP Tool" style={inputStyle} {...field("name")}
-              onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(34, 211, 238,0.4)")}
-              onBlur={(e) => (e.currentTarget.style.borderColor = "#2e2e44")}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(138, 154, 134,0.4)")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = "var(--border-accent)")}
             />
           </div>
 
           <div>
             <label style={labelStyle}>Author / Publisher *</label>
             <input type="text" required placeholder="your-github-username" style={inputStyle} {...field("author_name")}
-              onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(34, 211, 238,0.4)")}
-              onBlur={(e) => (e.currentTarget.style.borderColor = "#2e2e44")}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(138, 154, 134,0.4)")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = "var(--border-accent)")}
             />
           </div>
 
@@ -330,16 +330,16 @@ export default function Submit() {
               placeholder="Describe what your MCP tool does and what problems it solves…"
               style={{ ...inputStyle, resize: "vertical", lineHeight: 1.6 }}
               {...field("description")}
-              onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(34, 211, 238,0.4)")}
-              onBlur={(e) => (e.currentTarget.style.borderColor = "#2e2e44")}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(138, 154, 134,0.4)")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = "var(--border-accent)")}
             />
           </div>
 
           <div>
             <label style={labelStyle}>Category *</label>
             <select required style={{ ...inputStyle, cursor: "pointer" }} {...field("category_id")}
-              onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(34, 211, 238,0.4)")}
-              onBlur={(e) => (e.currentTarget.style.borderColor = "#2e2e44")}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(138, 154, 134,0.4)")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = "var(--border-accent)")}
             >
               {CATEGORIES.map((cat) => (
                 <option key={cat.id} value={cat.id}>{cat.icon} {cat.label}</option>
@@ -350,8 +350,8 @@ export default function Submit() {
           <div>
             <label style={labelStyle}>Install Command</label>
             <input type="text" placeholder="npx -y @org/mcp-tool" style={inputStyle} {...field("install_command")}
-              onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(34, 211, 238,0.4)")}
-              onBlur={(e) => (e.currentTarget.style.borderColor = "#2e2e44")}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(138, 154, 134,0.4)")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = "var(--border-accent)")}
             />
             <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "7px", lineHeight: 1.5 }}>
               The exact command to launch your server. Used by the install buttons and <code style={{ fontFamily: "var(--font-mono)" }}>npx @mcpx-digital/cli install</code>.
@@ -362,14 +362,14 @@ export default function Submit() {
           <div>
             <label style={labelStyle}>Tags (comma-separated)</label>
             <input type="text" placeholder="github, api, automation" style={inputStyle} {...field("tags")}
-              onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(34, 211, 238,0.4)")}
-              onBlur={(e) => (e.currentTarget.style.borderColor = "#2e2e44")}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(138, 154, 134,0.4)")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = "var(--border-accent)")}
             />
           </div>
         </div>
 
         {/* Pricing */}
-        <div style={{ background: "#12121c", border: "1px solid #1d1d2b", borderRadius: "14px", padding: "24px", marginBottom: "16px" }}>
+        <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: "14px", padding: "24px", marginBottom: "16px" }}>
           <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "16px", marginBottom: "18px" }}>Pricing</h2>
 
           <div style={{ display: "flex", gap: "10px", marginBottom: form.price_type === "paid" ? "16px" : "0" }}>
@@ -383,9 +383,9 @@ export default function Submit() {
                   padding: "14px",
                   borderRadius: "10px",
                   border: "1px solid",
-                  borderColor: form.price_type === type ? "rgba(34, 211, 238,0.5)" : "#2e2e44",
-                  background: form.price_type === type ? "rgba(34, 211, 238,0.1)" : "#0d0d15",
-                  color: form.price_type === type ? "#a5f3fc" : "var(--text-secondary)",
+                  borderColor: form.price_type === type ? "rgba(138, 154, 134,0.5)" : "var(--border-accent)",
+                  background: form.price_type === type ? "rgba(138, 154, 134,0.1)" : "var(--bg-secondary)",
+                  color: form.price_type === type ? "var(--accent-light)" : "var(--text-secondary)",
                   fontSize: "14px",
                   fontWeight: 600,
                   cursor: "pointer",
@@ -412,8 +412,8 @@ export default function Submit() {
                   placeholder="9"
                   style={{ ...inputStyle, paddingLeft: "28px" }}
                   {...field("price_amount")}
-                  onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(34, 211, 238,0.4)")}
-                  onBlur={(e) => (e.currentTarget.style.borderColor = "#2e2e44")}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(138, 154, 134,0.4)")}
+                  onBlur={(e) => (e.currentTarget.style.borderColor = "var(--border-accent)")}
                 />
               </div>
 
@@ -438,9 +438,9 @@ export default function Submit() {
                         borderRadius: "10px",
                         cursor: "pointer",
                         textAlign: "left",
-                        background: form.billing_period === id ? "rgba(34, 211, 238,0.10)" : "#12121c",
-                        border: `1px solid ${form.billing_period === id ? "rgba(34, 211, 238,0.45)" : "#2e2e44"}`,
-                        color: form.billing_period === id ? "#a5f3fc" : "var(--text-secondary)",
+                        background: form.billing_period === id ? "rgba(138, 154, 134,0.10)" : "var(--bg-card)",
+                        border: `1px solid ${form.billing_period === id ? "rgba(138, 154, 134,0.45)" : "var(--border-accent)"}`,
+                        color: form.billing_period === id ? "var(--accent-light)" : "var(--text-secondary)",
                       }}
                     >
                       <div style={{ fontSize: "13px", fontWeight: 600 }}>{label}</div>
@@ -453,7 +453,7 @@ export default function Submit() {
                   renewal, paid out automatically.
                 </p>
                 <p style={{ margin: "6px 0 0", fontSize: "11px", color: "var(--text-muted)", lineHeight: 1.5 }}>
-                  <strong style={{ color: "#a5f3fc" }}>Minimum $3.</strong> Card
+                  <strong style={{ color: "var(--accent-light)" }}>Minimum $3.</strong> Card
                   processing costs about 2.9% + 30¢ per sale, so under roughly
                   $2.48 the fees exceed the platform&apos;s 15% and every purchase
                   would lose money. If you want it cheaper than $3, list it free —
@@ -467,15 +467,15 @@ export default function Submit() {
                 style={{
                   marginTop: "16px",
                   padding: "16px",
-                  background: "rgba(34, 211, 238,0.06)",
-                  border: "1px solid rgba(34, 211, 238,0.15)",
+                  background: "rgba(138, 154, 134,0.06)",
+                  border: "1px solid rgba(138, 154, 134,0.15)",
                   borderRadius: "10px",
                   display: "flex",
                   gap: "12px",
                   alignItems: "flex-start",
                 }}
               >
-                <CreditCard size={16} color="#67e8f9" style={{ flexShrink: 0, marginTop: "1px" }} />
+                <CreditCard size={16} color="var(--accent)" style={{ flexShrink: 0, marginTop: "1px" }} />
                 <div>
                   <p style={{ fontSize: "13px", fontWeight: 600, marginBottom: "4px" }}>Stripe Connect</p>
                   <p style={{ fontSize: "12px", color: "var(--text-muted)", lineHeight: 1.6 }}>
@@ -489,15 +489,15 @@ export default function Submit() {
         </div>
 
         {/* README */}
-        <div style={{ background: "#12121c", border: "1px solid #1d1d2b", borderRadius: "14px", padding: "24px", marginBottom: "20px" }}>
+        <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: "14px", padding: "24px", marginBottom: "20px" }}>
           <label style={{ ...labelStyle, marginBottom: "10px" }}>README / Documentation</label>
           <textarea
             rows={10}
             placeholder="## My Tool&#10;&#10;Paste your README markdown here…"
             style={{ ...inputStyle, resize: "vertical", lineHeight: 1.6, fontFamily: "var(--font-mono)", fontSize: "12.5px" }}
             {...field("readme")}
-            onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(34, 211, 238,0.4)")}
-            onBlur={(e) => (e.currentTarget.style.borderColor = "#2e2e44")}
+            onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(138, 154, 134,0.4)")}
+            onBlur={(e) => (e.currentTarget.style.borderColor = "var(--border-accent)")}
           />
         </div>
 
@@ -517,7 +517,7 @@ export default function Submit() {
             <Info size={15} color="#fbbf24" style={{ flexShrink: 0 }} />
             <p style={{ fontSize: "13px", color: "var(--text-secondary)" }}>
               You must be{" "}
-              <Link to="/login" style={{ color: "#67e8f9" }}>signed in</Link>
+              <Link to="/login" style={{ color: "var(--accent)" }}>signed in</Link>
               {" "}to submit a tool.
             </p>
           </div>
@@ -535,10 +535,10 @@ export default function Submit() {
           style={{
             width: "100%",
             padding: "14px",
-            background: submitting ? "#1d1d2b" : "linear-gradient(135deg, #22d3ee, #14b8a6)",
+            background: submitting ? "var(--border-subtle)" : "var(--text-primary)",
             border: "none",
             borderRadius: "10px",
-            color: "#fff",
+            color: "var(--bg-primary)",
             fontSize: "15px",
             fontWeight: 600,
             cursor: submitting ? "not-allowed" : "pointer",
@@ -546,7 +546,7 @@ export default function Submit() {
             alignItems: "center",
             justifyContent: "center",
             gap: "8px",
-            boxShadow: submitting ? "none" : "0 0 24px rgba(34, 211, 238,0.3)",
+            boxShadow: submitting ? "none" : "0 0 24px rgba(138, 154, 134,0.3)",
             transition: "all 0.15s",
           }}
         >

@@ -45,24 +45,16 @@ export default function HeroSection() {
       </div>
 
       <div className="animate-in" style={{ position: "relative", zIndex: "var(--z-card)" }}>
-        <div aria-live="polite" style={{ display: "inline-flex", alignItems: "center", gap: "var(--space-sm)", padding: "6px 16px", background: "rgba(34, 211, 238, 0.08)", border: "1px solid rgba(34, 211, 238, 0.2)", borderRadius: "30px", marginBottom: "28px" }}>
-          <span aria-hidden="true" style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--accent-light)", boxShadow: "0 0 8px var(--accent)", animation: "pulse-glow 2s ease-in-out infinite" }} />
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: "var(--font-sm)", color: "var(--accent-light)", letterSpacing: "1px" }}>
-            TRUST SCORE · 85% PAYOUTS · ONE-CLICK INSTALL
-          </span>
-        </div>
+        <p style={{ fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--accent)", marginBottom: "16px" }}>
+          Agents hire tools
+        </p>
 
-        <h1 className="hero-heading" style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(40px, 6vw, 76px)", fontWeight: 800, lineHeight: 1.05, letterSpacing: "-2px", maxWidth: "800px", margin: "0 auto 20px" }}>
-          <span>The trusted marketplace for</span>
-          <br />
-          <span style={{ background: "linear-gradient(135deg, var(--accent-electric), var(--accent-blue), var(--accent-purple))", backgroundSize: "200% 200%", animation: "gradient-shift 4s ease infinite", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-            MCP tools
-          </span>
+        <h1 className="hero-heading" style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(40px, 6vw, 76px)", fontWeight: 400, lineHeight: 1.12, letterSpacing: "-0.03em", maxWidth: "800px", margin: "0 auto 20px", color: "var(--text-primary)" }}>
+          MCPX is where they hire.
         </h1>
 
-        <p style={{ fontSize: "var(--font-xl)", color: "var(--text-secondary)", maxWidth: "560px", margin: "0 auto 36px", lineHeight: 1.7, fontWeight: 300 }}>
-          Computed Trust Scores. Stripe Connect payouts (publishers keep 85%).
-          One-click install for Claude, Cursor, and VS Code.
+        <p style={{ fontSize: "var(--font-xl)", color: "var(--text-secondary)", maxWidth: "560px", margin: "0 auto 36px", lineHeight: 1.7 }}>
+          Describe the job. Copy a trusted install. Every listing gets a computed Trust Score — not a vanity badge. Publishers keep 85% via Stripe Connect.
         </p>
 
         <div className="hero-cta" style={{ display: "flex", gap: "14px", justifyContent: "center", flexWrap: "wrap" }}>
@@ -81,7 +73,7 @@ export default function HeroSection() {
                 <dt style={{ fontFamily: "var(--font-mono)", fontSize: "var(--font-xs)", color: "var(--text-muted)", letterSpacing: "1px", textTransform: "uppercase", order: 2 }}>
                   {s.label}
                 </dt>
-                <dd style={{ fontFamily: "var(--font-heading)", fontSize: "28px", fontWeight: 800, color: s.color, letterSpacing: "-1px", marginLeft: 0 }}>
+                <dd style={{ fontFamily: "var(--font-heading)", fontSize: "28px", fontWeight: 400, color: s.color, letterSpacing: "-1px", marginLeft: 0 }}>
                   {s.value}
                 </dd>
               </div>

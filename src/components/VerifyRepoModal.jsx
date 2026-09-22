@@ -78,7 +78,7 @@ export default function VerifyRepoModal({ server, onClose, onVerified }) {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        style={{ background: "#12121c", border: "1px solid #1a1a28", borderRadius: "14px", width: "100%", maxWidth: "520px", maxHeight: "90vh", overflowY: "auto" }}
+        style={{ background: "var(--bg-card)", border: "1px solid #1a1a28", borderRadius: "14px", width: "100%", maxWidth: "520px", maxHeight: "90vh", overflowY: "auto" }}
       >
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 20px", borderBottom: "1px solid #1a1a28" }}>
@@ -121,7 +121,7 @@ export default function VerifyRepoModal({ server, onClose, onVerified }) {
                 <code style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "#c4c9d4", wordBreak: "break-all" }}>{info.token}</code>
                 <button
                   onClick={copyToken}
-                  style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "6px 12px", borderRadius: "6px", border: "none", background: copied ? "rgba(16,185,129,0.12)" : "rgba(34, 211, 238,0.12)", color: copied ? "#10b981" : "#67e8f9", cursor: "pointer", fontSize: "12px", fontFamily: "var(--font-mono)", flexShrink: 0 }}
+                  style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "6px 12px", borderRadius: "6px", border: "none", background: copied ? "rgba(16,185,129,0.12)" : "rgba(138, 154, 134,0.12)", color: copied ? "#10b981" : "var(--accent)", cursor: "pointer", fontSize: "12px", fontFamily: "var(--font-mono)", flexShrink: 0 }}
                 >
                   {copied ? <Check size={12} /> : <Copy size={12} />}
                   {copied ? "Copied" : "Copy"}
@@ -146,7 +146,7 @@ export default function VerifyRepoModal({ server, onClose, onVerified }) {
                 disabled={checking || cooldown > 0}
                 style={{
                   width: "100%", padding: "12px", borderRadius: "10px", border: "none",
-                  background: "linear-gradient(135deg, #10b981, #059669)", color: "#fff",
+                  background: "linear-gradient(135deg, #10b981, #059669)", color: "var(--bg-primary)",
                   fontSize: "13px", fontWeight: 600,
                   cursor: checking || cooldown > 0 ? "not-allowed" : "pointer",
                   opacity: checking || cooldown > 0 ? 0.7 : 1,

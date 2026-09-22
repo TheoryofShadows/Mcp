@@ -35,8 +35,8 @@ function CopyButton({ text, style = {} }) {
         padding: "6px 12px",
         borderRadius: "6px",
         border: "none",
-        background: copied ? "rgba(16,185,129,0.12)" : "rgba(34, 211, 238,0.12)",
-        color: copied ? "#10b981" : "#67e8f9",
+        background: copied ? "rgba(16,185,129,0.12)" : "rgba(138, 154, 134,0.12)",
+        color: copied ? "#10b981" : "var(--accent)",
         cursor: "pointer",
         fontSize: "12px",
         fontFamily: "var(--font-mono)",
@@ -118,9 +118,9 @@ function TabButton({ active, onClick, icon: Icon, label }) {
         padding: "8px 16px",
         borderRadius: "8px",
         border: "1px solid",
-        borderColor: active ? "rgba(34, 211, 238,0.5)" : "rgba(255,255,255,0.06)",
-        background: active ? "rgba(34, 211, 238,0.12)" : "transparent",
-        color: active ? "#67e8f9" : "#6b7280",
+        borderColor: active ? "rgba(138, 154, 134,0.5)" : "rgba(255,255,255,0.06)",
+        background: active ? "rgba(138, 154, 134,0.12)" : "transparent",
+        color: active ? "var(--accent)" : "#6b7280",
         cursor: "pointer",
         fontSize: "13px",
         fontFamily: "var(--font-mono)",
@@ -155,7 +155,7 @@ export default function InstallButtons({ server }) {
   return (
     <div
       style={{
-        background: "var(--bg-card, #12121c)",
+        background: "var(--bg-card, var(--bg-card))",
         border: "1px solid var(--border-subtle, #1a1a28)",
         borderRadius: "12px",
         overflow: "hidden",
@@ -221,7 +221,7 @@ export default function InstallButtons({ server }) {
                 href="https://claude.ai/download"
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ color: "#22d3ee", textDecoration: "none" }}
+                style={{ color: "var(--accent)", textDecoration: "none" }}
               >
                 Claude Desktop
               </a>{" "}

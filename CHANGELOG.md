@@ -6,6 +6,12 @@ continuously from `main`, so "released" means "merged to `main` and live".
 
 ## [Unreleased]
 
+### Changed
+- **Editorial restyle** — live site chrome is paper/ink (Instrument Serif +
+  Sans, IBM Plex Mono, sage accent). Replaces the Aurora cyan/Syne look.
+  Same Express + SQLite + Stripe product, catalog, Trust Scores, and
+  job-to-install matcher.
+
 ### Added
 - **Job-to-install front door** — homepage matcher turns a job ("open PRs",
   "linear tickets") into trusted listings from the live catalog. Unmatched jobs

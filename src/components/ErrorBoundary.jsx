@@ -22,7 +22,7 @@ export default class ErrorBoundary extends Component {
             padding: "48px 24px",
             minHeight: "100vh",
             boxSizing: "border-box",
-            background: "#08080d",
+            background: "var(--bg-primary)",
             textAlign: "center",
             display: "flex",
             flexDirection: "column",
@@ -34,19 +34,19 @@ export default class ErrorBoundary extends Component {
           <div style={{ fontSize: "36px", opacity: 0.4 }}>{"\u26A0"}</div>
           <p
             style={{
-              fontFamily: "var(--font-heading, 'Syne', sans-serif)",
+              fontFamily: "var(--font-heading, ui-serif, Georgia, serif)",
               fontSize: "18px",
-              fontWeight: 700,
-              color: "#F0F0F5",
+              fontWeight: 400,
+              color: "var(--text-primary)",
             }}
           >
             Something went wrong
           </p>
           <p
             style={{
-              fontFamily: "var(--font-mono, 'Space Mono', monospace)",
+              fontFamily: "var(--font-mono, ui-monospace, monospace)",
               fontSize: "12px",
-              color: "#A0A0B8",
+              color: "var(--text-secondary)",
               maxWidth: "32rem",
               wordBreak: "break-word",
             }}
