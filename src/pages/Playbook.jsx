@@ -41,7 +41,7 @@ const DAYS = [
 export default function Playbook() {
   return (
     <main id="main-content" style={{ maxWidth: "720px", margin: "0 auto", padding: "48px 24px 80px" }}>
-      <p style={{ fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.16em", color: "#67e8f9" }}>
+      <p style={{ fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.16em", color: "var(--accent)" }}>
         GO TO MARKET
       </p>
       <h1
@@ -63,7 +63,7 @@ export default function Playbook() {
       <ol style={{ listStyle: "none", padding: 0, margin: "36px 0", display: "grid", gap: "22px" }}>
         {DAYS.map((d) => (
           <li key={d.day} style={{ display: "grid", gridTemplateColumns: "48px 1fr", gap: "16px" }}>
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: "13px", color: "#67e8f9" }}>D{d.day}</div>
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: "13px", color: "var(--accent)" }}>D{d.day}</div>
             <div>
               <h2 style={{ fontSize: "18px", margin: "0 0 8px" }}>{d.title}</h2>
               <p style={{ margin: 0, color: "var(--text-secondary)", fontSize: "14px", lineHeight: 1.7 }}>{d.body}</p>

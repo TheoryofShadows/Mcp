@@ -93,7 +93,7 @@ export default function AuthModal({ onClose }) {
           style={{
             fontFamily: "var(--font-heading)",
             fontSize: "var(--font-2xl)",
-            fontWeight: 800,
+            fontWeight: 400,
             letterSpacing: "-0.5px",
           }}
         >

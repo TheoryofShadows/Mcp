@@ -26,7 +26,7 @@ export default function DocsSection() {
           style={{
             fontFamily: "var(--font-heading)",
             fontSize: "var(--font-4xl)",
-            fontWeight: 800,
+            fontWeight: 400,
             letterSpacing: "-1px",
             marginBottom: "var(--space-sm)",
           }}
@@ -131,8 +131,8 @@ export default function DocsSection() {
         style={{
           marginTop: "var(--space-xl)",
           padding: "var(--space-lg)",
-          background: "rgba(34, 211, 238, 0.06)",
-          border: "1px solid rgba(34, 211, 238, 0.18)",
+          background: "rgba(138, 154, 134, 0.06)",
+          border: "1px solid rgba(138, 154, 134, 0.18)",
           borderRadius: "14px",
           textAlign: "center",
         }}
