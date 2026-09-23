@@ -11,6 +11,8 @@ continuously from `main`, so "released" means "merged to `main` and live".
   Sans, IBM Plex Mono, sage accent). Replaces the Aurora cyan/Syne look.
   Same Express + SQLite + Stripe product, catalog, Trust Scores, and
   job-to-install matcher.
+- **Share card and README** — `og-image.png` and the GitHub README badges
+  match that paper/ink look. The old indigo/cyan social card is gone.
 
 ### Added
 - **Job-to-install front door** — homepage matcher turns a job ("open PRs",
