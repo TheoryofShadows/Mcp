@@ -1,5 +1,11 @@
 # MCPX Marketplace - Full Code Review
 
+> **Historical snapshot, not the current repo.** This note was written when the
+> README was still the Vite template, there were no tests, Stripe was missing,
+> and the UI used Syne / DM Sans with cyan accents. `main` now has a test
+> suite, Stripe Connect, docs, and the editorial paper/ink site. Read
+> [README](README.md) and [CHANGELOG](CHANGELOG.md) for what is actually shipped.
+
 ## As Elon Musk Would Say It
 
 ---

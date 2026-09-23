@@ -88,12 +88,12 @@ const REVENUE_PROJECTIONS = [
 ];
 
 const TECH_STACK = [
-  { icon: "\u25B3", title: "Frontend", tech: "React + Vite", desc: "Fast SPA build, served by the Express API on Railway. One service, automatic deploys from GitHub.", cost: "$0", color: "#4DFFB4" },
-  { icon: "\u25C8", title: "Database + Auth", tech: "SQLite + JWT", desc: "better-sqlite3 on a Railway volume (DB_PATH). Email/password auth with signed JWTs — optional Supabase OAuth when configured.", cost: "$0", color: "#4D9FFF" },
-  { icon: "\u2261", title: "Payments", tech: "Stripe Connect + Solana Pay", desc: "Stripe Connect for fiat (publishers keep 85%). Solana Pay with Phantom live on the configured cluster (default: devnet).", cost: "$0*", color: "#9B6DFF" },
-  { icon: "\u25A3", title: "Hosting", tech: "Railway", desc: "Single Node service for API + static SPA. Volume-backed SQLite; GitHub auto-deploys.", cost: "$5+", color: "#FF6DB4" },
-  { icon: "\u2315", title: "Search & Discovery", tech: "SQLite FTS / API filters", desc: "Marketplace search and filters run in-process against SQLite — no Meilisearch dependency.", cost: "$0", color: "#FFAA4D" },
-  { icon: "\u25CE", title: "Observability", tech: "Pino + Sentry (optional)", desc: "Structured server logs via pino; optional Sentry when SENTRY_DSN is set.", cost: "$0", color: "#4DFFB4" },
+  { icon: "\u25B3", title: "Frontend", tech: "React + Vite", desc: "Fast SPA build, served by the Express API on Railway. One service, automatic deploys from GitHub.", cost: "$0", color: "#8a9a86" },
+  { icon: "\u25C8", title: "Database + Auth", tech: "SQLite + JWT", desc: "better-sqlite3 on a Railway volume (DB_PATH). Email/password auth with signed JWTs — optional Supabase OAuth when configured.", cost: "$0", color: "#9a9891" },
+  { icon: "\u2261", title: "Payments", tech: "Stripe Connect + Solana Pay", desc: "Stripe Connect for fiat (publishers keep 85%). Solana Pay with Phantom live on the configured cluster (default: devnet).", cost: "$0*", color: "#c4a574" },
+  { icon: "\u25A3", title: "Hosting", tech: "Railway", desc: "Single Node service for API + static SPA. Volume-backed SQLite; GitHub auto-deploys.", cost: "$5+", color: "#c45c4a" },
+  { icon: "\u2315", title: "Search & Discovery", tech: "SQLite FTS / API filters", desc: "Marketplace search and filters run in-process against SQLite — no Meilisearch dependency.", cost: "$0", color: "#a8b6a4" },
+  { icon: "\u25CE", title: "Observability", tech: "Pino + Sentry (optional)", desc: "Structured server logs via pino; optional Sentry when SENTRY_DSN is set.", cost: "$0", color: "#8a9a86" },
 ];
 
 // GET /api/tiers
