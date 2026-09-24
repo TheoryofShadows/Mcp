@@ -55,7 +55,7 @@
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
-    "lucide-react": "^1.41.0",
+    "lucide-react": "^1.47.0",
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",
     "react": "^19.3.0",
