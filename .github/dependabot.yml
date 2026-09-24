@@ -11,3 +11,7 @@ updates:
           - "*"
         applies-to: security-updates
     open-pull-requests-limit: 10
+    ignore:
+      # v13+ needs a native rebuild; Railway nixpacks image has no Python/node-gyp toolchain
+      - dependency-name: "better-sqlite3"
+        update-types: ["version-update:semver-major"]
