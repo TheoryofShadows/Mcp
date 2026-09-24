@@ -357,15 +357,15 @@ const servers = [
 // ─── Insert servers ───
 
 const GRADIENTS = [
-  "linear-gradient(135deg, #4DFFB4, #4D9FFF)",
-  "linear-gradient(135deg, #9B6DFF, #FF6DB4)",
-  "linear-gradient(135deg, #FF6DB4, #FFAA4D)",
-  "linear-gradient(135deg, #4D9FFF, #4DFFB4)",
-  "linear-gradient(135deg, #FFAA4D, #4D9FFF)",
-  "linear-gradient(135deg, #2563eb, #7c3aed)",
-  "linear-gradient(135deg, #00b4d8, #0077b6)",
-  "linear-gradient(135deg, #f59e0b, #ef4444)",
-  "linear-gradient(135deg, #10b981, #3b82f6)",
+  "linear-gradient(135deg, #8a9a86, #e8e6e1)",
+  "linear-gradient(135deg, #c4a574, #8a9a86)",
+  "linear-gradient(135deg, #c45c4a, #c4a574)",
+  "linear-gradient(135deg, #9a9891, #e8e6e1)",
+  "linear-gradient(135deg, #c4a574, #9a9891)",
+  "linear-gradient(135deg, #6f6d67, #8a9a86)",
+  "linear-gradient(135deg, #8a9a86, #6f6d67)",
+  "linear-gradient(135deg, #c4a574, #c45c4a)",
+  "linear-gradient(135deg, #8a9a86, #c4a574)",
 ];
 
 const insertServer = db.prepare(`

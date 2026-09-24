@@ -22,8 +22,8 @@ const ToolCard = memo(function ToolCard({ tool, index = 0 }) {
       <article
         className="tool-card"
         style={{
-          background: "#12121c",
-          border: "1px solid #1d1d2b",
+          background: "var(--bg-card)",
+          border: "1px solid var(--border-subtle)",
           borderRadius: "14px",
           padding: "20px",
           cursor: "pointer",
@@ -36,12 +36,12 @@ const ToolCard = memo(function ToolCard({ tool, index = 0 }) {
           flexDirection: "column",
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.borderColor = "rgba(34, 211, 238,0.3)";
+          e.currentTarget.style.borderColor = "rgba(138, 154, 134,0.3)";
           e.currentTarget.style.transform = "translateY(-2px)";
-          e.currentTarget.style.boxShadow = "0 8px 32px rgba(34, 211, 238,0.1)";
+          e.currentTarget.style.boxShadow = "0 8px 32px rgba(138, 154, 134,0.1)";
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.borderColor = "#1d1d2b";
+          e.currentTarget.style.borderColor = "var(--border-subtle)";
           e.currentTarget.style.transform = "translateY(0)";
           e.currentTarget.style.boxShadow = "none";
         }}
@@ -55,7 +55,7 @@ const ToolCard = memo(function ToolCard({ tool, index = 0 }) {
             left: 0,
             right: 0,
             height: "2px",
-            background: tool.gradient,
+            background: "var(--accent)",
           }}
         />
 
@@ -76,13 +76,13 @@ const ToolCard = memo(function ToolCard({ tool, index = 0 }) {
                 width: 44,
                 height: 44,
                 borderRadius: "11px",
-                background: tool.gradient,
+                background: "var(--text-primary)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 fontSize: "18px",
-                fontWeight: 800,
-                color: "#fff",
+                fontWeight: 400,
+                color: "var(--bg-primary)",
                 fontFamily: "var(--font-mono)",
                 flexShrink: 0,
               }}
@@ -205,8 +205,8 @@ const ToolCard = memo(function ToolCard({ tool, index = 0 }) {
                 fontSize: "11px",
                 fontFamily: "var(--font-mono)",
                 color: "var(--text-muted)",
-                background: "#1d1d2b",
-                border: "1px solid #2e2e44",
+                background: "var(--border-subtle)",
+                border: "1px solid var(--border-accent)",
                 borderRadius: "5px",
                 padding: "2px 7px",
               }}
@@ -223,7 +223,7 @@ const ToolCard = memo(function ToolCard({ tool, index = 0 }) {
             justifyContent: "space-between",
             alignItems: "center",
             paddingTop: "12px",
-            borderTop: "1px solid #1d1d2b",
+            borderTop: "1px solid var(--border-subtle)",
           }}
         >
           <div style={{ display: "flex", gap: "14px" }}>
@@ -248,12 +248,12 @@ const ToolCard = memo(function ToolCard({ tool, index = 0 }) {
                   gap: "4px",
                   fontFamily: "var(--font-mono)",
                   fontSize: "11px",
-                  color: "#67e8f9",
+                  color: "var(--accent)",
                 }}
                 title={trustSummary(tool.trust)}
                 aria-label={trustSummary(tool.trust)}
               >
-                <span aria-hidden="true" style={{ width: 6, height: 6, borderRadius: "50%", background: "#22d3ee" }} />
+                <span aria-hidden="true" style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--accent)" }} />
                 {tool.trust.score}
                 <span
                   aria-hidden="true"

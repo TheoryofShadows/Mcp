@@ -1,14 +1,16 @@
 # MCPX — The Marketplace for AI Agent Tools
 
-[![Live](https://img.shields.io/badge/Live-www.mcpx.digital-4DFFB4?style=flat-square&logo=globe&logoColor=black)](https://www.mcpx.digital)
-[![License: MIT](https://img.shields.io/badge/License-MIT-6366f1?style=flat-square)](LICENSE)
-[![Node.js](https://img.shields.io/badge/Node.js-20%2B-43853d?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org)
-[![React](https://img.shields.io/badge/React-19-61dafb?style=flat-square&logo=react&logoColor=black)](https://react.dev)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square)](https://github.com/TheoryofShadows/Mcp/pulls)
+[![Live](https://img.shields.io/badge/Live-www.mcpx.digital-8A9A86?style=flat-square&logo=globe&logoColor=09090b)](https://www.mcpx.digital)
+[![License: MIT](https://img.shields.io/badge/License-MIT-09090b?style=flat-square)](LICENSE)
+[![Node.js](https://img.shields.io/badge/Node.js-20%2B-6F6D67?style=flat-square&logo=node.js&logoColor=e8e6e1)](https://nodejs.org)
+[![React](https://img.shields.io/badge/React-19-E8E6E1?style=flat-square&logo=react&logoColor=09090b)](https://react.dev)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-8A9A86?style=flat-square&logoColor=09090b)](https://github.com/TheoryofShadows/Mcp/pulls)
 
-> **Discover, install, publish, and get paid for Model Context Protocol servers** — the tools that give Claude, Cursor, and VS Code real-world capabilities.
+> **Agents hire tools. MCPX is where they hire.** Describe the job, copy a trusted install, or publish and keep 85%.
 
 **[Try it → www.mcpx.digital](https://www.mcpx.digital)** · **[Publish & earn 85%](https://www.mcpx.digital/submit)** · [Marketplace](https://www.mcpx.digital/marketplace) · [Pricing](https://www.mcpx.digital/pricing) · [Docs](docs/README.md) · [Launch kit](docs/LAUNCH.md)
+
+![MCPX — Agents hire tools](public/og-image.png)
 
 If MCPX helps you discover or monetize MCP tools, a GitHub **⭐ star** on this repo helps others find it.
 
@@ -30,7 +32,7 @@ There are thousands of MCP servers. Most people don't know they exist, can't tel
           │   ──▶  Playwright MCP  ──▶  drives a real browser
           │   ──▶  Postgres MCP    ──▶  queries your database
           │   ──▶  Stripe MCP      ──▶  handles payments
-          └── …34 servers today and growing
+          └── …live catalog (47 and growing)
 ```
 
 ---

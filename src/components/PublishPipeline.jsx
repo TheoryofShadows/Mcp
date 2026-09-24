@@ -45,7 +45,7 @@ export default function PublishPipeline({ style }) {
     <section
       aria-labelledby="publish-pipeline-heading"
       style={{
-        border: "1px solid #1d1d2b",
+        border: "1px solid var(--border-subtle)",
         borderRadius: "14px",
         background: "#0f0f18",
         padding: "20px",
@@ -89,9 +89,9 @@ export default function PublishPipeline({ style }) {
                 width: 28,
                 height: 28,
                 borderRadius: "8px",
-                background: "rgba(34, 211, 238, 0.08)",
-                border: "1px solid rgba(34, 211, 238, 0.2)",
-                color: "#67e8f9",
+                background: "rgba(138, 154, 134, 0.08)",
+                border: "1px solid rgba(138, 154, 134, 0.2)",
+                color: "var(--accent)",
                 flexShrink: 0,
               }}
             >

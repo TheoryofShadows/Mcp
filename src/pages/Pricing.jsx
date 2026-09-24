@@ -87,10 +87,10 @@ export default function Pricing() {
 
       {/* Header */}
       <div style={{ textAlign: "center", marginBottom: "48px" }}>
-        <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "5px 14px", background: "rgba(34, 211, 238,0.08)", border: "1px solid rgba(34, 211, 238,0.2)", borderRadius: "100px", marginBottom: "24px" }}>
-          <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "#67e8f9", letterSpacing: "0.06em" }}>PRICING</span>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "5px 14px", background: "rgba(138, 154, 134,0.08)", border: "1px solid rgba(138, 154, 134,0.2)", borderRadius: "100px", marginBottom: "24px" }}>
+          <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--accent)", letterSpacing: "0.06em" }}>PRICING</span>
         </div>
-        <h1 style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "clamp(36px, 5vw, 58px)", letterSpacing: "-1.5px", marginBottom: "16px", lineHeight: 1.1 }}>
+        <h1 style={{ fontFamily: "var(--font-heading)", fontWeight: 400, fontSize: "clamp(36px, 5vw, 58px)", letterSpacing: "-1.5px", marginBottom: "16px", lineHeight: 1.1 }}>
           Simple, honest pricing
         </h1>
         <p style={{ fontSize: "17px", color: "var(--text-secondary)", maxWidth: "520px", margin: "0 auto 12px", lineHeight: 1.7 }}>
@@ -103,7 +103,7 @@ export default function Pricing() {
 
       {/* How publishers get paid */}
       <div style={{ marginBottom: "64px" }}>
-        <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "22px", letterSpacing: "-0.4px", marginBottom: "8px", textAlign: "center" }}>
+        <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 400, fontSize: "22px", letterSpacing: "-0.4px", marginBottom: "8px", textAlign: "center" }}>
           How publishers get paid
         </h2>
         <p style={{ fontSize: "14px", color: "var(--text-muted)", textAlign: "center", marginBottom: "24px", maxWidth: "480px", marginLeft: "auto", marginRight: "auto", lineHeight: 1.6 }}>
@@ -111,12 +111,12 @@ export default function Pricing() {
         </p>
         <div className="pricing-steps" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "14px" }}>
           {GET_PAID_STEPS.map(({ icon: Icon, title, body }, i) => (
-            <div key={title} style={{ background: "#12121c", border: "1px solid #1d1d2b", borderRadius: "14px", padding: "22px" }}>
+            <div key={title} style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: "14px", padding: "22px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
-                <div style={{ width: 32, height: 32, borderRadius: "8px", background: "rgba(34,211,238,0.12)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-mono)", fontSize: "12px", color: "#67e8f9", fontWeight: 700 }}>
+                <div style={{ width: 32, height: 32, borderRadius: "8px", background: "rgba(138, 154, 134,0.12)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-mono)", fontSize: "12px", color: "var(--accent)", fontWeight: 700 }}>
                   {i + 1}
                 </div>
-                <Icon size={16} color="#22d3ee" />
+                <Icon size={16} color="var(--accent)" />
                 <div style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "15px" }}>{title}</div>
               </div>
               <p style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.65, margin: 0 }}>{body}</p>
@@ -148,7 +148,7 @@ export default function Pricing() {
               <div
                 key={tier.id}
                 style={{
-                  background: tier.popular ? "linear-gradient(135deg, rgba(34, 211, 238,0.08), rgba(56,189,248,0.05))" : "var(--bg-card)",
+                  background: tier.popular ? "linear-gradient(135deg, rgba(138, 154, 134,0.08), rgba(138, 154, 134,0.05))" : "var(--bg-card)",
                   border: tier.popular ? `1px solid ${tier.accent}` : "1px solid var(--border-subtle)",
                   borderRadius: "18px",
                   padding: "32px",
@@ -174,7 +174,7 @@ export default function Pricing() {
                 </div>
 
                 <div style={{ marginBottom: "24px" }}>
-                  <span style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "42px", letterSpacing: "-1.5px", color: "var(--text-primary)" }}>
+                  <span style={{ fontFamily: "var(--font-heading)", fontWeight: 400, fontSize: "42px", letterSpacing: "-1.5px", color: "var(--text-primary)" }}>
                     {tier.price_amount === 0 ? "Free" : `$${tier.price_amount / 100}`}
                   </span>
                   {tier.price_amount > 0 && (
@@ -226,9 +226,9 @@ export default function Pricing() {
 
       {/* Solana honesty + publisher split */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px", marginBottom: "80px" }}>
-        <div style={{ background: "#12121c", border: "1px solid #1d1d2b", borderRadius: "18px", padding: "28px" }}>
+        <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: "18px", padding: "28px" }}>
           <div style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--text-muted)", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: "12px" }}>Publisher Revenue Split</div>
-          <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "28px", letterSpacing: "-1px", marginBottom: "12px" }}>
+          <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 400, fontSize: "28px", letterSpacing: "-1px", marginBottom: "12px" }}>
             You keep <span style={{ color: "#10b981" }}>85%</span>
           </h2>
           <p style={{ fontSize: "14px", color: "var(--text-secondary)", lineHeight: 1.7, marginBottom: "20px" }}>
@@ -237,24 +237,24 @@ export default function Pricing() {
           <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
             {[
               { label: "Publisher", value: "85%", color: "#10b981" },
-              { label: "MCPX fee", value: "15%", color: "#22d3ee" },
-              { label: "Payout", value: "Monthly", color: "#7dd3fc" },
+              { label: "MCPX fee", value: "15%", color: "var(--accent)" },
+              { label: "Payout", value: "Monthly", color: "var(--accent-light)" },
               { label: "Minimum", value: "$0", color: "#fbbf24" },
             ].map(({ label, value, color }) => (
-              <div key={label} style={{ textAlign: "center", padding: "12px 14px", background: "#0d0d15", borderRadius: "10px", border: "1px solid #1d1d2b", minWidth: "72px" }}>
-                <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "18px", color, marginBottom: "2px" }}>{value}</div>
+              <div key={label} style={{ textAlign: "center", padding: "12px 14px", background: "var(--bg-secondary)", borderRadius: "10px", border: "1px solid var(--border-subtle)", minWidth: "72px" }}>
+                <div style={{ fontFamily: "var(--font-heading)", fontWeight: 400, fontSize: "18px", color, marginBottom: "2px" }}>{value}</div>
                 <div style={{ fontSize: "10px", fontFamily: "var(--font-mono)", color: "var(--text-muted)" }}>{label}</div>
               </div>
             ))}
           </div>
         </div>
 
-        <div style={{ background: "#12121c", border: "1px solid rgba(153,69,255,0.35)", borderRadius: "18px", padding: "28px" }}>
+        <div style={{ background: "var(--bg-card)", border: "1px solid rgba(153,69,255,0.35)", borderRadius: "18px", padding: "28px" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "4px 10px", background: "rgba(20,241,149,0.1)", border: "1px solid rgba(20,241,149,0.25)", borderRadius: "100px", marginBottom: "14px" }}>
             <CheckCircle size={12} color="#14F195" />
             <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "#14F195", letterSpacing: "0.05em" }}>LIVE (DEVNET)</span>
           </div>
-          <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "22px", letterSpacing: "-0.5px", marginBottom: "10px" }}>
+          <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 400, fontSize: "22px", letterSpacing: "-0.5px", marginBottom: "10px" }}>
             Solana Pay · Phantom
           </h2>
           <p style={{ fontSize: "14px", color: "var(--text-secondary)", lineHeight: 1.7, marginBottom: "14px" }}>
@@ -268,14 +268,14 @@ export default function Pricing() {
 
       {/* FAQ */}
       <div style={{ maxWidth: "720px", margin: "0 auto" }}>
-        <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "28px", letterSpacing: "-0.5px", marginBottom: "32px", textAlign: "center" }}>
+        <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 400, fontSize: "28px", letterSpacing: "-0.5px", marginBottom: "32px", textAlign: "center" }}>
           Frequently asked questions
         </h2>
         <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
           {FAQ.map((item, i) => (
             <div
               key={i}
-              style={{ background: "#12121c", border: "1px solid #1d1d2b", borderRadius: "12px", overflow: "hidden", marginBottom: "4px" }}
+              style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: "12px", overflow: "hidden", marginBottom: "4px" }}
             >
               <button
                 onClick={() => setOpenFaq(openFaq === i ? null : i)}
@@ -298,12 +298,12 @@ export default function Pricing() {
       <div style={{ textAlign: "center", marginTop: "80px" }}>
         <p style={{ fontSize: "14px", color: "var(--text-muted)", marginBottom: "16px" }}>
           Questions? Open an issue on{" "}
-          <a href="https://github.com/TheoryofShadows/Mcp" target="_blank" rel="noopener noreferrer" style={{ color: "#67e8f9", textDecoration: "none" }}>GitHub</a>
+          <a href="https://github.com/TheoryofShadows/Mcp" target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent)", textDecoration: "none" }}>GitHub</a>
           {" "}or explore the marketplace first.
         </p>
         <a
           href="/marketplace"
-          style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "12px 24px", background: "transparent", border: "1px solid rgba(34, 211, 238,0.3)", borderRadius: "10px", color: "#a5f3fc", fontSize: "14px", fontWeight: 600, textDecoration: "none" }}
+          style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "12px 24px", background: "transparent", border: "1px solid rgba(138, 154, 134,0.3)", borderRadius: "10px", color: "var(--accent-light)", fontSize: "14px", fontWeight: 600, textDecoration: "none" }}
         >
           Browse the marketplace <ArrowRight size={14} />
         </a>

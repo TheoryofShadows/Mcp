@@ -115,12 +115,12 @@ async function loadDashboard(user) {
   }
 }
 
-function StatCard({ icon: Icon, label, value, sub, color = "#22d3ee" }) {
+function StatCard({ icon: Icon, label, value, sub, color = "var(--accent)" }) {
   return (
     <div
       style={{
-        background: "#12121c",
-        border: "1px solid #1d1d2b",
+        background: "var(--bg-card)",
+        border: "1px solid var(--border-subtle)",
         borderRadius: "14px",
         padding: "22px",
       }}
@@ -131,7 +131,7 @@ function StatCard({ icon: Icon, label, value, sub, color = "#22d3ee" }) {
           <Icon size={15} color={color} />
         </div>
       </div>
-      <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "26px", marginBottom: "4px" }}>
+      <div style={{ fontFamily: "var(--font-heading)", fontWeight: 400, fontSize: "26px", marginBottom: "4px" }}>
         {value}
       </div>
       {sub && <div style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>{sub}</div>}
@@ -295,7 +295,7 @@ export default function Dashboard() {
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "32px", flexWrap: "wrap", gap: "16px" }}>
         <div>
-          <h1 style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "28px", letterSpacing: "-0.5px", marginBottom: "6px" }}>
+          <h1 style={{ fontFamily: "var(--font-heading)", fontWeight: 400, fontSize: "28px", letterSpacing: "-0.5px", marginBottom: "6px" }}>
             {user ? `@${user.username || user.email?.split("@")[0]}'s Dashboard` : "Dashboard Preview"}
           </h1>
           <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>
@@ -309,13 +309,13 @@ export default function Dashboard() {
             alignItems: "center",
             gap: "7px",
             padding: "10px 20px",
-            background: "linear-gradient(135deg, #22d3ee, #14b8a6)",
+            background: "var(--text-primary)",
             borderRadius: "10px",
-            color: "#fff",
+            color: "var(--bg-primary)",
             textDecoration: "none",
             fontSize: "13px",
             fontWeight: 600,
-            boxShadow: "0 0 20px rgba(34, 211, 238,0.25)",
+            boxShadow: "none",
           }}
         >
           <Plus size={14} />
@@ -339,7 +339,7 @@ export default function Dashboard() {
           <AlertCircle size={16} color="#fbbf24" style={{ flexShrink: 0 }} />
           <p style={{ fontSize: "13px", color: "var(--text-secondary)" }}>
             Showing demo data.{" "}
-            <Link to="/login" style={{ color: "#67e8f9", textDecoration: "none", fontWeight: 600 }}>
+            <Link to="/login" style={{ color: "var(--accent)", textDecoration: "none", fontWeight: 600 }}>
               Sign in
             </Link>{" "}
             to see your own tools and revenue.
@@ -374,7 +374,7 @@ export default function Dashboard() {
               fontFamily: "var(--font-mono)",
               color: "var(--text-muted)",
               background: "transparent",
-              border: "1px solid #2e2e44",
+              border: "1px solid var(--border-accent)",
               borderRadius: "8px",
               padding: "4px 8px",
               cursor: "pointer",
@@ -395,17 +395,17 @@ export default function Dashboard() {
         }}
         className="stats-grid"
       >
-        <StatCard icon={Package}    label="Tools Listed"       value={stats.tools_count}                                               sub="published & pending"              color="#22d3ee" />
+        <StatCard icon={Package}    label="Tools Listed"       value={stats.tools_count}                                               sub="published & pending"              color="var(--accent)" />
         <StatCard icon={DollarSign} label="Monthly Revenue"    value={`$${stats.monthly_revenue.toLocaleString()}`}                    sub={`$${(stats.monthly_revenue * 0.85).toLocaleString()} after 15% fee`} color="#10b981" />
         <StatCard icon={Download}   label="Total Installs"     value={stats.total_installs >= 1000 ? `${(stats.total_installs / 1000).toFixed(1)}K` : stats.total_installs} sub="all time" color="#3b82f6" />
-        <StatCard icon={Star}       label="Avg Rating"         value={stats.avg_rating ? stats.avg_rating.toFixed(1) : "—"}            sub="across all tools"                 color="#7dd3fc" />
+        <StatCard icon={Star}       label="Avg Rating"         value={stats.avg_rating ? stats.avg_rating.toFixed(1) : "—"}            sub="across all tools"                 color="var(--accent-light)" />
       </div>
 
       {/* Revenue placeholder chart */}
       <div
         style={{
-          background: "#12121c",
-          border: "1px solid #1d1d2b",
+          background: "var(--bg-card)",
+          border: "1px solid var(--border-subtle)",
           borderRadius: "14px",
           padding: "24px",
           marginBottom: "20px",
@@ -429,10 +429,10 @@ export default function Dashboard() {
                   width: "100%",
                   height: `${pct}%`,
                   background: i === 5
-                    ? "linear-gradient(180deg, #22d3ee, #14b8a6)"
-                    : "rgba(34, 211, 238,0.2)",
+                    ? "var(--text-primary)"
+                    : "rgba(138, 154, 134,0.2)",
                   borderRadius: "5px 5px 0 0",
-                  border: i === 5 ? "1px solid rgba(34, 211, 238,0.5)" : "1px solid #1d1d2b",
+                  border: i === 5 ? "1px solid rgba(138, 154, 134,0.5)" : "1px solid var(--border-subtle)",
                   transition: "background 0.15s",
                 }}
               />
@@ -449,14 +449,14 @@ export default function Dashboard() {
       {/* Tools table */}
       <div
         style={{
-          background: "#12121c",
-          border: "1px solid #1d1d2b",
+          background: "var(--bg-card)",
+          border: "1px solid var(--border-subtle)",
           borderRadius: "14px",
           overflow: "hidden",
           marginBottom: "20px",
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 24px", borderBottom: "1px solid #1d1d2b" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 24px", borderBottom: "1px solid var(--border-subtle)" }}>
           <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "16px" }}>Your Tools</h2>
           <span style={{ fontSize: "12px", fontFamily: "var(--font-mono)", color: "var(--text-muted)" }}>{tools.length} total</span>
         </div>
@@ -466,7 +466,7 @@ export default function Dashboard() {
             <p style={{ color: "var(--text-muted)", fontSize: "14px", marginBottom: "16px" }}>No tools published yet.</p>
             <Link
               to="/submit"
-              style={{ color: "#67e8f9", fontSize: "13px", textDecoration: "none" }}
+              style={{ color: "var(--accent)", fontSize: "13px", textDecoration: "none" }}
             >
               Submit your first tool →
             </Link>
@@ -475,7 +475,7 @@ export default function Dashboard() {
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
-                <tr style={{ borderBottom: "1px solid #1d1d2b" }}>
+                <tr style={{ borderBottom: "1px solid var(--border-subtle)" }}>
                   {["Tool", "Category", "Installs", "Rating", "Revenue", "Price", "Source", ""].map((h) => (
                     <th key={h} style={{ padding: "12px 20px", textAlign: "left", fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--text-muted)", fontWeight: 600, whiteSpace: "nowrap", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                       {h}
@@ -485,10 +485,10 @@ export default function Dashboard() {
               </thead>
               <tbody>
                 {tools.map((tool) => (
-                  <tr key={tool.id} style={{ borderBottom: "1px solid #1d1d2b" }}>
+                  <tr key={tool.id} style={{ borderBottom: "1px solid var(--border-subtle)" }}>
                     <td style={{ padding: "16px 20px" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                        <div style={{ width: 36, height: 36, borderRadius: "9px", background: tool.gradient, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: 800, color: "#fff", fontFamily: "var(--font-mono)", flexShrink: 0 }}>
+                        <div style={{ width: 36, height: 36, borderRadius: "9px", background: "var(--text-primary)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: 400, color: "var(--bg-primary)", fontFamily: "var(--font-mono)", flexShrink: 0 }}>
                           {tool.name.charAt(0)}
                         </div>
                         <div>
@@ -549,7 +549,7 @@ export default function Dashboard() {
                       <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
                         <Link
                           to={`/tool/${tool.slug}`}
-                          style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "12px", color: "#67e8f9", textDecoration: "none" }}
+                          style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "12px", color: "var(--accent)", textDecoration: "none" }}
                         >
                           View <ExternalLink size={11} />
                         </Link>
@@ -568,7 +568,7 @@ export default function Dashboard() {
                                   fontFamily: "var(--font-mono)",
                                   color: tool.status === "inactive" ? "#10b981" : "#f59e0b",
                                   background: "transparent",
-                                  border: "1px solid #2e2e44",
+                                  border: "1px solid var(--border-accent)",
                                   borderRadius: "8px",
                                   padding: "4px 8px",
                                   cursor: statusBusySlug === tool.slug ? "wait" : "pointer",
@@ -585,7 +585,7 @@ export default function Dashboard() {
                                   fontFamily: "var(--font-mono)",
                                   color: "var(--text-muted)",
                                   background: "transparent",
-                                  border: "1px solid #2e2e44",
+                                  border: "1px solid var(--border-accent)",
                                   borderRadius: "8px",
                                   padding: "4px 8px",
                                   cursor: "pointer",
@@ -604,7 +604,7 @@ export default function Dashboard() {
                                 fontFamily: "var(--font-mono)",
                                 color: tool.status === "inactive" ? "#10b981" : "#f59e0b",
                                 background: "transparent",
-                                border: "1px solid #2e2e44",
+                                border: "1px solid var(--border-accent)",
                                 borderRadius: "8px",
                                 padding: "4px 8px",
                                 cursor: statusBusySlug === tool.slug ? "wait" : "pointer",
@@ -632,8 +632,8 @@ export default function Dashboard() {
                                 style={{
                                   fontSize: "12px",
                                   fontFamily: "var(--font-mono)",
-                                  background: "#0d0d15",
-                                  border: "1px solid #2e2e44",
+                                  background: "var(--bg-secondary)",
+                                  border: "1px solid var(--border-accent)",
                                   borderRadius: "8px",
                                   color: "var(--text-primary)",
                                   padding: "4px 8px",
@@ -646,7 +646,7 @@ export default function Dashboard() {
                                 disabled={installBusySlug === tool.slug}
                                 style={{
                                   fontSize: "12px", fontFamily: "var(--font-mono)", color: "#10b981",
-                                  background: "transparent", border: "1px solid #2e2e44",
+                                  background: "transparent", border: "1px solid var(--border-accent)",
                                   borderRadius: "8px", padding: "4px 8px",
                                   cursor: installBusySlug === tool.slug ? "wait" : "pointer",
                                 }}
@@ -677,7 +677,7 @@ export default function Dashboard() {
                                 fontFamily: "var(--font-mono)",
                                 color: tool.install_command ? "var(--text-muted)" : "#f59e0b",
                                 background: "transparent",
-                                border: "1px solid #2e2e44",
+                                border: "1px solid var(--border-accent)",
                                 borderRadius: "8px",
                                 padding: "4px 8px",
                                 cursor: "pointer",
@@ -712,8 +712,8 @@ export default function Dashboard() {
       {/* Stripe payout section */}
       <div
         style={{
-          background: "#12121c",
-          border: "1px solid #1d1d2b",
+          background: "var(--bg-card)",
+          border: "1px solid var(--border-subtle)",
           borderRadius: "14px",
           padding: "24px",
         }}
@@ -723,26 +723,26 @@ export default function Dashboard() {
             <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "16px", marginBottom: "4px" }}>Payouts</h2>
             <p style={{ fontSize: "12px", color: "var(--text-muted)" }}>Receive monthly payouts via Stripe Connect</p>
           </div>
-          <div style={{ width: 36, height: 36, background: "rgba(34, 211, 238,0.1)", borderRadius: "9px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <CreditCard size={16} color="#67e8f9" />
+          <div style={{ width: 36, height: 36, background: "rgba(138, 154, 134,0.1)", borderRadius: "9px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <CreditCard size={16} color="var(--accent)" />
           </div>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "20px" }} className="payout-grid">
-          <div style={{ padding: "16px", background: "#0d0d15", borderRadius: "10px", border: "1px solid #1d1d2b" }}>
+          <div style={{ padding: "16px", background: "var(--bg-secondary)", borderRadius: "10px", border: "1px solid var(--border-subtle)" }}>
             <div style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--text-muted)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
               {hasEarnings ? "Net Earned (all-time)" : "Available Balance"}
             </div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "22px", color: "#10b981" }}>
+            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 400, fontSize: "22px", color: "#10b981" }}>
               ${availableBalance.toLocaleString()}
             </div>
             <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px", fontFamily: "var(--font-mono)" }}>
               {hasEarnings ? `from ${earnings.sales_count} sale${earnings.sales_count === 1 ? "" : "s"}, after 15% fee` : "after 15% platform fee"}
             </div>
           </div>
-          <div style={{ padding: "16px", background: "#0d0d15", borderRadius: "10px", border: "1px solid #1d1d2b" }}>
+          <div style={{ padding: "16px", background: "var(--bg-secondary)", borderRadius: "10px", border: "1px solid var(--border-subtle)" }}>
             <div style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--text-muted)", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Next Payout</div>
-            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "22px" }}>{nextPayout}</div>
+            <div style={{ fontFamily: "var(--font-heading)", fontWeight: 400, fontSize: "22px" }}>{nextPayout}</div>
             <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px", fontFamily: "var(--font-mono)" }}>monthly automatic</div>
           </div>
         </div>
@@ -751,10 +751,10 @@ export default function Dashboard() {
           style={{
             width: "100%",
             padding: "12px",
-            background: "rgba(34, 211, 238,0.08)",
-            border: "1px solid rgba(34, 211, 238,0.2)",
+            background: "rgba(138, 154, 134,0.08)",
+            border: "1px solid rgba(138, 154, 134,0.2)",
             borderRadius: "10px",
-            color: "#a5f3fc",
+            color: "var(--accent-light)",
             fontSize: "13px",
             fontWeight: 600,
             cursor: stripeLoading ? "not-allowed" : "pointer",
@@ -780,8 +780,8 @@ export default function Dashboard() {
               setStripeLoading(false);
             }
           }}
-          onMouseEnter={(e) => { if (!stripeLoading) e.currentTarget.style.background = "rgba(34, 211, 238,0.14)"; }}
-          onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(34, 211, 238,0.08)")}
+          onMouseEnter={(e) => { if (!stripeLoading) e.currentTarget.style.background = "rgba(138, 154, 134,0.14)"; }}
+          onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(138, 154, 134,0.08)")}
         >
           <CreditCard size={14} />
           {stripeLoading
@@ -798,7 +798,7 @@ export default function Dashboard() {
             : PAYOUT_STATUS_NOTE[payoutStatus] || "Powered by Stripe Connect · Payouts every 1st of the month"}
         </p>
 
-        <div style={{ marginTop: "22px", paddingTop: "20px", borderTop: "1px solid #1d1d2b" }}>
+        <div style={{ marginTop: "22px", paddingTop: "20px", borderTop: "1px solid var(--border-subtle)" }}>
           <div style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--text-muted)", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
             Solana Pay wallet
           </div>
@@ -814,8 +814,8 @@ export default function Dashboard() {
               style={{
                 flex: "1 1 220px",
                 padding: "10px 12px",
-                background: "#0d0d15",
-                border: "1px solid #1d1d2b",
+                background: "var(--bg-secondary)",
+                border: "1px solid var(--border-subtle)",
                 borderRadius: "8px",
                 color: "var(--text-primary)",
                 fontFamily: "var(--font-mono)",

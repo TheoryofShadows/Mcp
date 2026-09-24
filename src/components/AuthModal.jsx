@@ -93,7 +93,7 @@ export default function AuthModal({ onClose }) {
           style={{
             fontFamily: "var(--font-heading)",
             fontSize: "var(--font-2xl)",
-            fontWeight: 800,
+            fontWeight: 400,
             letterSpacing: "-0.5px",
           }}
         >
@@ -186,12 +186,12 @@ export default function AuthModal({ onClose }) {
             id="auth-password"
             type="password"
             required
-            minLength={10}
+            {...(mode === "register" ? { minLength: 10 } : {})}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="search-input"
             style={{ paddingLeft: "var(--space-md)" }}
-            placeholder="Min 10 characters"
+            placeholder={mode === "register" ? "Min 10 characters" : "Your password"}
           />
         </div>
 
