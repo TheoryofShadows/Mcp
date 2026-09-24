@@ -2,7 +2,7 @@
   "name": "mcpx",
   "private": true,
   "version": "1.0.0",
-  "description": "MCPX \u2014 The Marketplace for AI Agent Tools (MCP Servers). Discover, install, and publish Model Context Protocol servers for Claude, Cursor, and VS Code.",
+  "description": "MCPX — The Marketplace for AI Agent Tools (MCP Servers). Discover, install, and publish Model Context Protocol servers for Claude, Cursor, and VS Code.",
   "keywords": [
     "mcp",
     "mcpx",
@@ -51,7 +51,7 @@
     "@solana/web3.js": "^1.99.0",
     "@supabase/supabase-js": "^2.115.0",
     "bcryptjs": "^3.0.3",
-    "better-sqlite3": "^13.0.3",
+    "better-sqlite3": "^12.6.2",
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
