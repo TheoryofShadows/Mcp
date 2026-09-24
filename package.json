@@ -2,7 +2,7 @@
   "name": "mcpx",
   "private": true,
   "version": "1.0.0",
-  "description": "MCPX \u2014 The Marketplace for AI Agent Tools (MCP Servers). Discover, install, and publish Model Context Protocol servers for Claude, Cursor, and VS Code.",
+  "description": "MCPX — The Marketplace for AI Agent Tools (MCP Servers). Discover, install, and publish Model Context Protocol servers for Claude, Cursor, and VS Code.",
   "keywords": [
     "mcp",
     "mcpx",
@@ -46,12 +46,12 @@
   },
   "dependencies": {
     "@descope/node-sdk": "^2.17.0",
-    "@descope/react-sdk": "^3.2.1",
+    "@descope/react-sdk": "^3.3.3",
     "@sentry/node": "^10.74.0",
-    "@solana/web3.js": "^1.98.4",
+    "@solana/web3.js": "^1.99.0",
     "@supabase/supabase-js": "^2.115.0",
     "bcryptjs": "^3.0.3",
-    "better-sqlite3": "^12.6.2",
+    "better-sqlite3": "^13.0.3",
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
@@ -59,7 +59,7 @@
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",
     "react": "^19.3.0",
-    "react-dom": "^19.2.8",
+    "react-dom": "^19.3.0",
     "react-router-dom": "^7.18.3",
     "stripe": "^22.6.2",
     "uuid": "^14.0.1"
@@ -67,7 +67,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@types/react": "^19.3.0",
-    "@types/react-dom": "^19.2.3",
+    "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
     "concurrently": "^10.0.5",
     "dotenv-cli": "^11.0.0",
