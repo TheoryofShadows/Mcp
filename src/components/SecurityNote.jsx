@@ -48,14 +48,14 @@ export default function SecurityNote({ style }) {
     >
       <div
         style={{
-          border: "1px solid #1d1d2b",
+          border: "1px solid var(--border-subtle)",
           borderRadius: "14px",
           background: "#0f0f18",
           padding: "24px",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-          <ShieldAlert size={16} color="#67e8f9" aria-hidden="true" />
+          <ShieldAlert size={16} color="var(--accent)" aria-hidden="true" />
           <h2
             id="security-note-heading"
             style={{
@@ -116,7 +116,7 @@ export default function SecurityNote({ style }) {
         <p style={{ margin: 0, fontSize: "12px", color: "var(--text-muted)", lineHeight: 1.6 }}>
           Scanning is automated and not a guarantee — review anything you install
           with access to real systems.{" "}
-          <Link to="/marketplace" style={{ color: "#67e8f9", textDecoration: "none" }}>
+          <Link to="/marketplace" style={{ color: "var(--accent)", textDecoration: "none" }}>
             See the scores
           </Link>
           .

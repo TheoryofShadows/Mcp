@@ -12,9 +12,9 @@ export default function PriceTag({ tool, size = "sm" }) {
     lg: { fontSize: "15px", padding: "6px 16px" },
   };
 
-  let background = isFree ? "rgba(16,185,129,0.12)" : "rgba(34, 211, 238,0.15)";
-  let color = isFree ? "#10b981" : "#67e8f9";
-  let border = `1px solid ${isFree ? "rgba(16,185,129,0.25)" : "rgba(34, 211, 238,0.3)"}`;
+  let background = isFree ? "rgba(16,185,129,0.12)" : "rgba(138, 154, 134,0.15)";
+  let color = isFree ? "#10b981" : "var(--accent)";
+  let border = `1px solid ${isFree ? "rgba(16,185,129,0.25)" : "rgba(138, 154, 134,0.3)"}`;
   if (unavailable) {
     background = "rgba(148,163,184,0.12)";
     color = "#94a3b8";

@@ -75,8 +75,8 @@ export default function InstallCommand({ command, label = "Install Command" }) {
           display: "flex",
           alignItems: "center",
           gap: "0",
-          background: "#0d0d15",
-          border: "1px solid #1d1d2b",
+          background: "var(--bg-secondary)",
+          border: "1px solid var(--border-subtle)",
           borderRadius: "10px",
           overflow: "hidden",
         }}
@@ -84,7 +84,7 @@ export default function InstallCommand({ command, label = "Install Command" }) {
         <div
           style={{
             padding: "12px 8px 12px 16px",
-            color: "#a5f3fc",
+            color: "var(--accent-light)",
             fontFamily: "var(--font-mono)",
             fontSize: "12px",
             flexShrink: 0,
@@ -115,10 +115,10 @@ export default function InstallCommand({ command, label = "Install Command" }) {
             alignItems: "center",
             gap: "6px",
             padding: "12px 16px",
-            background: copied ? "rgba(16,185,129,0.12)" : "rgba(34, 211, 238,0.08)",
+            background: copied ? "rgba(16,185,129,0.12)" : "rgba(138, 154, 134,0.08)",
             border: "none",
-            borderLeft: "1px solid #1d1d2b",
-            color: copied ? "#10b981" : "#67e8f9",
+            borderLeft: "1px solid var(--border-subtle)",
+            color: copied ? "#10b981" : "var(--accent)",
             cursor: "pointer",
             fontFamily: "var(--font-mono)",
             fontSize: "12px",
@@ -126,10 +126,10 @@ export default function InstallCommand({ command, label = "Install Command" }) {
             whiteSpace: "nowrap",
           }}
           onMouseEnter={(e) => {
-            if (!copied) e.currentTarget.style.background = "rgba(34, 211, 238,0.15)";
+            if (!copied) e.currentTarget.style.background = "rgba(138, 154, 134,0.15)";
           }}
           onMouseLeave={(e) => {
-            if (!copied) e.currentTarget.style.background = "rgba(34, 211, 238,0.08)";
+            if (!copied) e.currentTarget.style.background = "rgba(138, 154, 134,0.08)";
           }}
         >
           {copied ? <Check size={14} /> : <Copy size={14} />}

@@ -57,8 +57,8 @@ function renderMarkdown(text) {
           <pre
             key={key++}
             style={{
-              background: "#0d0d15",
-              border: "1px solid #1d1d2b",
+              background: "var(--bg-secondary)",
+              border: "1px solid var(--border-subtle)",
               borderRadius: "10px",
               padding: "16px",
               overflowX: "auto",
@@ -83,9 +83,9 @@ function renderMarkdown(text) {
     if (inCode) { codeLines.push(line); continue; }
 
     if (line.startsWith("# ")) {
-      elements.push(<h1 key={key++} style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "24px", margin: "32px 0 12px", letterSpacing: "-0.5px" }}>{line.slice(2)}</h1>);
+      elements.push(<h1 key={key++} style={{ fontFamily: "var(--font-heading)", fontWeight: 400, fontSize: "24px", margin: "32px 0 12px", letterSpacing: "-0.5px" }}>{line.slice(2)}</h1>);
     } else if (line.startsWith("## ")) {
-      elements.push(<h2 key={key++} style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "18px", margin: "28px 0 10px", color: "#a5f3fc" }}>{line.slice(3)}</h2>);
+      elements.push(<h2 key={key++} style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "18px", margin: "28px 0 10px", color: "var(--accent-light)" }}>{line.slice(3)}</h2>);
     } else if (line.startsWith("### ")) {
       elements.push(<h3 key={key++} style={{ fontFamily: "var(--font-heading)", fontWeight: 600, fontSize: "15px", margin: "20px 0 8px" }}>{line.slice(4)}</h3>);
     } else if (line.startsWith("- ") || line.startsWith("* ")) {
@@ -126,7 +126,7 @@ function StarRating({ rating, size = 14 }) {
           key={s}
           size={size}
           fill={s <= Math.round(rating) ? "#fbbf24" : "transparent"}
-          color={s <= Math.round(rating) ? "#fbbf24" : "#2e2e44"}
+          color={s <= Math.round(rating) ? "#fbbf24" : "var(--border-accent)"}
         />
       ))}
     </div>
@@ -268,10 +268,10 @@ export default function ToolDetail() {
   if (loading) {
     return (
       <div role="status" aria-live="polite" style={{ maxWidth: "1000px", margin: "32px auto", padding: "0 24px 80px" }}>
-        <div style={{ height: 12, width: 160, background: "#1d1d2b", borderRadius: 6, marginBottom: 24 }} />
+        <div style={{ height: 12, width: 160, background: "var(--border-subtle)", borderRadius: 6, marginBottom: 24 }} />
         <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: "28px" }} className="tool-detail-grid">
-          <div style={{ background: "#12121c", border: "1px solid #1d1d2b", borderRadius: 14, padding: 28, minHeight: 220 }} />
-          <div style={{ background: "#12121c", border: "1px solid #1d1d2b", borderRadius: 14, padding: 24, minHeight: 180 }} />
+          <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: 14, padding: 28, minHeight: 220 }} />
+          <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: 14, padding: 24, minHeight: 180 }} />
         </div>
         <p style={{ marginTop: 16, color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: "12px" }}>Loading tool…</p>
       </div>
@@ -282,7 +282,7 @@ export default function ToolDetail() {
     return (
       <div role="alert" style={{ maxWidth: "900px", margin: "80px auto", padding: "0 24px", textAlign: "center" }}>
         <h1 style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "24px", marginBottom: "12px" }}>Tool not found</h1>
-        <Link to="/marketplace" style={{ color: "#67e8f9", fontSize: "14px" }}>← Back to Marketplace</Link>
+        <Link to="/marketplace" style={{ color: "var(--accent)", fontSize: "14px" }}>← Back to Marketplace</Link>
       </div>
     );
   }
@@ -370,8 +370,8 @@ export default function ToolDetail() {
           {/* Tool header */}
           <div
             style={{
-              background: "#12121c",
-              border: "1px solid #1d1d2b",
+              background: "var(--bg-card)",
+              border: "1px solid var(--border-subtle)",
               borderRadius: "16px",
               padding: "28px",
               marginBottom: "20px",
@@ -386,7 +386,7 @@ export default function ToolDetail() {
                 left: 0,
                 right: 0,
                 height: "3px",
-                background: tool.gradient,
+                background: "var(--accent)",
               }}
             />
             <div style={{ display: "flex", alignItems: "flex-start", gap: "16px", marginBottom: "20px" }}>
@@ -396,13 +396,13 @@ export default function ToolDetail() {
                   width: 64,
                   height: 64,
                   borderRadius: "16px",
-                  background: tool.gradient,
+                  background: "var(--text-primary)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   fontSize: "26px",
-                  fontWeight: 800,
-                  color: "#fff",
+                  fontWeight: 400,
+                  color: "var(--bg-primary)",
                   fontFamily: "var(--font-mono)",
                   flexShrink: 0,
                 }}
@@ -411,7 +411,7 @@ export default function ToolDetail() {
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px", flexWrap: "wrap" }}>
-                  <h1 style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "22px", letterSpacing: "-0.5px" }}>
+                  <h1 style={{ fontFamily: "var(--font-heading)", fontWeight: 400, fontSize: "22px", letterSpacing: "-0.5px" }}>
                     {tool.name}
                   </h1>
                   {tool.trust
@@ -463,8 +463,8 @@ export default function ToolDetail() {
                     fontSize: "11px",
                     fontFamily: "var(--font-mono)",
                     color: "var(--text-muted)",
-                    background: "#1d1d2b",
-                    border: "1px solid #2e2e44",
+                    background: "var(--border-subtle)",
+                    border: "1px solid var(--border-accent)",
                     borderRadius: "5px",
                     padding: "3px 9px",
                   }}
@@ -508,7 +508,7 @@ export default function ToolDetail() {
           )}
 
           {/* Tabs */}
-          <div role="tablist" aria-label="Tool details" style={{ display: "flex", gap: "2px", marginBottom: "20px", background: "#0d0d15", borderRadius: "10px", padding: "4px", border: "1px solid #1d1d2b" }}>
+          <div role="tablist" aria-label="Tool details" style={{ display: "flex", gap: "2px", marginBottom: "20px", background: "var(--bg-secondary)", borderRadius: "10px", padding: "4px", border: "1px solid var(--border-subtle)" }}>
             {TABS.map((tab) => (
               <button
                 key={tab}
@@ -522,7 +522,7 @@ export default function ToolDetail() {
                   padding: "8px",
                   borderRadius: "7px",
                   border: "none",
-                  background: activeTab === tab ? "#1d1d2b" : "transparent",
+                  background: activeTab === tab ? "var(--border-subtle)" : "transparent",
                   color: activeTab === tab ? "var(--text-primary)" : "var(--text-muted)",
                   fontSize: "13px",
                   fontWeight: activeTab === tab ? 600 : 400,
@@ -548,8 +548,8 @@ export default function ToolDetail() {
               id="panel-Overview"
               aria-labelledby="tab-Overview"
               style={{
-                background: "#12121c",
-                border: "1px solid #1d1d2b",
+                background: "var(--bg-card)",
+                border: "1px solid var(--border-subtle)",
                 borderRadius: "14px",
                 padding: "28px",
               }}
@@ -565,8 +565,8 @@ export default function ToolDetail() {
                 <div
                   style={{
                     position: "relative",
-                    background: "#12121c",
-                    border: "1px solid rgba(34, 211, 238, 0.25)",
+                    background: "var(--bg-card)",
+                    border: "1px solid rgba(138, 154, 134, 0.25)",
                     borderRadius: "14px",
                     padding: "28px 24px",
                     overflow: "hidden",
@@ -603,10 +603,10 @@ export default function ToolDetail() {
                         }}
                         style={{
                           padding: "10px 18px",
-                          background: "linear-gradient(135deg, #22d3ee, #14b8a6)",
+                          background: "var(--text-primary)",
                           border: "none",
                           borderRadius: "10px",
-                          color: "#fff",
+                          color: "var(--bg-primary)",
                           fontSize: "13px",
                           fontWeight: 600,
                           cursor: "pointer",
@@ -628,8 +628,8 @@ export default function ToolDetail() {
                   )}
                   <div
                     style={{
-                      background: "#12121c",
-                      border: "1px solid #1d1d2b",
+                      background: "var(--bg-card)",
+                      border: "1px solid var(--border-subtle)",
                       borderRadius: "14px",
                       padding: "20px",
                     }}
@@ -645,7 +645,7 @@ export default function ToolDetail() {
           )}
 
           {activeTab === "Reviews" && (
-            <div role="tabpanel" id="panel-Reviews" aria-labelledby="tab-Reviews" style={{ background: "#12121c", border: "1px solid #1d1d2b", borderRadius: "14px", padding: "28px" }}>
+            <div role="tabpanel" id="panel-Reviews" aria-labelledby="tab-Reviews" style={{ background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: "14px", padding: "28px" }}>
               <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "18px", marginBottom: "20px" }}>
                 Reviews
               </h2>
@@ -658,9 +658,9 @@ export default function ToolDetail() {
                       key={review.id}
                       style={{
                         padding: "16px",
-                        background: "#0d0d15",
+                        background: "var(--bg-secondary)",
                         borderRadius: "10px",
-                        border: "1px solid #1d1d2b",
+                        border: "1px solid var(--border-subtle)",
                       }}
                     >
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "10px" }}>
@@ -670,13 +670,13 @@ export default function ToolDetail() {
                               width: 32,
                               height: 32,
                               borderRadius: "50%",
-                              background: "linear-gradient(135deg, #22d3ee, #14b8a6)",
+                              background: "var(--text-primary)",
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
                               fontSize: "13px",
                               fontWeight: 700,
-                              color: "#fff",
+                              color: "var(--bg-primary)",
                               fontFamily: "var(--font-mono)",
                               flexShrink: 0,
                             }}
@@ -710,8 +710,8 @@ export default function ToolDetail() {
           {/* Pricing card */}
           <div
             style={{
-              background: "#12121c",
-              border: "1px solid #1d1d2b",
+              background: "var(--bg-card)",
+              border: "1px solid var(--border-subtle)",
               borderRadius: "14px",
               padding: "24px",
               marginBottom: "16px",
@@ -737,7 +737,7 @@ export default function ToolDetail() {
                   )}
                   {!canInstall && !purchaseBlocked && (
                     <div style={{ marginTop: "10px" }}>
-                      <p style={{ fontSize: "11px", color: "#a5f3fc", margin: "0 0 6px", fontFamily: "var(--font-mono)", letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                      <p style={{ fontSize: "11px", color: "var(--accent-light)", margin: "0 0 6px", fontFamily: "var(--font-mono)", letterSpacing: "0.04em", textTransform: "uppercase" }}>
                         After purchase you unlock
                       </p>
                       <ul style={{ listStyle: "none", padding: 0, margin: 0, fontSize: "12px", color: "var(--text-secondary)", lineHeight: 1.55 }}>
@@ -792,8 +792,8 @@ export default function ToolDetail() {
                 style={{
                   width: "100%",
                   padding: "13px",
-                  background: "#1d1d2b",
-                  border: "1px solid #2e2e44",
+                  background: "var(--border-subtle)",
+                  border: "1px solid var(--border-accent)",
                   borderRadius: "10px",
                   color: "#94a3b8",
                   fontSize: "14px",
@@ -810,16 +810,16 @@ export default function ToolDetail() {
               style={{
                 width: "100%",
                 padding: "13px",
-                background: "linear-gradient(135deg, #22d3ee, #14b8a6)",
+                background: "var(--text-primary)",
                 border: "none",
                 borderRadius: "10px",
-                color: "#fff",
+                color: "var(--bg-primary)",
                 fontSize: "14px",
                 fontWeight: 600,
                 cursor: checkoutLoading ? "not-allowed" : "pointer",
                 opacity: checkoutLoading ? 0.7 : 1,
                 marginBottom: "10px",
-                boxShadow: "0 0 20px rgba(34, 211, 238,0.25)",
+                boxShadow: "none",
                 transition: "all 0.15s",
               }}
               onClick={async () => {
@@ -872,8 +872,8 @@ export default function ToolDetail() {
                   setActiveTab("Install");
                 }
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 0 28px rgba(34, 211, 238,0.4)")}
-              onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "0 0 20px rgba(34, 211, 238,0.25)")}
+              onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "none")}
+              onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "none")}
             >
               {checkoutLoading
                 ? "Opening Stripe…"
@@ -909,7 +909,7 @@ export default function ToolDetail() {
                     style={{
                       background: "none",
                       border: "none",
-                      color: "#67e8f9",
+                      color: "var(--accent)",
                       fontSize: "12px",
                       textDecoration: "underline",
                       cursor: diagnosing ? "wait" : "pointer",
@@ -924,8 +924,8 @@ export default function ToolDetail() {
                     style={{
                       marginTop: "8px",
                       padding: "10px 12px",
-                      background: "#12121c",
-                      border: "1px solid #2e2e44",
+                      background: "var(--bg-card)",
+                      border: "1px solid var(--border-accent)",
                       borderRadius: "8px",
                       fontSize: "12px",
                       lineHeight: 1.55,
@@ -966,7 +966,7 @@ export default function ToolDetail() {
                     href="https://github.com/TheoryofShadows/Mcp/blob/main/docs/TERMS.md"
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ color: "#67e8f9", textDecoration: "none" }}
+                    style={{ color: "var(--accent)", textDecoration: "none" }}
                   >
                     Terms
                   </a>
@@ -975,7 +975,7 @@ export default function ToolDetail() {
                     href="https://github.com/TheoryofShadows/Mcp/blob/main/docs/REFUNDS.md"
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ color: "#67e8f9", textDecoration: "none" }}
+                    style={{ color: "var(--accent)", textDecoration: "none" }}
                   >
                     14-day refunds
                   </a>
@@ -1108,10 +1108,10 @@ export default function ToolDetail() {
             )}
 
             {tool.trust && (
-              <div style={{ marginBottom: "14px", padding: "12px", background: "#0d0d15", borderRadius: "10px", border: "1px solid #1d1d2b" }}>
+              <div style={{ marginBottom: "14px", padding: "12px", background: "var(--bg-secondary)", borderRadius: "10px", border: "1px solid var(--border-subtle)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
                   <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--text-muted)", letterSpacing: "0.05em", textTransform: "uppercase" }}>Trust Score</span>
-                  <span style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "18px", color: "#22d3ee" }}>{tool.trust.score}</span>
+                  <span style={{ fontFamily: "var(--font-heading)", fontWeight: 400, fontSize: "18px", color: "var(--accent)" }}>{tool.trust.score}</span>
                 </div>
                 <p style={{ fontSize: "11px", color: "var(--text-muted)", margin: 0, lineHeight: 1.45 }}>
                   Computed · open Overview → Why? for the breakdown
@@ -1119,7 +1119,7 @@ export default function ToolDetail() {
               </div>
             )}
 
-            <div style={{ borderTop: "1px solid #1d1d2b", paddingTop: "16px", marginTop: "16px", display: "flex", flexDirection: "column", gap: "10px" }}>
+            <div style={{ borderTop: "1px solid var(--border-subtle)", paddingTop: "16px", marginTop: "16px", display: "flex", flexDirection: "column", gap: "10px" }}>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>Installs</span>
                 <span style={{ fontSize: "12px", fontFamily: "var(--font-mono)", color: "var(--text-secondary)" }}>{formatInstalls(tool.installs)}</span>
@@ -1144,8 +1144,8 @@ export default function ToolDetail() {
           {/* Quick install — locked for unpaid paid tools */}
           <div
             style={{
-              background: "#12121c",
-              border: "1px solid #1d1d2b",
+              background: "var(--bg-card)",
+              border: "1px solid var(--border-subtle)",
               borderRadius: "14px",
               padding: "20px",
             }}
@@ -1161,7 +1161,7 @@ export default function ToolDetail() {
                   <p aria-hidden="true" style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "#374151", filter: "blur(4px)", userSelect: "none", margin: 0 }}>
                     npx -y ••••••••••••••
                   </p>
-                  <p style={{ margin: "10px 0 0", fontSize: "12px", color: purchaseBlocked ? "#fbbf24" : "#a5f3fc", lineHeight: 1.5 }}>
+                  <p style={{ margin: "10px 0 0", fontSize: "12px", color: purchaseBlocked ? "#fbbf24" : "var(--accent-light)", lineHeight: 1.5 }}>
                     {purchaseBlocked
                       ? `${blockedReason}. Install stays locked.`
                       : "Unlock after Stripe checkout — install configs appear here once you purchase."}
@@ -1174,7 +1174,7 @@ export default function ToolDetail() {
       </div>
 
       {/* Report / flag — community trust signal */}
-      <div style={{ marginTop: "28px", paddingTop: "20px", borderTop: "1px solid #1d1d2b", textAlign: "center" }}>
+      <div style={{ marginTop: "28px", paddingTop: "20px", borderTop: "1px solid var(--border-subtle)", textAlign: "center" }}>
         {reportMsg && !reportOpen ? (
           <p role="status" style={{ fontSize: "13px", color: "#10b981" }}>{reportMsg}</p>
         ) : !reportOpen ? (
@@ -1185,10 +1185,10 @@ export default function ToolDetail() {
             <AlertCircle size={12} /> Report this server
           </button>
         ) : (
-          <form onSubmit={submitReport} style={{ maxWidth: "440px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "10px", textAlign: "left", background: "#12121c", border: "1px solid #1d1d2b", borderRadius: "12px", padding: "18px" }}>
+          <form onSubmit={submitReport} style={{ maxWidth: "440px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "10px", textAlign: "left", background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: "12px", padding: "18px" }}>
             <div style={{ fontSize: "13px", fontWeight: 600 }}>Report this server</div>
             <select value={reportReason} onChange={(e) => setReportReason(e.target.value)}
-              style={{ padding: "9px 12px", background: "#0d0d15", border: "1px solid #2e2e44", borderRadius: "8px", color: "var(--text-primary)", fontSize: "13px" }}>
+              style={{ padding: "9px 12px", background: "var(--bg-secondary)", border: "1px solid var(--border-accent)", borderRadius: "8px", color: "var(--text-primary)", fontSize: "13px" }}>
               <option value="security">Security concern (e.g., tool poisoning)</option>
               <option value="malware">Malware or abuse</option>
               <option value="impersonation">Impersonation / fake publisher</option>
@@ -1198,7 +1198,7 @@ export default function ToolDetail() {
             </select>
             <textarea value={reportDetail} onChange={(e) => setReportDetail(e.target.value)} rows={3} maxLength={1000}
               placeholder="Optional details (what's wrong, links, etc.)"
-              style={{ padding: "9px 12px", background: "#0d0d15", border: "1px solid #2e2e44", borderRadius: "8px", color: "var(--text-primary)", fontSize: "13px", resize: "vertical", fontFamily: "var(--font-body)" }} />
+              style={{ padding: "9px 12px", background: "var(--bg-secondary)", border: "1px solid var(--border-accent)", borderRadius: "8px", color: "var(--text-primary)", fontSize: "13px", resize: "vertical", fontFamily: "var(--font-body)" }} />
             {reportMsg && <p style={{ fontSize: "12px", color: "#f87171" }}>{reportMsg}</p>}
             <div style={{ display: "flex", gap: "8px" }}>
               <button type="submit" disabled={reportBusy}
@@ -1206,7 +1206,7 @@ export default function ToolDetail() {
                 {reportBusy ? "Submitting…" : "Submit report"}
               </button>
               <button type="button" onClick={() => setReportOpen(false)}
-                style={{ padding: "9px 16px", background: "transparent", border: "1px solid #2e2e44", borderRadius: "8px", color: "var(--text-muted)", fontSize: "13px", cursor: "pointer" }}>
+                style={{ padding: "9px 16px", background: "transparent", border: "1px solid var(--border-accent)", borderRadius: "8px", color: "var(--text-muted)", fontSize: "13px", cursor: "pointer" }}>
                 Cancel
               </button>
             </div>

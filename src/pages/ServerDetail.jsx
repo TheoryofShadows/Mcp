@@ -113,7 +113,7 @@ export default function ServerDetail() {
         </div>
         <div style={{ flex: 1, minWidth: "200px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)", marginBottom: "var(--space-xs)", flexWrap: "wrap" }}>
-            <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "var(--font-2xl)", fontWeight: 800, letterSpacing: "-0.5px" }}>
+            <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "var(--font-2xl)", fontWeight: 400, letterSpacing: "-0.5px" }}>
               {server.name}
             </h1>
             {server.verified && <VerifiedBadge verified={server.verified} size="md" />}
@@ -145,7 +145,7 @@ export default function ServerDetail() {
           ...(server.revenue ? [{ label: "Revenue", value: server.revenue, color: "var(--accent-purple)" }] : []),
         ].map((s) => (
           <div key={s.label} style={{ textAlign: "center", flex: 1, minWidth: "100px" }}>
-            <div style={{ fontFamily: "var(--font-heading)", fontSize: "var(--font-xl)", fontWeight: 800, color: s.color }}>{s.value}</div>
+            <div style={{ fontFamily: "var(--font-heading)", fontSize: "var(--font-xl)", fontWeight: 400, color: s.color }}>{s.value}</div>
             <div style={{ fontFamily: "var(--font-mono)", fontSize: "var(--font-xs)", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", marginTop: "2px" }}>{s.label}</div>
           </div>
         ))}
