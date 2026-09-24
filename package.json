@@ -45,7 +45,7 @@
     "publish:packages": "node scripts/publish-packages.js"
   },
   "dependencies": {
-    "@descope/node-sdk": "^2.12.0",
+    "@descope/node-sdk": "^2.17.0",
     "@descope/react-sdk": "^3.2.1",
     "@sentry/node": "^10.74.0",
     "@solana/web3.js": "^1.98.4",
@@ -76,7 +76,7 @@
     "eslint-plugin-react-refresh": "^0.5.6",
     "globals": "^17.12.0",
     "supertest": "^7.2.2",
-    "vite": "^8.2.2",
+    "vite": "^8.3.0",
     "vitest": "^5.0.0"
   },
   "overrides": {
