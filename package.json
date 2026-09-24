@@ -61,7 +61,7 @@
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.3",
-    "stripe": "^22.3.0",
+    "stripe": "^22.6.2",
     "uuid": "^14.0.1"
   },
   "devDependencies": {
