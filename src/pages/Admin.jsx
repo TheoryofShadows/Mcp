@@ -16,7 +16,7 @@ const STATUS_OPTIONS = ["active", "pending", "inactive"];
 
 const TIER_COLORS = {
   starter: "#6b7280",
-  pro: "#22d3ee",
+  pro: "var(--accent)",
   enterprise: "#fbbf24",
 };
 
@@ -50,7 +50,7 @@ function Toggle({ value, onChange, disabled }) {
         height: 18,
         borderRadius: "9px",
         border: "none",
-        background: value ? "#22d3ee" : "#2e2e44",
+        background: value ? "var(--accent)" : "var(--border-accent)",
         cursor: disabled ? "not-allowed" : "pointer",
         position: "relative",
         transition: "background 0.2s",
@@ -129,16 +129,16 @@ function ServersTab() {
         <span style={{ ...mono, fontSize: "12px", color: "var(--text-muted)" }}>{servers.length} servers</span>
         <button
           onClick={load}
-          style={{ ...mono, fontSize: "12px", background: "none", border: "1px solid #2e2e44", color: "var(--text-muted)", padding: "6px 12px", borderRadius: "6px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px" }}
+          style={{ ...mono, fontSize: "12px", background: "none", border: "1px solid var(--border-accent)", color: "var(--text-muted)", padding: "6px 12px", borderRadius: "6px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px" }}
         >
           <RefreshCw size={12} /> Refresh
         </button>
       </div>
 
-      <div style={{ overflowX: "auto", borderRadius: "10px", border: "1px solid #1d1d2b" }}>
+      <div style={{ overflowX: "auto", borderRadius: "10px", border: "1px solid var(--border-subtle)" }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
-            <tr style={{ borderBottom: "1px solid #1d1d2b", background: "#0d0d15" }}>
+            <tr style={{ borderBottom: "1px solid var(--border-subtle)", background: "var(--bg-secondary)" }}>
               {["Name", "Author", "Status", "Verified", "Trending", ""].map((h) => (
                 <th key={h} style={{ padding: "10px 16px", textAlign: "left", ...mono, fontSize: "11px", color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", whiteSpace: "nowrap" }}>
                   {h}
@@ -154,7 +154,7 @@ function ServersTab() {
                 </td>
               </tr>
             ) : servers.map((s) => (
-              <tr key={s.id} style={{ borderBottom: "1px solid #1d1d2b" }}>
+              <tr key={s.id} style={{ borderBottom: "1px solid var(--border-subtle)" }}>
                 <td style={{ padding: "12px 16px" }}>
                   <div style={{ fontWeight: 600, fontSize: "13px", marginBottom: "2px" }}>{s.name}</div>
                   <div style={{ ...mono, fontSize: "11px", color: "var(--text-muted)" }}>{s.slug}</div>
@@ -170,8 +170,8 @@ function ServersTab() {
                     style={{
                       ...mono,
                       fontSize: "12px",
-                      background: "#1d1d2b",
-                      border: "1px solid #2e2e44",
+                      background: "var(--border-subtle)",
+                      border: "1px solid var(--border-accent)",
                       color: "var(--text-primary)",
                       borderRadius: "6px",
                       padding: "4px 8px",
@@ -254,16 +254,16 @@ function UsersTab() {
         <span style={{ ...mono, fontSize: "12px", color: "var(--text-muted)" }}>{users.length} users</span>
         <button
           onClick={load}
-          style={{ ...mono, fontSize: "12px", background: "none", border: "1px solid #2e2e44", color: "var(--text-muted)", padding: "6px 12px", borderRadius: "6px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px" }}
+          style={{ ...mono, fontSize: "12px", background: "none", border: "1px solid var(--border-accent)", color: "var(--text-muted)", padding: "6px 12px", borderRadius: "6px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px" }}
         >
           <RefreshCw size={12} /> Refresh
         </button>
       </div>
 
-      <div style={{ overflowX: "auto", borderRadius: "10px", border: "1px solid #1d1d2b" }}>
+      <div style={{ overflowX: "auto", borderRadius: "10px", border: "1px solid var(--border-subtle)" }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
-            <tr style={{ borderBottom: "1px solid #1d1d2b", background: "#0d0d15" }}>
+            <tr style={{ borderBottom: "1px solid var(--border-subtle)", background: "var(--bg-secondary)" }}>
               {["User", "Email", "Tier", "Servers", "Joined"].map((h) => (
                 <th key={h} style={{ padding: "10px 16px", textAlign: "left", ...mono, fontSize: "11px", color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", whiteSpace: "nowrap" }}>
                   {h}
@@ -279,7 +279,7 @@ function UsersTab() {
                 </td>
               </tr>
             ) : users.map((u) => (
-              <tr key={u.id} style={{ borderBottom: "1px solid #1d1d2b" }}>
+              <tr key={u.id} style={{ borderBottom: "1px solid var(--border-subtle)" }}>
                 <td style={{ padding: "12px 16px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                     <div
@@ -287,13 +287,13 @@ function UsersTab() {
                         width: 30,
                         height: 30,
                         borderRadius: "50%",
-                        background: "linear-gradient(135deg, #22d3ee, #14b8a6)",
+                        background: "var(--text-primary)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                         fontSize: "12px",
                         fontWeight: 700,
-                        color: "#fff",
+                        color: "var(--bg-primary)",
                         flexShrink: 0,
                       }}
                     >
@@ -385,7 +385,7 @@ export default function Admin() {
         </p>
         <button
           onClick={() => logout()}
-          style={{ ...mono, background: "none", border: "1px solid #2e2e44", color: "var(--text-muted)", padding: "8px 16px", cursor: "pointer", borderRadius: "4px" }}
+          style={{ ...mono, background: "none", border: "1px solid var(--border-accent)", color: "var(--text-muted)", padding: "8px 16px", cursor: "pointer", borderRadius: "4px" }}
         >
           Sign out
         </button>
@@ -398,7 +398,7 @@ export default function Admin() {
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
         <div>
-          <h1 style={{ fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "24px", letterSpacing: "-0.5px", marginBottom: "4px" }}>
+          <h1 style={{ fontFamily: "var(--font-heading)", fontWeight: 400, fontSize: "24px", letterSpacing: "-0.5px", marginBottom: "4px" }}>
             Admin Panel
           </h1>
           <p style={{ ...mono, fontSize: "12px", color: "var(--text-muted)" }}>
@@ -407,14 +407,14 @@ export default function Admin() {
         </div>
         <button
           onClick={() => logout()}
-          style={{ ...mono, background: "none", border: "1px solid #2e2e44", color: "var(--text-muted)", padding: "6px 14px", cursor: "pointer", borderRadius: "6px", fontSize: "12px" }}
+          style={{ ...mono, background: "none", border: "1px solid var(--border-accent)", color: "var(--text-muted)", padding: "6px 14px", cursor: "pointer", borderRadius: "6px", fontSize: "12px" }}
         >
           Sign out
         </button>
       </div>
 
       {/* Tabs */}
-      <div style={{ display: "flex", gap: "2px", marginBottom: "24px", background: "#0d0d15", borderRadius: "10px", padding: "4px", border: "1px solid #1d1d2b", width: "fit-content" }}>
+      <div style={{ display: "flex", gap: "2px", marginBottom: "24px", background: "var(--bg-secondary)", borderRadius: "10px", padding: "4px", border: "1px solid var(--border-subtle)", width: "fit-content" }}>
         {[
           { id: "Servers", icon: Server },
           { id: "Users", icon: Users },
@@ -429,7 +429,7 @@ export default function Admin() {
               padding: "8px 20px",
               borderRadius: "7px",
               border: "none",
-              background: activeTab === id ? "#1d1d2b" : "transparent",
+              background: activeTab === id ? "var(--border-subtle)" : "transparent",
               color: activeTab === id ? "var(--text-primary)" : "var(--text-muted)",
               fontSize: "13px",
               fontWeight: activeTab === id ? 600 : 400,

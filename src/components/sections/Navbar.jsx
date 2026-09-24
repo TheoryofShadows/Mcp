@@ -26,7 +26,7 @@ const Navbar = memo(function Navbar({ onAuthClick }) {
           aria-hidden="true"
           style={{
             width: 32, height: 32,
-            background: "linear-gradient(135deg, var(--accent-electric), var(--accent-blue))",
+            background: "var(--text-primary)",
             borderRadius: "var(--radius-md)",
             display: "flex", alignItems: "center", justifyContent: "center",
             fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: "14px", color: "var(--bg-primary)",
@@ -36,9 +36,8 @@ const Navbar = memo(function Navbar({ onAuthClick }) {
         </div>
         <span
           style={{
-            fontFamily: "var(--font-heading)", fontWeight: 800, fontSize: "20px",
-            background: "linear-gradient(135deg, var(--accent-electric), var(--accent-blue))",
-            WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: "-0.5px",
+            fontFamily: "var(--font-body)", fontWeight: 600, fontSize: "18px",
+            color: "var(--text-primary)", letterSpacing: "-0.03em",
           }}
         >
           MCPX

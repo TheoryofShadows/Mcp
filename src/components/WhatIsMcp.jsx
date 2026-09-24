@@ -46,7 +46,7 @@ export default function WhatIsMcp({ style }) {
           id="what-is-mcp-heading"
           style={{
             fontFamily: "var(--font-heading)",
-            fontWeight: 800,
+            fontWeight: 400,
             fontSize: "24px",
             marginBottom: "8px",
             letterSpacing: "-0.4px",
@@ -81,13 +81,13 @@ export default function WhatIsMcp({ style }) {
             key={title}
             style={{
               background: "#0f0f18",
-              border: "1px solid #1d1d2b",
+              border: "1px solid var(--border-subtle)",
               borderRadius: "14px",
               padding: "20px",
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-              <Icon size={16} color="#67e8f9" aria-hidden="true" />
+              <Icon size={16} color="var(--accent)" aria-hidden="true" />
               <h3
                 style={{
                   fontSize: "15px",
