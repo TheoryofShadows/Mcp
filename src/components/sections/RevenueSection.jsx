@@ -59,7 +59,7 @@ export default function RevenueSection({ onAuthClick }) {
           style={{
             fontFamily: "var(--font-heading)",
             fontSize: "var(--font-4xl)",
-            fontWeight: 800,
+            fontWeight: 400,
             letterSpacing: "-1px",
             marginBottom: "var(--space-sm)",
           }}
@@ -119,7 +119,7 @@ export default function RevenueSection({ onAuthClick }) {
                   background: "var(--bg-secondary)",
                   borderRadius: "var(--radius-lg)",
                   border: item.highlight
-                    ? "1px solid rgba(34, 211, 238, 0.35)"
+                    ? "1px solid rgba(138, 154, 134, 0.35)"
                     : "1px solid var(--border-subtle)",
                 }}
               >
@@ -138,7 +138,7 @@ export default function RevenueSection({ onAuthClick }) {
                   style={{
                     fontFamily: "var(--font-heading)",
                     fontSize: "var(--font-2xl)",
-                    fontWeight: 800,
+                    fontWeight: 400,
                     color: item.highlight
                       ? "var(--accent-electric)"
                       : "var(--text-primary)",
@@ -256,7 +256,7 @@ export default function RevenueSection({ onAuthClick }) {
                 style={{
                   fontFamily: "var(--font-heading)",
                   fontSize: "var(--font-3xl)",
-                  fontWeight: 800,
+                  fontWeight: 400,
                   color: "var(--text-primary)",
                   letterSpacing: "-1px",
                   marginBottom: "var(--space-xs)",

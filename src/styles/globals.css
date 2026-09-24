@@ -1,32 +1,30 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap');
 
 /* ─── Design Tokens ─── */
 
 :root {
-  /* Colors — MCPX "Aurora" 2026 theme (cool-toned dark + cyan accent) */
-  --bg-primary: #08080d;
-  --bg-secondary: #0d0d15;
-  --bg-card: #12121c;
-  --bg-card-hover: #1a1a28;
-  --accent: #22d3ee;
-  --accent-light: #67e8f9;
-  --accent-dim: rgba(34, 211, 238, 0.12);
-  /* Accent rgb channels — for building translucent layers in one place */
-  --accent-rgb: 34, 211, 238;
-  --accent-cyan: #22d3ee;
-  /* Legacy aliases kept for backward compat — now mapped to the cyan accent */
-  --accent-electric: #22d3ee;
-  --accent-blue: #38bdf8;
-  --accent-purple: #14b8a6;
-  --accent-pink: #ec4899;
-  --accent-orange: #fbbf24;
-  --text-primary: #f4f4fa;
-  --text-secondary: #a0a0bd;
-  --text-muted: #64647e;
-  --border-subtle: #1d1d2b;
-  --border-accent: #2e2e44;
-  --glow-indigo: rgba(34, 211, 238, 0.18);
-  --glow-blue: rgba(56, 189, 248, 0.14);
+  /* Colors — editorial paper/ink. One sage accent, no aurora cyan. */
+  --bg-primary: #09090b;
+  --bg-secondary: #121214;
+  --bg-card: #121214;
+  --bg-card-hover: #1a1a1e;
+  --accent: #8a9a86;
+  --accent-light: #a8b6a4;
+  --accent-dim: rgba(138, 154, 134, 0.12);
+  --accent-rgb: 138, 154, 134;
+  --accent-cyan: #8a9a86;
+  --accent-electric: #8a9a86;
+  --accent-blue: #9a9891;
+  --accent-purple: #c4a574;
+  --accent-pink: #c45c4a;
+  --accent-orange: #c4a574;
+  --text-primary: #e8e6e1;
+  --text-secondary: #9a9891;
+  --text-muted: #6f6d67;
+  --border-subtle: #2a2a2e;
+  --border-accent: #3c3c42;
+  --glow-indigo: rgba(0, 0, 0, 0.35);
+  --glow-blue: rgba(0, 0, 0, 0.2);
 
   /* Spacing scale */
   --space-xs: 4px;
@@ -64,9 +62,9 @@
   --z-modal: 300;
 
   /* Font families */
-  --font-body: 'DM Sans', sans-serif;
-  --font-heading: 'Syne', sans-serif;
-  --font-mono: 'Space Mono', monospace;
+  --font-body: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Instrument Serif", ui-serif, Georgia, serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
   /* Transitions */
   --transition-fast: 0.15s ease;
@@ -93,7 +91,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Ambient "aurora" backdrop — subtle depth behind all content (2026 refresh) */
+/* Quiet field behind content — no aurora blobs */
 body::before {
   content: "";
   position: fixed;
@@ -101,9 +99,7 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(60% 50% at 15% -5%, rgba(34, 211, 238, 0.14), transparent 60%),
-    radial-gradient(50% 45% at 90% 5%, rgba(56, 189, 248, 0.10), transparent 60%),
-    radial-gradient(70% 60% at 50% 110%, rgba(20, 184, 166, 0.08), transparent 65%);
+    linear-gradient(180deg, #09090b 0%, #101012 100%);
 }
 
 /* ─── Skip to content (a11y) ─── */
@@ -237,28 +233,29 @@ input:focus-visible {
 .btn-primary {
   padding: 14px 32px;
   border-radius: var(--radius-lg);
-  background: linear-gradient(135deg, var(--accent-electric), var(--accent-blue));
+  background: var(--text-primary);
   color: var(--bg-primary);
-  font-family: var(--font-heading);
+  font-family: var(--font-body);
   font-size: var(--font-lg);
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: -0.3px;
-  box-shadow: 0 8px 24px rgba(var(--accent-rgb), 0.28);
+  box-shadow: none;
 }
 
 .btn-primary:hover {
-  box-shadow: 0 10px 32px rgba(var(--accent-rgb), 0.4);
+  opacity: 0.92;
+  box-shadow: none;
 }
 
 .btn-secondary {
   padding: 14px 32px;
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-accent);
-  background: var(--bg-card);
+  background: transparent;
   color: var(--text-primary);
-  font-family: var(--font-heading);
+  font-family: var(--font-body);
   font-size: var(--font-lg);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .btn-secondary:hover {
@@ -282,7 +279,7 @@ input:focus-visible {
 .btn-gradient {
   padding: 8px 20px;
   border-radius: var(--radius-md);
-  background: linear-gradient(135deg, var(--accent-electric), var(--accent-blue));
+  background: var(--text-primary);
   color: var(--bg-primary);
   font-size: var(--font-sm);
 }
@@ -805,7 +802,7 @@ code::-webkit-scrollbar-thumb { background: var(--border-accent); border-radius:
     flex-direction: column !important;
   }
   .hero-search input {
-    border-right: 1px solid #2e2e44 !important;
+    border-right: 1px solid var(--border-accent) !important;
     border-radius: 12px 12px 0 0 !important;
   }
   .hero-search button {

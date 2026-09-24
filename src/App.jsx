@@ -14,6 +14,8 @@ const Login        = lazy(() => import("./pages/Login"));
 const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 const Admin        = lazy(() => import("./pages/Admin"));
 const Pricing      = lazy(() => import("./pages/Pricing"));
+const Playbook     = lazy(() => import("./pages/Playbook"));
+const Debug        = lazy(() => import("./pages/Debug"));
 
 const DOCS_README_URL =
   "https://github.com/TheoryofShadows/Mcp/blob/main/docs/README.md";
@@ -30,10 +32,10 @@ function PageLoader() {
         padding: "0 24px",
       }}
     >
-      <div style={{ height: 14, width: "40%", background: "#1d1d2b", borderRadius: 8, marginBottom: 16 }} />
-      <div style={{ height: 48, width: "100%", background: "#12121c", border: "1px solid #1d1d2b", borderRadius: 12, marginBottom: 12 }} />
-      <div style={{ height: 48, width: "92%", background: "#12121c", border: "1px solid #1d1d2b", borderRadius: 12, marginBottom: 12 }} />
-      <div style={{ height: 48, width: "86%", background: "#12121c", border: "1px solid #1d1d2b", borderRadius: 12 }} />
+      <div style={{ height: 14, width: "40%", background: "var(--border-subtle)", borderRadius: 8, marginBottom: 16 }} />
+      <div style={{ height: 48, width: "100%", background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: 12, marginBottom: 12 }} />
+      <div style={{ height: 48, width: "92%", background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: 12, marginBottom: 12 }} />
+      <div style={{ height: 48, width: "86%", background: "var(--bg-card)", border: "1px solid var(--border-subtle)", borderRadius: 12 }} />
       <p style={{ marginTop: 18, color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.06em" }}>
         Loading…
       </p>
@@ -90,6 +92,8 @@ export default function App() {
             <Route path="/auth/callback"  element={<AuthCallback />} />
             <Route path="/admin"          element={<Admin />} />
             <Route path="/pricing"        element={<Pricing />} />
+            <Route path="/playbook"       element={<Playbook />} />
+            <Route path="/debug"          element={<Debug />} />
             {/* Legacy route compat */}
             <Route path="/servers/:slug" element={<ToolDetail />} />
           </Routes>

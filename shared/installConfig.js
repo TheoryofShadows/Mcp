@@ -9,10 +9,13 @@
  * Pure & dependency-free (browser- and Node-safe): no I/O, no framework imports.
  *
  * Install spec resolution order:
- *   1. server.install_command — the publisher-declared, verifiable spec.
- *   2. Fallback to the `@modelcontextprotocol/server-<slug>` naming convention.
+ *   1. server.remote_url — HTTP MCP (official Figma, etc.)
+ *   2. server.install_command — the publisher-declared, verifiable spec.
+ *   3. Fallback to the `@modelcontextprotocol/server-<slug>` naming convention.
  * The fallback is a GUESS at a package name; callers that care about supply-chain
  * safety (the CLI) should check `hasDeclaredInstall()` before trusting it.
+ *
+ * Env values are always `<KEY>` placeholders. Never interpolate real secrets.
  */
 
 export function slugFor(server) {
@@ -30,22 +33,40 @@ export function resolveInstallCommand(server) {
   return `npx -y @modelcontextprotocol/server-${slugFor(server)}`;
 }
 
+function envPlaceholders(server) {
+  if (!Array.isArray(server.env) || server.env.length === 0) return undefined;
+  return Object.fromEntries(server.env.map((e) => [e.key, `<${e.key}>`]));
+}
+
 /** Split the install command into a { command, args } entry for JSON configs. */
 export function buildServerEntry(server) {
+  if (server.remote_url) {
+    return { url: server.remote_url };
+  }
   const parts = resolveInstallCommand(server).split(/\s+/).filter(Boolean);
-  return { command: parts[0], args: parts.slice(1) };
+  const entry = { command: parts[0], args: parts.slice(1) };
+  const env = envPlaceholders(server);
+  if (env) entry.env = env;
+  return entry;
 }
 
 export function buildClaudeCommand(server) {
+  if (server.remote_url) {
+    return `claude mcp add --transport http ${slugFor(server)} ${server.remote_url}`;
+  }
   return `claude mcp add ${slugFor(server)} -- ${resolveInstallCommand(server)}`;
 }
 
 export function buildCursorConfig(server) {
-  const { command, args } = buildServerEntry(server);
-  return JSON.stringify({ mcpServers: { [slugFor(server)]: { command, args } } }, null, 2);
+  return JSON.stringify({ mcpServers: { [slugFor(server)]: buildServerEntry(server) } }, null, 2);
 }
 
 export function buildVSCodeConfig(server) {
-  const { command, args } = buildServerEntry(server);
-  return JSON.stringify({ servers: { [slugFor(server)]: { type: "stdio", command, args } } }, null, 2);
+  const entry = buildServerEntry(server);
+  if (entry.url) {
+    return JSON.stringify({ servers: { [slugFor(server)]: { type: "http", url: entry.url } } }, null, 2);
+  }
+  const block = { type: "stdio", command: entry.command, args: entry.args };
+  if (entry.env) block.env = entry.env;
+  return JSON.stringify({ servers: { [slugFor(server)]: block } }, null, 2);
 }

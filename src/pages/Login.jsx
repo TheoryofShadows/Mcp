@@ -15,10 +15,10 @@ const PERKS = [
 const inputStyle = {
   width: "100%",
   padding: "11px 14px",
-  background: "#0d0d15",
-  border: "1px solid #2e2e44",
+  background: "var(--bg-secondary)",
+  border: "1px solid var(--border-accent)",
   borderRadius: "10px",
-  color: "#fff",
+  color: "var(--bg-primary)",
   fontSize: "14px",
   fontFamily: "inherit",
   outline: "none",
@@ -127,7 +127,7 @@ export default function Login() {
           transform: "translateX(-50%)",
           width: "500px",
           height: "500px",
-          background: "radial-gradient(ellipse, rgba(34, 211, 238,0.08) 0%, transparent 70%)",
+          background: "radial-gradient(ellipse, rgba(138, 154, 134,0.08) 0%, transparent 70%)",
           pointerEvents: "none",
         }}
       />
@@ -145,13 +145,13 @@ export default function Login() {
             style={{
               width: 56,
               height: 56,
-              background: "linear-gradient(135deg, #22d3ee, #14b8a6)",
+              background: "var(--text-primary)",
               borderRadius: "16px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               margin: "0 auto 16px",
-              boxShadow: "0 0 32px rgba(34, 211, 238,0.3)",
+              boxShadow: "0 0 32px rgba(138, 154, 134,0.3)",
             }}
           >
             <Zap size={26} color="#fff" />
@@ -159,7 +159,7 @@ export default function Login() {
           <h1
             style={{
               fontFamily: "var(--font-heading)",
-              fontWeight: 800,
+              fontWeight: 400,
               fontSize: "26px",
               letterSpacing: "-0.5px",
               marginBottom: "8px",
@@ -175,8 +175,8 @@ export default function Login() {
         {/* Card */}
         <div
           style={{
-            background: "#12121c",
-            border: "1px solid #1d1d2b",
+            background: "var(--bg-card)",
+            border: "1px solid var(--border-subtle)",
             borderRadius: "18px",
             padding: "32px",
             marginBottom: "20px",
@@ -191,10 +191,10 @@ export default function Login() {
                 style={{
                   width: "100%",
                   padding: "14px",
-                  background: loading ? "#1d1d2b" : "#f0f0f0",
+                  background: loading ? "var(--border-subtle)" : "#f0f0f0",
                   border: "none",
                   borderRadius: "12px",
-                  color: "#08080d",
+                  color: "var(--bg-primary)",
                   fontSize: "15px",
                   fontWeight: 700,
                   cursor: loading ? "not-allowed" : "pointer",
@@ -213,7 +213,7 @@ export default function Login() {
                   }
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = loading ? "#1d1d2b" : "#f0f0f0";
+                  e.currentTarget.style.background = loading ? "var(--border-subtle)" : "#f0f0f0";
                   e.currentTarget.style.transform = "translateY(0)";
                 }}
               >
@@ -238,7 +238,7 @@ export default function Login() {
                       color: "var(--text-secondary)",
                     }}
                   >
-                    <CheckCircle size={14} color="#22d3ee" style={{ flexShrink: 0 }} />
+                    <CheckCircle size={14} color="var(--accent)" style={{ flexShrink: 0 }} />
                     {perk}
                   </div>
                 ))}
@@ -259,8 +259,8 @@ export default function Login() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="dev@mcpx.dev"
                     style={inputStyle}
-                    onFocus={(e) => (e.target.style.borderColor = "#22d3ee")}
-                    onBlur={(e) => (e.target.style.borderColor = "#2e2e44")}
+                    onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
+                    onBlur={(e) => (e.target.style.borderColor = "var(--border-accent)")}
                   />
                 </div>
 
@@ -276,8 +276,8 @@ export default function Login() {
                       onChange={(e) => setUsername(e.target.value)}
                       placeholder="cooldev42"
                       style={inputStyle}
-                      onFocus={(e) => (e.target.style.borderColor = "#22d3ee")}
-                      onBlur={(e) => (e.target.style.borderColor = "#2e2e44")}
+                      onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
+                      onBlur={(e) => (e.target.style.borderColor = "var(--border-accent)")}
                     />
                   </div>
                 )}
@@ -294,8 +294,8 @@ export default function Login() {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Min 10 characters"
                     style={inputStyle}
-                    onFocus={(e) => (e.target.style.borderColor = "#22d3ee")}
-                    onBlur={(e) => (e.target.style.borderColor = "#2e2e44")}
+                    onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
+                    onBlur={(e) => (e.target.style.borderColor = "var(--border-accent)")}
                   />
                 </div>
 
@@ -305,10 +305,10 @@ export default function Login() {
                   style={{
                     width: "100%",
                     padding: "13px",
-                    background: loading ? "#1d1d2b" : "linear-gradient(135deg, #22d3ee, #14b8a6)",
+                    background: loading ? "var(--border-subtle)" : "var(--text-primary)",
                     border: "none",
                     borderRadius: "12px",
-                    color: "#fff",
+                    color: "var(--bg-primary)",
                     fontSize: "15px",
                     fontWeight: 700,
                     cursor: loading ? "not-allowed" : "pointer",
@@ -327,7 +327,7 @@ export default function Login() {
                     style={{
                       background: "none",
                       border: "none",
-                      color: "#67e8f9",
+                      color: "var(--accent)",
                       cursor: "pointer",
                       fontSize: "13px",
                       fontWeight: 600,
@@ -344,8 +344,8 @@ export default function Login() {
                   <div
                     style={{
                       padding: "10px 14px",
-                      background: "rgba(34, 211, 238,0.07)",
-                      border: "1px solid rgba(34, 211, 238,0.15)",
+                      background: "rgba(138, 154, 134,0.07)",
+                      border: "1px solid rgba(138, 154, 134,0.15)",
                       borderRadius: "10px",
                       fontSize: "12px",
                       color: "var(--text-muted)",
@@ -353,7 +353,7 @@ export default function Login() {
                       textAlign: "center",
                     }}
                   >
-                    Dev only — Demo: <strong style={{ color: "#a5f3fc" }}>dev@mcpx.dev</strong> / <strong style={{ color: "#a5f3fc" }}>demo1234</strong>
+                    Dev only — Demo: <strong style={{ color: "var(--accent-light)" }}>dev@mcpx.dev</strong> / <strong style={{ color: "var(--accent-light)" }}>demo1234</strong>
                   </div>
                 )}
               </form>
@@ -398,13 +398,13 @@ export default function Login() {
           )}
           <p style={{ fontSize: "12px", color: "var(--text-muted)" }}>
             By signing in you agree to our{" "}
-            <Link to="/" style={{ color: "#67e8f9", textDecoration: "none" }}>Terms</Link>
+            <Link to="/" style={{ color: "var(--accent)", textDecoration: "none" }}>Terms</Link>
             {" "}and{" "}
-            <Link to="/" style={{ color: "#67e8f9", textDecoration: "none" }}>Privacy Policy</Link>
+            <Link to="/" style={{ color: "var(--accent)", textDecoration: "none" }}>Privacy Policy</Link>
           </p>
           <p style={{ fontSize: "12px", color: "var(--text-muted)" }}>
             Just browsing?{" "}
-            <Link to="/marketplace" style={{ color: "#67e8f9", textDecoration: "none" }}>
+            <Link to="/marketplace" style={{ color: "var(--accent)", textDecoration: "none" }}>
               Explore marketplace →
             </Link>
           </p>
