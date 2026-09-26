@@ -2,7 +2,7 @@
  * Payments — Stripe Connect SaaS platform integration
  *
  * Two flows:
- *  1. Platform subscriptions — publishers pay MCPX (Pro $8/mo, Enterprise $19/mo)
+ *  1. Platform subscriptions — publishers pay MCPX (Pro $9/mo, Enterprise $29/mo)
  *     via Stripe Checkout in "subscription" mode.
  *
  *  2. Stripe Connect (publisher payouts) — publishers onboard as Express connected
@@ -294,8 +294,8 @@ export function paymentsConfigWarnings(env = process.env) {
 // ─── Platform subscription price IDs ─────────────────────────────────────────
 
 const TIER_CONFIG = {
-  pro:        { name: "MCPX Pro Publisher", amount: 800,  env: "STRIPE_PRICE_PRO",        lookup: "mcpx-pro" },
-  enterprise: { name: "MCPX Enterprise",    amount: 1900, env: "STRIPE_PRICE_ENTERPRISE", lookup: "mcpx-enterprise" },
+  pro:        { name: "MCPX Pro Publisher", amount: 900,  env: "STRIPE_PRICE_PRO",        lookup: "mcpx-pro-9",        priceId: "price_1UJkAZCJ8WGcNSoKhh1fTKDK" },
+  enterprise: { name: "MCPX Enterprise",    amount: 2900, env: "STRIPE_PRICE_ENTERPRISE", lookup: "mcpx-enterprise-29", priceId: "price_1UJkAaCJ8WGcNSoK9gMf42hT" },
 };
 
 const priceIdCache = {};
@@ -306,9 +306,12 @@ async function getPriceId(tierId) {
   const cfg = TIER_CONFIG[tierId];
   if (!cfg) throw new Error(`Unknown tier: ${tierId}`);
 
-  // Lookup key wins over STRIPE_PRICE_*. Those env vars stay pinned at the
-  // previous amount until someone edits the host, which would keep charging
-  // the old price after a cut.
+  // The price id ships with the code. A host env still pinned at an older
+  // amount must not win, and a lookup key left on the previous price must not either.
+  if (cfg.priceId) {
+    priceIdCache[tierId] = cfg.priceId;
+    return cfg.priceId;
+  }
   try {
     const listed = await stripe.prices.list({
       lookup_keys: [cfg.lookup],

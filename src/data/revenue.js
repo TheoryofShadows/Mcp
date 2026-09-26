@@ -1,7 +1,7 @@
 export const REVENUE_MODEL = {
   transactionFee: "15%",
-  premiumListing: "$8/mo",
-  enterprise: "$19/mo",
+  premiumListing: "$9/mo",
+  enterprise: "$29/mo",
   projectedYear1: "$1.2M ARR",
 };
 
@@ -34,7 +34,7 @@ export const PRICING_TIERS = [
   },
   {
     name: "Pro Publisher",
-    price: "$8/mo",
+    price: "$9/mo",
     desc: "For serious tool builders",
     features: [
       "Unlimited servers",
@@ -50,7 +50,7 @@ export const PRICING_TIERS = [
   },
   {
     name: "Enterprise",
-    price: "$19/mo",
+    price: "$29/mo",
     desc: "For teams & organizations",
     features: [
       "Team management",
