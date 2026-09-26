@@ -188,7 +188,7 @@ router.get("/", (req, res) => {
     name: "s.name ASC",
     revenue: "s.monthly_revenue DESC",
   };
-  const orderBy = SORT_MAP[sort] || SORT_MAP.installs;
+  const orderBy = `CASE WHEN s.featured_until IS NOT NULL AND s.featured_until > datetime('now') THEN 0 ELSE 1 END, ${SORT_MAP[sort] || SORT_MAP.installs}`;
 
   const whereClause = where.length ? `WHERE ${where.join(" AND ")}` : "";
 
@@ -882,6 +882,8 @@ function formatServer(row) {
     publisher_has_solana_wallet: !!row.publisher_has_solana_wallet,
     verified: !!row.verified,
     trending: !!row.trending,
+    featured: typeof row.featured_until === "string" && row.featured_until > new Date().toISOString().slice(0, 19).replace("T", " "),
+    featured_until: row.featured_until || null,
     gradient: row.gradient,
     weeklyGrowth: row.weekly_growth,
     revenue: row.monthly_revenue > 0 ? `$${(row.monthly_revenue / 100).toLocaleString()}/mo` : null,

@@ -41,7 +41,7 @@ export async function authenticateDescopeToken(req, res, next) {
  */
 export function requireAdmin(req, res, next) {
   if (!ADMIN_PERMISSION) {
-    return res.status(503).json({ error: "Admin access is not configured" });
+    return res.status(404).json({ error: "Not found" });
   }
 
   if (!req.descopeUser) {

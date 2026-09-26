@@ -108,6 +108,11 @@ const ToolCard = memo(function ToolCard({ tool, index = 0 }) {
                 >
                   {tool.name}
                 </span>
+                {tool.featured ? (
+                  <span style={{ fontSize: "10px", fontFamily: "var(--font-mono)", letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--accent)" }}>
+                    Featured
+                  </span>
+                ) : null}
                 {/* Prefer the computed Trust Score tier when available; fall back
                     to the legacy verified flag for static/seed data. */}
                 {tool.trust

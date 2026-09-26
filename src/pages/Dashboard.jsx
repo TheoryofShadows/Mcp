@@ -8,7 +8,7 @@ import { useAuth } from "../hooks/useAuth";
 import PriceTag from "../components/PriceTag";
 import VerifyRepoModal from "../components/VerifyRepoModal";
 import { supabase } from "../lib/supabase";
-import { fetchServers, getMe, connectStripe, fetchEarnings, saveSolanaWallet, patchServer } from "../api/client";
+import { fetchServers, getMe, connectStripe, fetchEarnings, saveSolanaWallet, patchServer, featureCheckout } from "../api/client";
 
 // Honest empty defaults for demo / no-auth mode — no vanity installs/revenue.
 const MOCK_STATS = {
@@ -156,6 +156,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [demoMode, setDemoMode] = useState(false);
   const [stripeLoading, setStripeLoading] = useState(false);
+  const [featureBusy, setFeatureBusy] = useState("");
+  const [featureErr, setFeatureErr] = useState("");
   // Stripe's own verdict on why payouts aren't live yet (null once enabled).
   const payoutStatus = user?.stripe_payouts_status || null;
   const [solanaWalletInput, setSolanaWalletInput] = useState(user?.solana_wallet || "");
@@ -460,6 +462,9 @@ export default function Dashboard() {
           <h2 style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "16px" }}>Your Tools</h2>
           <span style={{ fontSize: "12px", fontFamily: "var(--font-mono)", color: "var(--text-muted)" }}>{tools.length} total</span>
         </div>
+        {featureErr ? (
+          <p style={{ margin: "0 20px 8px", fontSize: "12px", color: "#f87171", fontFamily: "var(--font-mono)" }}>{featureErr}</p>
+        ) : null}
 
         {tools.length === 0 ? (
           <div style={{ padding: "48px 24px", textAlign: "center" }}>
@@ -553,6 +558,23 @@ export default function Dashboard() {
                         >
                           View <ExternalLink size={11} />
                         </Link>
+                        {!demoMode && tool.status !== "inactive" && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFeatureErr("");
+                              setFeatureBusy(tool.slug);
+                              featureCheckout(tool.slug).catch((e) => {
+                                setFeatureErr(e?.message || "Could not start featured checkout");
+                                setFeatureBusy("");
+                              });
+                            }}
+                            disabled={featureBusy === tool.slug}
+                            style={{ fontSize: "12px", fontFamily: "var(--font-mono)", color: "var(--text-primary)", background: "transparent", border: "1px solid var(--border-accent)", borderRadius: "8px", padding: "4px 8px", cursor: featureBusy === tool.slug ? "wait" : "pointer" }}
+                          >
+                            {featureBusy === tool.slug ? "…" : tool.featured ? "Extend feature · $19" : "Feature · $19"}
+                          </button>
+                        )}
                         {!demoMode && (
                           pendingStatusSlug === tool.slug ? (
                             <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>

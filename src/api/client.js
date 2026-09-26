@@ -205,6 +205,18 @@ export async function toolCheckout(serverSlug) {
   return data;
 }
 
+export async function featureCheckout(serverSlug) {
+  const data = await request("/payments/stripe/feature-checkout", {
+    method: "POST",
+    body: JSON.stringify({ server_slug: serverSlug }),
+  });
+  if (data?.checkout_url) {
+    window.location.href = data.checkout_url;
+    return null;
+  }
+  return data;
+}
+
 /**
  * Start Stripe Connect onboarding (or get dashboard link if already onboarded).
  * Returns { onboarding_url } or { dashboard_url, onboarding_done: true }.

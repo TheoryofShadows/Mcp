@@ -32,7 +32,7 @@ import {
 
 const router = Router();
 
-const APP_URL = process.env.APP_URL || "http://localhost:5173";
+const APP_URL = (process.env.APP_URL || "http://localhost:5173").replace(/\/+$/, "");
 const PLATFORM_FEE_PCT = 0.15; // 15% — publishers keep 85%
 
 // Initialise Stripe client — null when key not configured.
@@ -297,6 +297,9 @@ const TIER_CONFIG = {
   pro:        { name: "MCPX Pro Publisher", amount: 900,  env: "STRIPE_PRICE_PRO",        lookup: "mcpx-pro-9",        priceId: "price_1UJkAZCJ8WGcNSoKhh1fTKDK" },
   enterprise: { name: "MCPX Enterprise",    amount: 2900, env: "STRIPE_PRICE_ENTERPRISE", lookup: "mcpx-enterprise-29", priceId: "price_1UJkAaCJ8WGcNSoK9gMf42hT" },
 };
+
+const FEATURED_PRICE_ID = "price_1UJkAfCJ8WGcNSoKOHdoYLy7";
+const FEATURED_CENTS = 1900;
 
 const priceIdCache = {};
 
@@ -742,6 +745,50 @@ router.post("/stripe/tool-checkout", requireAuth, async (req, res) => {
   }
 });
 
+// ─── POST /api/payments/stripe/feature-checkout ──────────────────────────────
+// One-time $19 / 7 days. The webhook extends servers.featured_until. Not a
+// Connect charge: this is paid to MCPX, and the listing itself stays whatever
+// price the publisher already set.
+
+router.post("/stripe/feature-checkout", requireAuth, async (req, res) => {
+  if (!requireStripe(res)) return;
+  const server_slug = String(req.body?.server_slug || "").trim();
+  if (!server_slug) return res.status(400).json({ error: "server_slug required" });
+
+  const server = db.prepare(
+    "SELECT id, slug, author_id, status FROM servers WHERE slug = ?"
+  ).get(server_slug);
+  if (!server || server.status !== "active") {
+    return res.status(404).json({ error: "Server not found" });
+  }
+  if (server.author_id !== req.user.id) {
+    return res.status(403).json({ error: "Only the publisher can feature this listing" });
+  }
+
+  try {
+    const buyer = db.prepare("SELECT email FROM users WHERE id = ?").get(req.user.id);
+    const buyerEmail = (buyer?.email || "").trim();
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      ...(buyerEmail ? { customer_email: buyerEmail } : {}),
+      client_reference_id: req.user.id,
+      line_items: [{ price: FEATURED_PRICE_ID, quantity: 1 }],
+      success_url: `${APP_URL}/dashboard?featured=1`,
+      cancel_url: `${APP_URL}/dashboard`,
+      metadata: {
+        sku: "featured-listing-7d",
+        server_id: server.id,
+        server_slug: server.slug,
+      },
+      branding_settings: { display_name: "MCPX" },
+    });
+    res.json({ checkout_url: session.url });
+  } catch (err) {
+    console.error("[stripe] feature-checkout error:", err.message);
+    res.status(500).json({ error: "Failed to create featured checkout" });
+  }
+});
+
 // ─── GET /api/payments/stripe/connect ────────────────────────────────────────
 // Creates an Express connected account (if not already created) and returns
 // an account_onboarding link so the publisher can complete KYC/bank setup.
@@ -942,6 +989,27 @@ router.post("/stripe/webhook", async (req, res) => {
       case "checkout.session.async_payment_succeeded":
       case "checkout.session.completed": {
         const session = event.data.object;
+
+        if (session.metadata?.sku === "featured-listing-7d") {
+          if (session.payment_status !== "paid") break;
+          if (session.amount_total !== FEATURED_CENTS || session.currency !== "usd") {
+            console.error(
+              `[stripe] featured listing rejected session ${session.id} amount=${session.amount_total} ${session.currency}`
+            );
+            break;
+          }
+          const serverId = session.metadata.server_id;
+          if (serverId) {
+            const changed = db.prepare(
+              `UPDATE servers
+               SET featured_until = datetime(MAX(datetime('now'), COALESCE(featured_until, datetime('now'))), '+7 days')
+               WHERE id = ?`
+            ).run(serverId).changes;
+            if (!changed) console.error(`[stripe] featured listing: no server ${serverId}`);
+          }
+          break;
+        }
+
         const userId  = session.client_reference_id;
         if (!userId) break;
 
