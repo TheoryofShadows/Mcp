@@ -45,8 +45,8 @@ const PRICING_TIERS = [
   {
     id: "pro",
     name: "Pro Publisher",
-    price: "$29/mo",
-    price_amount: 2900,
+    price: "$8/mo",
+    price_amount: 800,
     desc: "For publishers who want priority discovery and revenue clarity.",
     accent: "var(--accent-electric)",
     gradient: "linear-gradient(135deg, rgba(77, 255, 180, 0.05), rgba(77, 159, 255, 0.05))",
@@ -62,8 +62,8 @@ const PRICING_TIERS = [
   {
     id: "enterprise",
     name: "Enterprise",
-    price: "$499/mo",
-    price_amount: 49900,
+    price: "$19/mo",
+    price_amount: 1900,
     desc: "For teams that need contracts and a private catalog — talk to us.",
     accent: "var(--accent-purple)",
     gradient: "var(--bg-card)",

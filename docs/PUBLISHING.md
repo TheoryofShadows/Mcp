@@ -146,8 +146,8 @@ Separate from per-tool sales, MCPX offers publisher plans:
 | Plan | Price | Highlights |
 |------|-------|-----------|
 | **Starter** | Free | 5 MCP servers, community support, basic analytics |
-| **Pro Publisher** | $29/mo | Unlimited servers, priority listing & discovery, revenue analytics, webhooks |
-| **Enterprise** | $499/mo | Team roles, private marketplace, SLA, dedicated support, SSO/SAML |
+| **Pro Publisher** | $8/mo | Unlimited servers, priority listing & discovery, revenue analytics, webhooks |
+| **Enterprise** | $19/mo | Team roles, private marketplace, SLA, dedicated support, SSO/SAML |
 
 Upgrades go through Stripe Checkout (subscription mode). The free tier never
 expires; paid tiers are managed by Stripe and reflected on your account

@@ -2,7 +2,7 @@
  * Payments — Stripe Connect SaaS platform integration
  *
  * Two flows:
- *  1. Platform subscriptions — publishers pay MCPX (Pro $29/mo, Enterprise $499/mo)
+ *  1. Platform subscriptions — publishers pay MCPX (Pro $8/mo, Enterprise $19/mo)
  *     via Stripe Checkout in "subscription" mode.
  *
  *  2. Stripe Connect (publisher payouts) — publishers onboard as Express connected
@@ -294,8 +294,8 @@ export function paymentsConfigWarnings(env = process.env) {
 // ─── Platform subscription price IDs ─────────────────────────────────────────
 
 const TIER_CONFIG = {
-  pro:        { name: "MCPX Pro Publisher",  amount: 2900,  env: "STRIPE_PRICE_PRO" },
-  enterprise: { name: "MCPX Enterprise",     amount: 49900, env: "STRIPE_PRICE_ENTERPRISE" },
+  pro:        { name: "MCPX Pro Publisher", amount: 800,  env: "STRIPE_PRICE_PRO",        lookup: "mcpx-pro" },
+  enterprise: { name: "MCPX Enterprise",    amount: 1900, env: "STRIPE_PRICE_ENTERPRISE", lookup: "mcpx-enterprise" },
 };
 
 const priceIdCache = {};
@@ -306,7 +306,24 @@ async function getPriceId(tierId) {
   const cfg = TIER_CONFIG[tierId];
   if (!cfg) throw new Error(`Unknown tier: ${tierId}`);
 
-  // 1. Use pinned env var if set
+  // Lookup key wins over STRIPE_PRICE_*. Those env vars stay pinned at the
+  // previous amount until someone edits the host, which would keep charging
+  // the old price after a cut.
+  try {
+    const listed = await stripe.prices.list({
+      lookup_keys: [cfg.lookup],
+      active: true,
+      limit: 1,
+    });
+    const hit = (listed.data || []).find((p) => p.unit_amount === cfg.amount);
+    if (hit) {
+      priceIdCache[tierId] = hit.id;
+      return hit.id;
+    }
+  } catch (err) {
+    console.error(`[stripe] lookup ${cfg.lookup} failed: ${err.message}`);
+  }
+
   if (process.env[cfg.env]) {
     priceIdCache[tierId] = process.env[cfg.env];
     return priceIdCache[tierId];
@@ -338,6 +355,7 @@ async function getPriceId(tierId) {
       unit_amount: cfg.amount,
       currency: "usd",
       recurring: { interval: "month" },
+      lookup_key: cfg.lookup,
       metadata: { mcpx_tier: tierId },
     },
     { idempotencyKey: `mcpx-price-${tierId}` }

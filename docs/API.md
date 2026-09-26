@@ -415,7 +415,7 @@ incremental polls). Cached for 5 minutes.
 ### `GET /tiers`
 
 Returns `{ tiers, revenue_projections, tech_stack }` describing the Starter
-(free), Pro Publisher ($29/mo), and Enterprise ($499/mo) plans.
+(free), Pro Publisher ($8/mo), and Enterprise ($19/mo) plans.
 
 ### `POST /tiers/subscribe` 🔒
 

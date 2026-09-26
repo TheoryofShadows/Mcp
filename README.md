@@ -75,8 +75,8 @@ Three problems no one else is solving well:
 | Plan | Price | Who it's for |
 |------|-------|-------------|
 | **Starter** | Free | Individual devs getting started. 5 servers, 1,000 API calls/month, community support, basic analytics. |
-| **Pro Publisher** | $29/mo | Serious publishers building a business. Unlimited servers, priority listing, revenue analytics dashboard, custom branding, webhook integrations. |
-| **Enterprise** | $499/mo | Teams and organizations at scale. Private marketplace, team management, SSO/SAML, SLA (99.9% uptime), dedicated support engineer, custom contracts. |
+| **Pro Publisher** | $8/mo | Serious publishers building a business. Unlimited servers, priority listing, revenue analytics dashboard, custom branding, webhook integrations. |
+| **Enterprise** | $19/mo | Teams and organizations at scale. Private marketplace, team management, SSO/SAML, SLA (99.9% uptime), dedicated support engineer, custom contracts. |
 
 **Publisher payouts:** The platform takes **15%** on paid tool sales. You keep **85%**. Payouts go directly to your Stripe Connect account — no minimum, no delays.
 

@@ -157,7 +157,7 @@ a *healthy* server, so nothing else will tell you.
 
 ### Who gets paid what
 
-- **Platform subscriptions** (Pro $29, Enterprise $499) — Checkout in
+- **Platform subscriptions** (Pro $8, Enterprise $19) — Checkout in
   `subscription` mode, straight to the platform balance.
 - **Paid tool sales** — destination charges: the publisher's connected account
   receives the charge, `application_fee_amount` (15%) is retained by the platform.
