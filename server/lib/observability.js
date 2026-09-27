@@ -19,7 +19,15 @@ const isTest = process.env.NODE_ENV === "test";
 export const logger = pino({
   level: process.env.LOG_LEVEL || (isTest ? "silent" : "info"),
   // Never let a stray secret ride along in a logged object.
-  redact: ["req.headers.authorization", "password", "token", "*.password", "*.token"],
+  redact: [
+    "req.headers.authorization",
+    "req.headers.cookie",
+    "res.headers['set-cookie']",
+    "password",
+    "token",
+    "*.password",
+    "*.token",
+  ],
 });
 
 // Don't log the health probe on every poll — it would drown the signal.

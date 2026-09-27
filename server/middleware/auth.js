@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { readSessionCookie } from "../lib/sessionCookie.js";
 import { randomBytes } from "node:crypto";
 import db from "../db.js";
 
@@ -52,7 +53,10 @@ setInterval(() => {
 
 export function authenticateToken(req, res, next) {
   const header = req.headers.authorization;
-  const token = header && header.startsWith("Bearer ") ? header.slice(7) : null;
+  const bearer = header && header.startsWith("Bearer ") ? header.slice(7) : null;
+  // Bearer wins when both are present, so an explicit API token is never
+  // shadowed by a browser cookie. The cookie is what the browser sends.
+  const token = bearer || readSessionCookie(req);
 
   if (!token) {
     req.user = null;

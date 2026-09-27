@@ -5,6 +5,7 @@ import { v4 as uuid } from "uuid";
 import db from "../db.js";
 import { signToken, requireAuth, revokeToken } from "../middleware/auth.js";
 import { auditLog } from "../lib/audit.js";
+import { rejectBrowserSession, issueSession, clearSessionCookie } from "../lib/sessionCookie.js";
 
 const router = Router();
 
@@ -103,6 +104,8 @@ router.post("/register", async (req, res) => {
     return res.status(400).json({ error: "Password must be at least 10 characters" });
   }
 
+  if (rejectBrowserSession(req, res)) return;
+
   const existing = db.prepare("SELECT id FROM users WHERE email = ? OR username = ?").get(email, username);
   if (existing) {
     return res.status(409).json({ error: "Email or username already taken" });
@@ -120,7 +123,7 @@ router.post("/register", async (req, res) => {
   const token = signToken({ id });
   const user = db.prepare("SELECT id, email, username, display_name, tier, created_at FROM users WHERE id = ?").get(id);
 
-  res.status(201).json({ token, user });
+  return issueSession(req, res, token, user, 201);
 });
 
 // POST /api/auth/login
@@ -131,6 +134,8 @@ router.post("/login", async (req, res) => {
   if (!email || !password) {
     return res.status(400).json({ error: "Email and password are required" });
   }
+
+  if (rejectBrowserSession(req, res)) return;
 
   const ip = req.ip || req.socket?.remoteAddress || "unknown";
   const user = db.prepare("SELECT * FROM users WHERE email = ?").get(email);
@@ -147,21 +152,18 @@ router.post("/login", async (req, res) => {
 
   const token = signToken({ id: user.id });
 
-  res.json({
-    token,
-    user: {
-      id: user.id,
-      email: user.email,
-      username: user.username,
-      display_name: user.display_name,
-      tier: user.tier,
-      created_at: user.created_at,
-      stripe_onboarding_done: !!user.stripe_onboarding_done,
-      stripe_connected: !!user.stripe_onboarding_done && !!user.stripe_account_id,
-      // pending | verifying | restricted | enabled — why payouts aren't live yet.
-      stripe_payouts_status: user.stripe_payouts_status || (user.stripe_account_id ? "pending" : null),
-      solana_wallet: user.solana_wallet || null,
-    },
+  return issueSession(req, res, token, {
+    id: user.id,
+    email: user.email,
+    username: user.username,
+    display_name: user.display_name,
+    tier: user.tier,
+    created_at: user.created_at,
+    stripe_onboarding_done: !!user.stripe_onboarding_done,
+    stripe_connected: !!user.stripe_onboarding_done && !!user.stripe_account_id,
+    // pending | verifying | restricted | enabled — why payouts aren't live yet.
+    stripe_payouts_status: user.stripe_payouts_status || (user.stripe_account_id ? "pending" : null),
+    solana_wallet: user.solana_wallet || null,
   });
 });
 
@@ -363,6 +365,7 @@ router.delete("/account", requireAuth, async (req, res) => {
   })();
 
   revokeToken(req.user);
+  clearSessionCookie(req, res);
   auditLog("auth.account.delete", req.user.id, {});
   res.json({
     success: true,
@@ -373,6 +376,7 @@ router.delete("/account", requireAuth, async (req, res) => {
 
 router.post("/logout", requireAuth, (req, res) => {
   revokeToken(req.user);
+  clearSessionCookie(req, res);
   auditLog("auth.logout", req.user.id, { jti: req.user.jti });
   res.json({ success: true });
 });
