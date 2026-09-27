@@ -79,7 +79,11 @@ if (!LIVE) {
 for (const { dir, name, version } of plan) {
   process.stdout.write(`publishing ${name}@${version} … `);
   try {
-    run("npm", ["publish"], join(ROOT, dir));
+    // Provenance needs the workflow's id-token permission. A laptop publish
+    // has no GitHub OIDC token, so it stays a normal publish.
+    const args = ["publish"];
+    if (process.env.GITHUB_ACTIONS === "true") args.push("--provenance");
+    run("npm", args, join(ROOT, dir));
     console.log("ok");
   } catch (err) {
     console.log("FAILED");
