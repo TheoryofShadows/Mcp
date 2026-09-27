@@ -1,7 +1,8 @@
 name: CI
 
-# Quality gate for every change. Lints, tests and builds the app so a red build
-# can be caught on the PR instead of auto-deploying to Railway from `main`.
+# Quality gate for every change. Railway deploys `main` on its own, and it
+# only waits for this workflow when the service's Wait for CI (checkSuites)
+# flag is on. A red run must skip that deploy, not race it.
 
 on:
   pull_request:
@@ -21,6 +22,7 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
