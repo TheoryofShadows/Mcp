@@ -5,18 +5,8 @@
 const API_HOST = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
 const BASE = `${API_HOST}/api`;
 
-function getToken() {
-  try {
-    return localStorage.getItem("mcpx_token");
-  } catch {
-    return null;
-  }
-}
-
 async function request(path, options = {}) {
-  const token = getToken();
   const headers = { "Content-Type": "application/json", ...options.headers };
-  if (token) headers.Authorization = `Bearer ${token}`;
 
   // 30-second timeout — prevents silent hangs on slow/dead server
   const controller = new AbortController();
@@ -24,7 +14,12 @@ async function request(path, options = {}) {
 
   let res;
   try {
-    res = await fetch(`${BASE}${path}`, { ...options, headers, signal: controller.signal });
+    res = await fetch(`${BASE}${path}`, {
+      ...options,
+      headers,
+      credentials: "include",
+      signal: controller.signal,
+    });
   } catch (err) {
     clearTimeout(timer);
     if (err.name === "AbortError") throw new Error("Request timed out");
@@ -63,6 +58,10 @@ export async function register(email, username, password) {
     method: "POST",
     body: JSON.stringify({ email, username, password, display_name: username }),
   });
+}
+
+export async function logout() {
+  return request("/auth/logout", { method: "POST" });
 }
 
 export async function getMe() {

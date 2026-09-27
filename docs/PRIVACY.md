@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Effective 2026-09-12** · MCPX, operated by TheoryofShadows
+**Effective 2026-09-27** · MCPX, operated by TheoryofShadows
 Contact: https://github.com/TheoryofShadows/Mcp/issues
 
 This describes what MCPX actually stores. It was written by reading the
@@ -47,8 +47,17 @@ We do not sell your data. We do not share it for advertising.
 
 ## Cookies
 
-MCPX uses **no tracking cookies**. Your login is a token held in your browser's
-local storage, sent only to our own API, and removed when you sign out.
+MCPX uses **no tracking cookies**. Analytics still store no cookie and no visitor id.
+
+The browser session is one first-party cookie, `mcpx_token`. It is HttpOnly, so
+page scripts cannot read it, `SameSite=Lax`, and it is set only for the host
+you signed in on (the canonical host, when that is configured). It carries the
+same 24-hour signed login token as before, and logout revokes that token and
+clears the cookie. It is not shared with Stripe, Sentry, or any advertiser.
+
+Non-browser clients (the CLI, scripts) do not use the cookie. They send
+`Authorization: Bearer` and can ask the login response to include the token
+with the `X-MCPX-Issue-Token: 1` header. The website does not.
 
 ## How long we keep things
 

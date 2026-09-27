@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { AuthContext } from "./authContextValue";
 import { supabase, isSupabaseEnabled } from "../lib/supabase";
-import { login as apiLogin, register as apiRegister, getMe } from "../api/client";
-import { getItem, setItem, removeItem } from "../lib/safeStorage";
+import { login as apiLogin, register as apiRegister, logout as apiLogout, getMe } from "../api/client";
+import { removeItem } from "../lib/safeStorage";
 
 export { AuthContext };
 
@@ -27,12 +27,12 @@ export default function AuthProvider({ children }) {
       return () => subscription.unsubscribe();
     } else {
       // ── Fallback: custom JWT auth via Express API ───────────────────────────
-      const token = getItem(TOKEN_KEY);
-      if (!token) { setLoading(false); return; }
+      // Drop any session token an older build left where page scripts can read it.
+      removeItem(TOKEN_KEY);
       let cancelled = false;
       getMe()
         .then((u) => { if (!cancelled) setUser(u); })
-        .catch(() => { removeItem(TOKEN_KEY); })
+        .catch(() => {})
         .finally(() => { if (!cancelled) setLoading(false); });
       return () => { cancelled = true; };
     }
@@ -46,8 +46,7 @@ export default function AuthProvider({ children }) {
       setUser(data.user);
       return data.user;
     }
-    const { token, user: u } = await apiLogin(email, password);
-    setItem(TOKEN_KEY, token);
+    const { user: u } = await apiLogin(email, password);
     setUser(u);
     return u;
   }, []);
@@ -60,8 +59,7 @@ export default function AuthProvider({ children }) {
       setUser(data.user);
       return data.user;
     }
-    const { token, user: u } = await apiRegister(email, username, password);
-    setItem(TOKEN_KEY, token);
+    const { user: u } = await apiRegister(email, username, password);
     setUser(u);
     return u;
   }, []);
@@ -71,6 +69,7 @@ export default function AuthProvider({ children }) {
     if (isSupabaseEnabled) {
       await supabase.auth.signOut();
     } else {
+      try { await apiLogout(); } catch { /* cookie already gone, or never signed in */ }
       removeItem(TOKEN_KEY);
     }
     setUser(null);
