@@ -80,10 +80,10 @@ export function createApp() {
       "frame-ancestors 'none'",
       "form-action 'self'",
       "img-src 'self' data: https:",
-      "script-src 'self'",
+      "script-src 'self' https://static.cloudflareinsights.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
-      `connect-src 'self' https://api.descope.com https://*.supabase.co https://api.stripe.com${process.env.CSP_CONNECT_ORIGINS ? " " + process.env.CSP_CONNECT_ORIGINS : ""}`,
+      `connect-src 'self' https://cloudflareinsights.com https://api.descope.com https://*.supabase.co https://api.stripe.com${process.env.CSP_CONNECT_ORIGINS ? " " + process.env.CSP_CONNECT_ORIGINS : ""}`,
     ].join("; "));
     next();
   });
